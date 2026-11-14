@@ -208,13 +208,14 @@ The design intentionally uses fewer panels than a traditional mission-control da
 - Achievements are compact tiles with an icon, name, description, and unlock date. Locked tiles use a dashed border and a lock icon, never a red or warning surface.
 - A new achievement appears as a celebration panel on the check-in report and quiz result. There is no confetti or flash; the accent-soft surface and the unlock line carry the moment.
 
-### 6.7 Quizzes
+### 6.7 Quizzes and screens
 
-- `/quizzes` lists the two quizzes as `QuizCard` buttons with mode, question count, best score, and retake state.
+- `/quizzes` lists four checks: two knowledge quizzes and two screening tools (PHQ-9 depression, GAD-7 anxiety). Cards show mode, question count, best score or latest screening severity, and retake state.
 - The runner is one question at a time with a progress bar, large option rows, Back/Next, and a final Submit. Every option exposes `aria-pressed`.
 - The crew quiz starts with a consent gate: a crewmate select populated only with `status_only` or `full` subjects. If no one is eligible, the Start action is disabled and the page says why.
-- The result shows the score, correct count, credits awarded (first completion only), new achievements, and a review of every question with the selected answer, correct answer, and source explanation.
-- The answer key is never present in the quiz detail response; it appears only after submission.
+- Knowledge results show score, correct count, points, achievements, and a review with the selected answer, correct answer, and source explanation. The answer key never appears before submission.
+- Screening results show total score/max, severity, advice, and a compact response review. PHQ-9 item 9 sets a self-harm flag that renders a solid red escalation card regardless of total score.
+- Screening responses do not award mission points or quiz achievements. They are visible to the flight surgeon in the Quizzes tab of the Earth-side console.
 
 ### 6.8 Training and Duty Roster
 

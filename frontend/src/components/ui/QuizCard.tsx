@@ -1,14 +1,19 @@
-import { HelpCircle, Trophy, Users } from "lucide-react";
+import { Activity, HelpCircle, Trophy, Users } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 export type QuizMode = "self" | "crew";
+export type QuizKind = "knowledge" | "screening";
 
 export interface QuizCardProps {
   title: string;
   mode: QuizMode;
+  kind?: QuizKind;
   questions: number;
   bestScore?: number;
+  latestTotalScore?: number;
+  maxScore?: number;
+  latestSeverityLabel?: string;
   status?: "new" | "in-progress" | "completed";
   onStart?: () => void;
   className?: string;
@@ -16,33 +21,36 @@ export interface QuizCardProps {
 
 const MODE_META: Record<
   QuizMode,
-  { label: string; icon: typeof Users; className: string; copy: string }
+  { label: string; icon: typeof Users; className: string }
 > = {
   self: {
     label: "Know yourself",
     icon: HelpCircle,
     className: "bg-accent-soft text-accent",
-    copy: "Health literacy about your own body",
   },
   crew: {
     label: "Know your crew",
     icon: Users,
     className: "bg-watch-soft text-watch",
-    copy: "Consent-based perception check",
   },
 };
 
 export function QuizCard({
   title,
   mode,
+  kind = "knowledge",
   questions,
   bestScore,
+  latestTotalScore,
+  maxScore,
+  latestSeverityLabel,
   status = "new",
   onStart,
   className,
 }: QuizCardProps) {
+  const screening = kind === "screening";
   const meta = MODE_META[mode];
-  const Icon = meta.icon;
+  const Icon = screening ? Activity : meta.icon;
 
   return (
     <button
@@ -50,7 +58,11 @@ export function QuizCard({
       onClick={onStart}
       className={cn(
         "group flex w-full flex-col gap-3 rounded-2xl border p-4 text-left transition-transform duration-150 hover:-translate-y-0.5",
-        mode === "self" ? "border-accent/20 bg-accent-soft" : "border-watch/25 bg-watch-soft",
+        screening
+          ? "border-accent/25 bg-surface"
+          : mode === "self"
+            ? "border-accent/20 bg-accent-soft"
+            : "border-watch/25 bg-watch-soft",
         className,
       )}
     >
@@ -58,17 +70,30 @@ export function QuizCard({
         <span
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium",
-            meta.className,
+            screening ? "bg-surface-muted text-ink-2" : meta.className,
           )}
         >
           <Icon size={11} aria-hidden />
-          {meta.label}
+          {screening ? "Screening" : meta.label}
         </span>
-        {bestScore !== undefined && (
-          <span className="inline-flex items-center gap-1 text-xs text-nominal">
-            <Trophy size={11} aria-hidden />
-            {bestScore}%
-          </span>
+        {screening ? (
+          latestTotalScore !== undefined && latestTotalScore !== null ? (
+            <span className="inline-flex items-baseline gap-1 text-[10px] text-muted">
+              <span className="text-xs font-semibold tabular text-ink">
+                {latestTotalScore}/{maxScore}
+              </span>
+              {latestSeverityLabel}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted">Not taken</span>
+          )
+        ) : (
+          bestScore !== undefined && (
+            <span className="inline-flex items-center gap-1 text-xs text-nominal">
+              <Trophy size={11} aria-hidden />
+              {Math.round(bestScore)}%
+            </span>
+          )
         )}
       </div>
 

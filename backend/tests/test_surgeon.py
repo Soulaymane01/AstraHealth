@@ -74,6 +74,17 @@ def test_surgeon_can_read_crew_quiz_results(
             completed_at=datetime.now(UTC),
         )
     )
+    phq = db_session.scalar(select(Quiz).where(Quiz.slug == "phq9-depression"))
+    assert phq is not None
+    db_session.add(
+        QuizAttempt(
+            quiz_id=phq.id,
+            user_id=test_user.id,
+            answers=[1, 1, 1, 1, 1, 1, 1, 1, 0],
+            score=33.3,
+            completed_at=datetime.now(UTC),
+        )
+    )
     db_session.commit()
 
     headers = _headers(surgeon)
@@ -84,6 +95,10 @@ def test_surgeon_can_read_crew_quiz_results(
     assert quiz_result["attempt_count"] == 1
     assert quiz_result["best_score"] == 80.0
     assert quiz_result["attempts"][0]["score"] == 80.0
+    screening = next(item for item in body if item["slug"] == "phq9-depression")
+    assert screening["kind"] == "screening"
+    assert screening["latest_total_score"] == 8
+    assert screening["latest_severity"] == "mild"
 
     forbidden = client.get(
         f"/surgeon/crew/{test_user.id}/quizzes",

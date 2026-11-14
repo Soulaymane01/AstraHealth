@@ -3,13 +3,150 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/Button";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton } from "@/components/ui/Skeleton";
+import { useAssistantStore } from "@/features/assistant/store";
 import { AchievementTile } from "@/features/gamification/components/AchievementTile";
 import { useQuiz, useSubmitQuiz } from "@/features/quizzes/queries";
 import type { Quiz, QuizResult } from "@/lib/api/types";
 import { cn } from "@/lib/utils";
+
+const SEVERITY_TONE: Record<string, string> = {
+  minimal: "border-nominal/25 bg-nominal-soft text-nominal",
+  mild: "border-watch/30 bg-watch-soft text-watch",
+  moderate: "border-caution/30 bg-caution-soft text-caution",
+  moderately_severe: "border-critical/30 bg-critical-soft text-critical",
+  severe: "border-critical bg-critical text-white",
+};
+
+function ScreeningResultView({
+  quiz,
+  result,
+  onRetake,
+}: {
+  quiz: Quiz;
+  result: QuizResult;
+  onRetake: () => void;
+}) {
+  const navigate = useNavigate();
+  const openAssistant = useAssistantStore((state) => state.openAssistant);
+  const tone = SEVERITY_TONE[result.severity ?? ""] ?? "border-line bg-surface-muted text-ink-2";
+  const urgent = result.self_harm_flag || result.severity === "severe";
+
+  return (
+    <div>
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted">
+        <Link to="/quizzes" className="hover:text-ink">
+          Quizzes
+        </Link>
+        <ChevronRight size={12} aria-hidden />
+        <span className="text-ink-2">{quiz.title}</span>
+      </div>
+
+      <Panel className="mt-4" title={quiz.title} subtitle="Screening result">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm text-muted">Total score</p>
+            <p className="text-5xl font-semibold tabular tracking-tight text-ink">
+              {result.total_score}
+              <span className="text-lg font-normal text-muted">/{result.max_score}</span>
+            </p>
+          </div>
+          <span
+            className={cn(
+              "inline-flex w-fit rounded-full border px-3 py-1.5 text-xs font-semibold",
+              tone,
+            )}
+          >
+            {result.severity_label}
+          </span>
+        </div>
+
+        {urgent && (
+          <div className="mt-4 rounded-2xl bg-critical p-4 text-white">
+            <p className="text-sm font-semibold">
+              {result.self_harm_flag
+                ? "You reported thoughts of self-harm."
+                : "Severe symptoms reported."}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-white/85">
+              Contact the flight surgeon now. If there is immediate danger, follow the mission
+              emergency procedure.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-3 border-white/30 bg-white text-critical hover:bg-white/90"
+              onClick={openAssistant}
+            >
+              Talk to the Flight Surgeon
+            </Button>
+          </div>
+        )}
+
+        {result.self_harm_flag ? (
+          <p className="mt-3 text-[10px] text-muted">
+            Screening score {result.total_score}/{result.max_score}. The self-harm response is the
+            priority, not the total.
+          </p>
+        ) : !urgent ? (
+          <div className="mt-4 rounded-xl bg-surface-muted px-3.5 py-3">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">
+              What this means
+            </p>
+            <p className="mt-1 text-[12px] leading-relaxed text-ink-2">{result.severity_advice}</p>
+          </div>
+        ) : null}
+
+        <p className="mt-3 text-[10px] leading-relaxed text-muted">
+          This is a screening tool, not a diagnosis. Responses are visible to the flight surgeon.
+          Screening responses do not award mission points.
+        </p>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button variant="primary" size="sm" onClick={onRetake}>
+            <RotateCcw size={12} aria-hidden />
+            Retake screening
+          </Button>
+          {!urgent && (
+            <Button variant="secondary" size="sm" onClick={openAssistant}>
+              Talk to the Flight Surgeon
+            </Button>
+          )}
+          <Button variant="ghost" size="sm" onClick={() => navigate("/quizzes")}>
+            Back to quizzes
+          </Button>
+        </div>
+      </Panel>
+
+      <Panel className="mt-4" title="Your responses" subtitle="Over the last 2 weeks">
+        <Disclosure
+          summary="Review the answers you submitted"
+          meta={`${result.questions.length}`}
+          summaryClassName="text-[11px] font-medium text-accent"
+        >
+          <ol className="space-y-2">
+            {result.questions.map((question, index) => (
+              <li
+                key={question.id}
+                className="flex items-start justify-between gap-3 rounded-lg bg-surface-muted/60 px-3 py-2"
+              >
+                <span className="text-[11px] leading-relaxed text-ink-2">
+                  {index + 1}. {question.prompt}
+                </span>
+                <span className="shrink-0 text-[10px] font-medium text-ink">
+                  {question.options[question.selected_index ?? 0] ?? "No answer"}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </Disclosure>
+      </Panel>
+    </div>
+  );
+}
 
 function ResultView({
   quiz,
@@ -156,22 +293,21 @@ export function QuizRunnerPage() {
   }
 
   const quiz = quizQuery.data;
+  const screening = quiz.kind === "screening";
+  const resetQuiz = () => {
+    setResult(null);
+    setStarted(false);
+    setCurrent(0);
+    setAnswers([]);
+    setSubjectId("");
+    setError(null);
+  };
 
   if (result) {
-    return (
-      <ResultView
-        quiz={quiz}
-        result={result}
-        onRetake={() => {
-          setResult(null);
-          setStarted(false);
-          setCurrent(0);
-          setAnswers([]);
-          setSubjectId("");
-          setError(null);
-        }}
-      />
-    );
+    if (result.kind === "screening") {
+      return <ScreeningResultView quiz={quiz} result={result} onRetake={resetQuiz} />;
+    }
+    return <ResultView quiz={quiz} result={result} onRetake={resetQuiz} />;
   }
 
   const start = () => {
@@ -199,12 +335,16 @@ export function QuizRunnerPage() {
         <Panel
           className="mt-4"
           title={quiz.title}
-          subtitle={`${quiz.questions.length} questions · ${quiz.mode} mode`}
+          subtitle={`${quiz.questions.length} questions · ${
+            screening ? "screening" : `${quiz.mode} mode`
+          }`}
         >
           <p className="text-[13px] leading-relaxed text-ink-2">
-            {quiz.mode === "crew"
-              ? "This is a perception check, not a diagnosis. Choose a crewmate who has shared their status, then answer about what you have noticed."
-              : "A short check on sleep, recovery, and red flags. Every answer includes a source explanation."}
+            {screening
+              ? "Over the last 2 weeks, how often have you been bothered by the following? This is a screening check, not a diagnosis. Your responses are visible to the flight surgeon and do not award mission points."
+              : quiz.mode === "crew"
+                ? "This is a perception check, not a diagnosis. Choose a crewmate who has shared their status, then answer about what you have noticed."
+                : "A short check on sleep, recovery, and red flags. Every answer includes a source explanation."}
           </p>
 
           {quiz.mode === "crew" && (
@@ -228,7 +368,7 @@ export function QuizRunnerPage() {
               {quiz.eligible_subjects.length === 0 ? (
                 <p className="mt-2 text-[11px] text-caution">
                   No crewmates have consented to be a subject yet. They can change their sharing
-                  preference on the Crew page.
+                  preference in their profile settings.
                 </p>
               ) : (
                 <p className="mt-2 text-[10px] leading-relaxed text-muted">
@@ -251,7 +391,7 @@ export function QuizRunnerPage() {
             onClick={start}
             disabled={!canStart}
           >
-            Start quiz
+            {screening ? "Start screening" : "Start quiz"}
             <ChevronRight size={14} aria-hidden />
           </Button>
         </Panel>
@@ -307,7 +447,11 @@ export function QuizRunnerPage() {
         </span>
       </div>
 
-      <Panel className="mt-3" title={quiz.title} subtitle={`${quiz.mode} mode`}>
+      <Panel
+        className="mt-3"
+        title={quiz.title}
+        subtitle={screening ? "Over the last 2 weeks" : `${quiz.mode} mode`}
+      >
         <div className="h-1 overflow-hidden rounded-full bg-line">
           <div
             className="h-full rounded-full bg-accent transition-[width] duration-300"
@@ -366,15 +510,20 @@ export function QuizRunnerPage() {
             Back
           </Button>
           <Button variant="primary" size="sm" onClick={next} disabled={submitQuiz.isPending}>
-            {current === quiz.questions.length - 1 ? "Submit quiz" : "Next question"}
+            {current === quiz.questions.length - 1
+              ? screening
+                ? "Submit screening"
+                : "Submit quiz"
+              : "Next question"}
             <ChevronRight size={13} aria-hidden />
           </Button>
         </div>
       </Panel>
 
       <p className="mt-3 text-center text-[10px] text-muted">
-        Guidance only, not a diagnosis. If a crewmate has a red flag, escalate to the flight
-        surgeon.
+        {screening
+          ? "Screening only, not a diagnosis. If you are in crisis, contact the flight surgeon now."
+          : "Guidance only, not a diagnosis. If a crewmate has a red flag, escalate to the flight surgeon."}
       </p>
     </div>
   );

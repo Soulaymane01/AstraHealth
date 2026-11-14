@@ -157,7 +157,7 @@ def main() -> int:
             "knowledge": 9,
             "training items": 8,
             "achievements": 5,
-            "quizzes": 2,
+            "quizzes": 4,
         }
         checks.append(
             (

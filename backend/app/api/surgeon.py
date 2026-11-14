@@ -49,6 +49,7 @@ from app.services.captures import (
 )
 from app.services.followups import ensure_ai_followup
 from app.services.prediction import predict_crew_risk
+from app.services.quiz_screening import screening_for, screening_reading
 from app.services.readiness import (
     SEVERITY_ORDER,
     compute_and_persist_readiness,
@@ -246,27 +247,64 @@ def read_crew_quizzes(
 
     result: list[SurgeonQuizSummaryRead] = []
     for quiz in quizzes:
+        screening = screening_for(quiz.slug)
         attempts = by_quiz.get(quiz.id, [])
+        latest = attempts[0] if attempts else None
+        latest_total = latest_severity = latest_label = None
+        latest_self_harm = False
+        if screening is not None and latest is not None:
+            total, band, self_harm = screening_reading(
+                screening, quiz.questions, latest[0].answers
+            )
+            latest_total = total
+            latest_severity = band.key
+            latest_label = band.label
+            latest_self_harm = self_harm
+
+        attempt_items: list[SurgeonQuizAttemptRead] = []
+        for attempt, subject in attempts:
+            total_score = severity = severity_label = None
+            self_harm = False
+            if screening is not None:
+                total_score, band, self_harm = screening_reading(
+                    screening, quiz.questions, attempt.answers
+                )
+                severity = band.key
+                severity_label = band.label
+            attempt_items.append(
+                SurgeonQuizAttemptRead(
+                    id=attempt.id,
+                    score=attempt.score,
+                    total_score=total_score,
+                    severity=severity,
+                    severity_label=severity_label,
+                    self_harm_flag=self_harm,
+                    completed_at=attempt.completed_at,
+                    subject_name=subject.full_name if subject else None,
+                )
+            )
+
         result.append(
             SurgeonQuizSummaryRead(
                 slug=quiz.slug,
                 title=quiz.title,
                 mode=quiz.mode,
+                kind="screening" if screening else "knowledge",
+                instrument=screening.instrument if screening else None,
+                max_score=screening.max_score if screening else None,
                 question_count=len(quiz.questions),
                 attempt_count=len(attempts),
-                best_score=max((attempt.score for attempt, _ in attempts), default=None),
-                last_attempted_at=max(
-                    (attempt.completed_at for attempt, _ in attempts), default=None
+                best_score=(
+                    None
+                    if screening
+                    else max((attempt.score for attempt, _ in attempts), default=None)
                 ),
-                attempts=[
-                    SurgeonQuizAttemptRead(
-                        id=attempt.id,
-                        score=attempt.score,
-                        completed_at=attempt.completed_at,
-                        subject_name=subject.full_name if subject else None,
-                    )
-                    for attempt, subject in attempts
-                ],
+                latest_total_score=latest_total,
+                latest_severity=latest_severity,
+                latest_severity_label=latest_label,
+                latest_self_harm_flag=latest_self_harm,
+                last_attempted_at=latest[0].completed_at if latest else None,
+                attempts=attempt_items,
             )
         )
     return result

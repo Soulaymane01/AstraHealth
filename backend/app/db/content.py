@@ -526,6 +526,100 @@ QUIZZES = [
             },
         ],
     },
+    {
+        "slug": "phq9-depression",
+        "title": "PHQ-9 · Depression screen",
+        "mode": "self",
+        "questions": [
+            {
+                "id": "q1",
+                "prompt": "Little interest or pleasure in doing things.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q2",
+                "prompt": "Feeling down, depressed, or hopeless.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q3",
+                "prompt": "Trouble falling or staying asleep, or sleeping too much.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q4",
+                "prompt": "Feeling tired or having little energy.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q5",
+                "prompt": "Poor appetite or overeating.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q6",
+                "prompt": "Feeling bad about yourself — or that you are a failure or have let yourself or your family down.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q7",
+                "prompt": "Trouble concentrating on things, such as reading or watching a video.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q8",
+                "prompt": "Moving or speaking so slowly that other people could have noticed — or the opposite, being so fidgety or restless that you have been moving around a lot more than usual.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q9",
+                "prompt": "Thoughts that you would be better off dead or of hurting yourself in some way.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+        ],
+    },
+    {
+        "slug": "gad7-anxiety",
+        "title": "GAD-7 · Anxiety screen",
+        "mode": "self",
+        "questions": [
+            {
+                "id": "q1",
+                "prompt": "Feeling nervous, anxious, or on edge.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q2",
+                "prompt": "Not being able to stop or control worrying.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q3",
+                "prompt": "Worrying too much about different things.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q4",
+                "prompt": "Trouble relaxing.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q5",
+                "prompt": "Being so restless that it is hard to sit still.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q6",
+                "prompt": "Becoming easily annoyed or irritable.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+            {
+                "id": "q7",
+                "prompt": "Feeling afraid, as if something awful might happen.",
+                "options": ["Not at all", "Several days", "More than half the days", "Nearly every day"],
+            },
+        ],
+    },
 ]
 
 KNOWLEDGE_ARTICLES = [

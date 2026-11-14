@@ -13,7 +13,12 @@ def test_quiz_list_and_detail_hide_answers(
     listing = client.get("/quizzes", headers=auth_headers)
     assert listing.status_code == 200
     quizzes = listing.json()
-    assert {quiz["slug"] for quiz in quizzes} == {"know-yourself", "know-your-crew"}
+    assert {quiz["slug"] for quiz in quizzes} == {
+        "know-yourself",
+        "know-your-crew",
+        "phq9-depression",
+        "gad7-anxiety",
+    }
     self_quiz = next(quiz for quiz in quizzes if quiz["slug"] == "know-yourself")
     assert self_quiz["mode"] == "self"
     assert self_quiz["question_count"] == 5
@@ -106,3 +111,52 @@ def test_crew_quiz_requires_consent(
     assert body["score"] == 100.0
     assert body["subject"]["id"] == other.id
     assert body["subject"]["share_status"] == "status_only"
+
+
+def test_screening_quizzes_report_total_severity_and_self_harm(
+    client: TestClient, auth_headers: dict[str, str], content_seed: None
+) -> None:
+    detail = client.get("/quizzes/phq9-depression", headers=auth_headers)
+    assert detail.status_code == 200
+    body = detail.json()
+    assert body["kind"] == "screening"
+    assert body["instrument"] == "phq9"
+    assert body["max_score"] == 27
+    assert len(body["questions"]) == 9
+
+    result = client.post(
+        "/quizzes/phq9-depression/submit",
+        json={"answers": [0, 0, 0, 0, 0, 0, 0, 0, 3]},
+        headers=auth_headers,
+    )
+    assert result.status_code == 200
+    payload = result.json()
+    assert payload["kind"] == "screening"
+    assert payload["total_score"] == 3
+    assert payload["max_score"] == 27
+    assert payload["severity"] == "minimal"
+    assert payload["self_harm_flag"] is True
+    assert "contact the flight surgeon now" in payload["severity_advice"].lower()
+    assert payload["credits_awarded"] == 0
+    assert payload["new_achievements"] == []
+    assert payload["correct_count"] == 0
+    assert payload["questions"][8]["score_value"] == 3
+
+    anxiety = client.post(
+        "/quizzes/gad7-anxiety/submit",
+        json={"answers": [2, 2, 2, 2, 2, 2, 2]},
+        headers=auth_headers,
+    )
+    assert anxiety.status_code == 200
+    anxiety_body = anxiety.json()
+    assert anxiety_body["total_score"] == 14
+    assert anxiety_body["severity"] == "moderate"
+    assert anxiety_body["severity_label"] == "Moderate"
+    assert anxiety_body["credits_awarded"] == 0
+
+    listing = client.get("/quizzes", headers=auth_headers).json()
+    phq = next(item for item in listing if item["slug"] == "phq9-depression")
+    assert phq["kind"] == "screening"
+    assert phq["latest_total_score"] == 3
+    assert phq["latest_severity"] == "minimal"
+    assert phq["best_score"] is None

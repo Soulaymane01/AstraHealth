@@ -25,7 +25,10 @@ export function QuizzesPage() {
     );
   }
 
-  const quizzes = quizzesQuery.data ?? [];
+  const order = ["know-yourself", "know-your-crew", "phq9-depression", "gad7-anxiety"];
+  const quizzes = [...(quizzesQuery.data ?? [])].sort(
+    (a, b) => order.indexOf(a.slug) - order.indexOf(b.slug),
+  );
 
   return (
     <div>
@@ -35,11 +38,11 @@ export function QuizzesPage() {
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
             Know yourself. Know your crew.
           </h1>
-          <p className="mt-1 text-sm text-muted">Two five-question checks.</p>
+          <p className="mt-1 text-sm text-muted">Two knowledge checks. Two mental-health screens.</p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-muted">
           <BookOpenCheck size={12} className="text-accent" aria-hidden />
-          Five questions each
+          {quizzes.length} checks
         </span>
       </div>
 
@@ -49,14 +52,22 @@ export function QuizzesPage() {
             key={quiz.slug}
             title={quiz.title}
             mode={quiz.mode as "self" | "crew"}
+            kind={quiz.kind as "knowledge" | "screening"}
             questions={quiz.question_count}
             bestScore={quiz.best_score ?? undefined}
-            status={quiz.best_score !== null ? "completed" : "new"}
+            latestTotalScore={quiz.latest_total_score ?? undefined}
+            maxScore={quiz.max_score ?? undefined}
+            latestSeverityLabel={quiz.latest_severity_label ?? undefined}
+            status={quiz.attempt_count > 0 ? "completed" : "new"}
             onStart={() => navigate(`/quizzes/${quiz.slug}`)}
           />
         ))}
       </div>
 
+      <p className="mt-4 text-[10px] leading-relaxed text-muted">
+        Screening tools are not diagnoses. PHQ-9 and GAD-7 responses are visible to the flight
+        surgeon and do not award mission points.
+      </p>
     </div>
   );
 }

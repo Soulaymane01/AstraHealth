@@ -161,9 +161,9 @@ Captures use `source=iss_capture`, `lunar_capture`, or `mars_capture` depending 
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/quizzes` | Available quizzes with best score and attempt count |
+| GET | `/quizzes` | Available knowledge quizzes and screening tools with best score / latest severity and attempt count |
 | GET | `/quizzes/{slug}` | Quiz questions without answer keys; eligible crew subjects |
-| POST | `/quizzes/{slug}/submit` | Score answers, award first-completion credits, and return explanations |
+| POST | `/quizzes/{slug}/submit` | Score knowledge answers or sum a screening; returns explanations, severity, advice, and the PHQ-9 self-harm flag |
 
 ### Knowledge
 

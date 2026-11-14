@@ -1114,8 +1114,8 @@ export function SurgeonPage() {
 
               {tab === "quizzes" && (
                 <Panel
-                  title="Health literacy"
-                  subtitle={`Quiz results for ${member.full_name}.`}
+                  title="Quizzes & screens"
+                  subtitle={`Results for ${member.full_name}.`}
                 >
                   {quizzesQuery.isLoading ? (
                     <div className="grid gap-3 lg:grid-cols-2">
@@ -1131,10 +1131,35 @@ export function SurgeonPage() {
                     />
                   ) : (
                     <div className="grid gap-3 lg:grid-cols-2">
-                      {(quizzesQuery.data ?? []).map((quiz) => {
+                      {[...(quizzesQuery.data ?? [])]
+                        .sort((a, b) => {
+                          const order = [
+                            "know-yourself",
+                            "know-your-crew",
+                            "phq9-depression",
+                            "gad7-anxiety",
+                          ];
+                          return order.indexOf(a.slug) - order.indexOf(b.slug);
+                        })
+                        .map((quiz) => {
+                        const screening = quiz.kind === "screening";
                         const best = quiz.best_score;
                         const latest = quiz.attempts[0];
-                        const modeLabel = quiz.mode === "crew" ? "Crew" : "Self";
+                        const modeLabel = screening
+                          ? "Screening"
+                          : quiz.mode === "crew"
+                            ? "Crew"
+                            : "Self";
+                        const displayValue = screening
+                          ? latest?.total_score !== null && latest?.total_score !== undefined
+                            ? `${latest.total_score}/${quiz.max_score}`
+                            : "—"
+                          : best === null
+                            ? "—"
+                            : Math.round(best).toString();
+                        const progress = screening
+                          ? ((latest?.total_score ?? 0) / (quiz.max_score ?? 1)) * 100
+                          : (best ?? 0);
                         return (
                           <article
                             key={quiz.slug}
@@ -1153,17 +1178,19 @@ export function SurgeonPage() {
                                 </p>
                               </div>
                               <div className="shrink-0 text-right">
-                                <p className="text-3xl font-semibold leading-none tabular text-ink">
-                                  {best === null ? "—" : Math.round(best)}
+                                <p className="text-2xl font-semibold leading-none tabular text-ink">
+                                  {displayValue}
                                 </p>
-                                <p className="mt-1 text-[9px] text-muted">best %</p>
+                                <p className="mt-1 text-[9px] text-muted">
+                                  {screening ? "latest" : "best %"}
+                                </p>
                               </div>
                             </div>
 
                             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
                               <div
                                 className="h-full rounded-full bg-accent"
-                                style={{ width: `${Math.max(0, Math.min(100, best ?? 0))}%` }}
+                                style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
                               />
                             </div>
 
@@ -1179,8 +1206,21 @@ export function SurgeonPage() {
 
                             {latest && (
                               <p className="mt-2 rounded-lg bg-surface-muted px-2.5 py-1.5 text-[10px] text-ink-2">
-                                Latest: <span className="font-semibold text-ink">{Math.round(latest.score)}%</span>
-                                {latest.subject_name ? ` · about ${latest.subject_name}` : ""}
+                                Latest:{" "}
+                                <span className="font-semibold text-ink">
+                                  {screening
+                                    ? `${latest.total_score}/${quiz.max_score} · ${latest.severity_label}`
+                                    : `${Math.round(latest.score)}%`}
+                                </span>
+                                {!screening && latest.subject_name
+                                  ? ` · about ${latest.subject_name}`
+                                  : ""}
+                              </p>
+                            )}
+
+                            {latest?.self_harm_flag && (
+                              <p className="mt-2 rounded-lg bg-critical px-2.5 py-1.5 text-[10px] font-semibold text-white">
+                                Self-harm reported · review now
                               </p>
                             )}
 
@@ -1199,10 +1239,16 @@ export function SurgeonPage() {
                                     >
                                       <span className="text-muted">
                                         {formatDateTime(attempt.completed_at)}
-                                        {attempt.subject_name ? ` · ${attempt.subject_name}` : ""}
+                                        {!screening && attempt.subject_name
+                                          ? ` · ${attempt.subject_name}`
+                                          : ""}
                                       </span>
                                       <span className="font-semibold tabular text-ink">
-                                        {Math.round(attempt.score)}%
+                                        {screening
+                                          ? `${attempt.total_score}/${quiz.max_score} · ${
+                                              attempt.severity_label ?? "—"
+                                            }`
+                                          : `${Math.round(attempt.score)}%`}
                                       </span>
                                     </li>
                                   ))}

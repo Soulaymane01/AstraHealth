@@ -23,6 +23,7 @@ from app.services.gamification import (
     award_credits,
     evaluate_achievements,
 )
+from app.services.quiz_screening import screening_for, screening_reading
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
@@ -55,25 +56,43 @@ def list_quizzes(
     quizzes = list(db.scalars(select(Quiz).order_by(Quiz.mode, Quiz.title)).all())
     result: list[QuizListItemRead] = []
     for quiz in quizzes:
+        screening = screening_for(quiz.slug)
         attempts = list(
             db.scalars(
-                select(QuizAttempt).where(
+                select(QuizAttempt)
+                .where(
                     QuizAttempt.user_id == user.id,
                     QuizAttempt.quiz_id == quiz.id,
                 )
+                .order_by(QuizAttempt.completed_at.desc())
             ).all()
         )
+        latest = attempts[0] if attempts else None
+        latest_total = latest_severity = latest_label = None
+        if screening is not None and latest is not None:
+            total, band, _ = screening_reading(screening, quiz.questions, latest.answers)
+            latest_total = total
+            latest_severity = band.key
+            latest_label = band.label
         result.append(
             QuizListItemRead(
                 slug=quiz.slug,
                 title=quiz.title,
                 mode=quiz.mode,
+                kind="screening" if screening else "knowledge",
+                instrument=screening.instrument if screening else None,
+                max_score=screening.max_score if screening else None,
                 question_count=len(quiz.questions),
-                best_score=max((attempt.score for attempt in attempts), default=None),
-                attempt_count=len(attempts),
-                last_attempted_at=max(
-                    (attempt.completed_at for attempt in attempts), default=None
+                best_score=(
+                    None
+                    if screening
+                    else max((attempt.score for attempt in attempts), default=None)
                 ),
+                latest_total_score=latest_total,
+                latest_severity=latest_severity,
+                latest_severity_label=latest_label,
+                attempt_count=len(attempts),
+                last_attempted_at=latest.completed_at if latest else None,
             )
         )
     return result
@@ -86,10 +105,14 @@ def read_quiz(
     db: Session = Depends(get_db),
 ) -> QuizRead:
     quiz = _quiz_or_404(db, slug)
+    screening = screening_for(quiz.slug)
     return QuizRead(
         slug=quiz.slug,
         title=quiz.title,
         mode=quiz.mode,
+        kind="screening" if screening else "knowledge",
+        instrument=screening.instrument if screening else None,
+        max_score=screening.max_score if screening else None,
         questions=[
             QuizQuestionRead(
                 id=question["id"],
@@ -141,6 +164,7 @@ def submit_quiz(
                 detail="This crewmate has not consented to share their status.",
             )
 
+    screening = screening_for(quiz.slug)
     correct_count = 0
     question_results: list[QuizQuestionResultRead] = []
     for question, selected in zip(questions, payload.answers, strict=True):
@@ -150,6 +174,20 @@ def submit_quiz(
                 status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Answer for {question['id']} is out of range.",
             )
+        if screening is not None:
+            question_results.append(
+                QuizQuestionResultRead(
+                    id=question["id"],
+                    prompt=question["prompt"],
+                    options=options,
+                    answer_index=-1,
+                    explanation="",
+                    selected_index=selected,
+                    correct=False,
+                    score_value=selected,
+                )
+            )
+            continue
         answer_index = int(question["answer_index"])
         correct = selected == answer_index
         if correct:
@@ -167,18 +205,43 @@ def submit_quiz(
         )
 
     total = len(questions)
-    score = round(100.0 * correct_count / total, 1) if total else 0.0
+    total_score: int | None = None
+    max_score: int | None = None
+    severity: str | None = None
+    severity_label: str | None = None
+    severity_advice: str | None = None
+    self_harm = False
     now = datetime.now(UTC)
-    previous_attempts = (
-        db.scalar(
-            select(func.count(QuizAttempt.id)).where(
-                QuizAttempt.user_id == user.id,
-                QuizAttempt.quiz_id == quiz.id,
-            )
+
+    if screening is not None:
+        total_score, band, self_harm = screening_reading(
+            screening, questions, payload.answers
         )
-        or 0
-    )
-    credits_awarded = QUIZ_CREDITS if previous_attempts == 0 else 0
+        max_score = screening.max_score
+        score = round(100.0 * total_score / max_score, 1) if max_score else 0.0
+        severity = band.key
+        severity_label = band.label
+        severity_advice = band.advice
+        if self_harm:
+            severity_advice = (
+                "You reported thoughts of self-harm. Contact the flight surgeon now. "
+                "If there is immediate danger, follow the mission emergency procedure."
+            )
+        credits_awarded = 0
+        new_achievements: list = []
+    else:
+        score = round(100.0 * correct_count / total, 1) if total else 0.0
+        previous_attempts = (
+            db.scalar(
+                select(func.count(QuizAttempt.id)).where(
+                    QuizAttempt.user_id == user.id,
+                    QuizAttempt.quiz_id == quiz.id,
+                )
+            )
+            or 0
+        )
+        credits_awarded = QUIZ_CREDITS if previous_attempts == 0 else 0
+        new_achievements = []
 
     attempt = QuizAttempt(
         quiz_id=quiz.id,
@@ -202,7 +265,8 @@ def submit_quiz(
             created_at=now,
         )
 
-    new_achievements = evaluate_achievements(db, user, now)
+    if screening is None:
+        new_achievements = evaluate_achievements(db, user, now)
     db.commit()
 
     return QuizResultRead(
@@ -210,6 +274,8 @@ def submit_quiz(
         quiz_slug=quiz.slug,
         quiz_title=quiz.title,
         mode=quiz.mode,
+        kind="screening" if screening else "knowledge",
+        instrument=screening.instrument if screening else None,
         subject=(
             QuizSubjectRead(
                 id=subject.id,
@@ -223,6 +289,12 @@ def submit_quiz(
         score=score,
         correct_count=correct_count,
         total_questions=total,
+        total_score=total_score,
+        max_score=max_score,
+        severity=severity,
+        severity_label=severity_label,
+        severity_advice=severity_advice,
+        self_harm_flag=self_harm,
         credits_awarded=credits_awarded,
         new_achievements=[
             AchievementRead(

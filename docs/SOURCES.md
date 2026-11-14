@@ -124,3 +124,9 @@ The assistant must cite at least one article slug per answer, and must escalate 
 - **Use:** the skin, muscle, and skeleton GLB layers in the Flight Deck body-systems viewer.
 - **Files:** `frontend/public/models/{skin,muscles,skeleton}.glb`; Draco decoder files in `frontend/public/draco/` are from three.js (MIT).
 - **Notice:** `docs/licenses/anatomy-3d-NOTICE`.
+
+### PHQ-9 and GAD-7 screening instruments
+
+- **PHQ-9:** Patient Health Questionnaire-9, developed by Drs. Robert L. Spitzer, Janet B.W. Williams, Kurt Kroenke, and colleagues. Public screening instrument; no permission required to reproduce. Reference: https://www.phqscreeners.com/
+- **GAD-7:** Generalized Anxiety Disorder-7, developed by Drs. Robert L. Spitzer, Kurt Kroenke, Janet B.W. Williams, and Bernd Löwe. Public screening instrument; no permission required to reproduce. Reference: https://www.phqscreeners.com/
+- **Use:** screening only. Scores and severity bands are decision support, not a diagnosis. AstraHealth adds an explicit self-harm escalation for PHQ-9 item 9.

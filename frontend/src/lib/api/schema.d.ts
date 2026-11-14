@@ -1763,10 +1763,25 @@ export interface components {
             title: string;
             /** Mode */
             mode: string;
+            /**
+             * Kind
+             * @default knowledge
+             */
+            kind: string;
+            /** Instrument */
+            instrument?: string | null;
+            /** Max Score */
+            max_score?: number | null;
             /** Question Count */
             question_count: number;
             /** Best Score */
             best_score: number | null;
+            /** Latest Total Score */
+            latest_total_score?: number | null;
+            /** Latest Severity */
+            latest_severity?: string | null;
+            /** Latest Severity Label */
+            latest_severity_label?: string | null;
             /** Attempt Count */
             attempt_count: number;
             /** Last Attempted At */
@@ -1797,6 +1812,8 @@ export interface components {
             selected_index: number | null;
             /** Correct */
             correct: boolean;
+            /** Score Value */
+            score_value?: number | null;
         };
         /** QuizRead */
         QuizRead: {
@@ -1806,6 +1823,15 @@ export interface components {
             title: string;
             /** Mode */
             mode: string;
+            /**
+             * Kind
+             * @default knowledge
+             */
+            kind: string;
+            /** Instrument */
+            instrument?: string | null;
+            /** Max Score */
+            max_score?: number | null;
             /** Questions */
             questions: components["schemas"]["QuizQuestionRead"][];
             /** Eligible Subjects */
@@ -1821,6 +1847,13 @@ export interface components {
             quiz_title: string;
             /** Mode */
             mode: string;
+            /**
+             * Kind
+             * @default knowledge
+             */
+            kind: string;
+            /** Instrument */
+            instrument?: string | null;
             subject: components["schemas"]["QuizSubjectRead"] | null;
             /** Score */
             score: number;
@@ -1828,6 +1861,21 @@ export interface components {
             correct_count: number;
             /** Total Questions */
             total_questions: number;
+            /** Total Score */
+            total_score?: number | null;
+            /** Max Score */
+            max_score?: number | null;
+            /** Severity */
+            severity?: string | null;
+            /** Severity Label */
+            severity_label?: string | null;
+            /** Severity Advice */
+            severity_advice?: string | null;
+            /**
+             * Self Harm Flag
+             * @default false
+             */
+            self_harm_flag: boolean;
             /** Credits Awarded */
             credits_awarded: number;
             /** New Achievements */
@@ -2142,6 +2190,17 @@ export interface components {
             id: number;
             /** Score */
             score: number;
+            /** Total Score */
+            total_score?: number | null;
+            /** Severity */
+            severity?: string | null;
+            /** Severity Label */
+            severity_label?: string | null;
+            /**
+             * Self Harm Flag
+             * @default false
+             */
+            self_harm_flag: boolean;
             /**
              * Completed At
              * Format: date-time
@@ -2158,12 +2217,32 @@ export interface components {
             title: string;
             /** Mode */
             mode: string;
+            /**
+             * Kind
+             * @default knowledge
+             */
+            kind: string;
+            /** Instrument */
+            instrument?: string | null;
+            /** Max Score */
+            max_score?: number | null;
             /** Question Count */
             question_count: number;
             /** Attempt Count */
             attempt_count: number;
             /** Best Score */
             best_score: number | null;
+            /** Latest Total Score */
+            latest_total_score?: number | null;
+            /** Latest Severity */
+            latest_severity?: string | null;
+            /** Latest Severity Label */
+            latest_severity_label?: string | null;
+            /**
+             * Latest Self Harm Flag
+             * @default false
+             */
+            latest_self_harm_flag: boolean;
             /** Last Attempted At */
             last_attempted_at: string | null;
             /** Attempts */

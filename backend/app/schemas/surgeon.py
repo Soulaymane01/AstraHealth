@@ -107,6 +107,10 @@ class SurgeonUpdatesRead(BaseModel):
 class SurgeonQuizAttemptRead(BaseModel):
     id: int
     score: float
+    total_score: int | None = None
+    severity: str | None = None
+    severity_label: str | None = None
+    self_harm_flag: bool = False
     completed_at: datetime
     subject_name: str | None = None
 
@@ -115,8 +119,15 @@ class SurgeonQuizSummaryRead(BaseModel):
     slug: str
     title: str
     mode: str
+    kind: str = "knowledge"
+    instrument: str | None = None
+    max_score: int | None = None
     question_count: int
     attempt_count: int
     best_score: float | None
+    latest_total_score: int | None = None
+    latest_severity: str | None = None
+    latest_severity_label: str | None = None
+    latest_self_harm_flag: bool = False
     last_attempted_at: datetime | None
     attempts: list[SurgeonQuizAttemptRead]
