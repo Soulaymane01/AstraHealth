@@ -23,6 +23,7 @@ interface LayerState extends LayerDefinition {
   ghost: Three.MeshBasicMaterial;
   group: Three.Group | null;
   meshes: Three.Mesh[];
+  garments: Three.Mesh[];
   promise: Promise<Three.Group> | null;
 }
 
@@ -46,6 +47,14 @@ const TABS: { key: LayerKey; label: string }[] = [
   { key: "muscular", label: "Muscular" },
   { key: "skeletal", label: "Skeletal" },
 ];
+
+const SELECTION_HEX: Record<Status, number> = {
+  nominal: 0x22c55e,
+  watch: 0xf59e0b,
+  caution: 0xf97316,
+  critical: 0xef4444,
+  unknown: 0x60a5fa,
+};
 
 const DOMAIN_REGIONS: { test: RegExp; domain: string; label: string }[] = [
   {
@@ -212,8 +221,8 @@ export function Anatomy3DViewer({
             opacity: 1,
           });
           const highlight = baseMaterial.clone();
-          highlight.emissive = new THREE.Color(0x0b3d91);
-          highlight.emissiveIntensity = 0.55;
+          highlight.emissive = new THREE.Color(0x22c55e);
+          highlight.emissiveIntensity = 1;
           layers[definition.key] = {
             ...definition,
             base: baseMaterial,
@@ -227,9 +236,17 @@ export function Anatomy3DViewer({
             }),
             group: null,
             meshes: [],
+            garments: [],
             promise: null,
           };
         }
+
+        const garmentMaterial = new THREE.MeshStandardMaterial({
+          color: 0x1e3a5f,
+          roughness: 0.88,
+          metalness: 0,
+          side: THREE.DoubleSide,
+        });
 
         let fit: { center: Three.Vector3; distance: number } | null = null;
         let activeLayer: LayerKey = "skin";
@@ -266,6 +283,14 @@ export function Anatomy3DViewer({
             const mesh = object as Three.Mesh;
             if (!mesh.isMesh) return;
             const name = structureName(mesh);
+            const isGarment =
+              /modesty cover/i.test(name) || mesh.userData?.zmat === "Garment";
+            if (isGarment) {
+              mesh.material = garmentMaterial;
+              mesh.userData.domain = "musculoskeletal";
+              state.garments.push(mesh);
+              return;
+            }
             const region = classify(name);
             mesh.userData.domain = region.domain;
             mesh.userData.regionLabel = region.label;
@@ -312,7 +337,7 @@ export function Anatomy3DViewer({
         const refreshMaterials = () => {
           const selected = stateRef.current.selectedDomain;
           const status = statusFor(stateRef.current.regions, selected);
-          const highlightHex = STATUS_META[status].hex;
+          const highlightHex = SELECTION_HEX[status];
           const hasSelection = selected !== "sleep";
           const wholeBody = selected === "immune";
 
@@ -322,7 +347,11 @@ export function Anatomy3DViewer({
             const showGhost = state.key === "skin" && ghostOn && activeLayer !== "skin";
             state.group.visible = isActive || showGhost;
             if (!state.group.visible) continue;
+            state.hi.color.set(highlightHex);
             state.hi.emissive.set(highlightHex);
+            state.hi.emissiveIntensity = 1;
+            state.hi.roughness = 0.32;
+            for (const garment of state.garments) garment.visible = isActive;
             for (const mesh of state.meshes) {
               if (showGhost) {
                 mesh.material = state.ghost;
@@ -531,6 +560,7 @@ export function Anatomy3DViewer({
           renderer.setAnimationLoop(null);
           controls.dispose();
           draco.dispose();
+          garmentMaterial.dispose();
           for (const state of Object.values(layers)) {
             state.base.dispose();
             state.hi.dispose();
