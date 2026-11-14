@@ -18,8 +18,8 @@ export default defineConfig({
         short_name: "AstraHealth",
         description:
           "Mission-control software for the human body. Health monitoring and readiness for long-duration spaceflight.",
-        theme_color: "#0F766E",
-        background_color: "#F4F6F8",
+        theme_color: "#0B3D91",
+        background_color: "#EAF2FB",
         display: "standalone",
         orientation: "portrait-primary",
         start_url: "/",
@@ -46,7 +46,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
+        globPatterns: ["**/*.{js,css,html,svg,png,woff2,glb,wasm}"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,

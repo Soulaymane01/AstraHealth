@@ -1,0 +1,20 @@
+3D anatomy models
+=================
+
+Source: 3d-human-body-anatomy by alex-chan
+https://github.com/alex-chan/3d-human-body-anatomy
+
+The skin, muscle, and skeleton GLB files in frontend/public/models are derived
+from Z-Anatomy (https://www.z-anatomy.com/), which is built on BodyParts3D
+(https://dbarchive.biosciencedbc.jp/en/bodyparts3d/), and are shared under the
+same licence terms:
+
+- Z-Anatomy: Creative Commons Attribution-ShareAlike 4.0 International
+  (CC BY-SA 4.0) — https://creativecommons.org/licenses/by-sa/4.0/
+- BodyParts3D: Database Center for Life Science, CC BY-SA 2.1 Japan
+  — https://creativecommons.org/licenses/by-sa/2.1/jp/
+
+The models were simplified and modified for browser delivery by the source
+project. AstraHealth uses the reduced skin, muscles, and skeleton layers only.
+
+The Draco decoder files in frontend/public/draco are from three.js (MIT).

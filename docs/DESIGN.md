@@ -105,7 +105,7 @@ The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, an
 | `SymptomStep` | `features/checkin/components/SymptomStep.tsx` | Region, symptom, severity, duration, and logged list |
 | `SymptomBodyMap` | `features/checkin/components/SymptomBodyMap.tsx` | Front/back body map with six symptom regions |
 | `WhyWeAsk` | `features/checkin/components/WhyWeAsk.tsx` | Per-step rationale with an HRP source |
-| `AnatomyMap` | `AnatomyMap.tsx` | 70+ region anatomical body map with front/back views |
+| `AnatomyMap` | `AnatomyMap.tsx` | 3D skin/muscle/skeleton body viewer with a 2D muscle-map fallback |
 | `MetricChart` | `features/telemetry/components/MetricChart.tsx` | Time-scaled line with band and event guides |
 | `EventRail` | `features/telemetry/components/EventRail.tsx` | Aligned event dots, legend, and accessible event list |
 | `SegmentedControl` | `features/telemetry/components/SegmentedControl.tsx` | Range and comparison-band toggle |
@@ -125,13 +125,12 @@ The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, an
 
 ### AnatomyMap
 
-- Uses the Apache-2.0 `body-muscles` SVG data: 70+ muscle regions across anterior and posterior views.
-- Domain mapping: head and neck → neurobehavioral, chest → cardiovascular, abdominals → metabolic, shoulders/arms/back/legs/hands/feet → musculoskeletal, whole body → immune. Sleep is a schedule domain, not a region.
-- Base body fill `#D8E3ED` with white separations; every domain carries a soft status tint, and the selected domain is stronger.
-- Hovering a muscle raises its status color and shows the muscle name plus domain in the footer. Clicking selects the domain.
-- The whole-body button selects the immune domain and draws a dashed halo.
-- The layered SVG is a mouse enhancement. The Systems rows are the keyboard and screen-reader control surface.
-- No scan sweep, grid, or ambient motion. The front/back toggle and selection are the only state changes.
+- The primary viewer is a real 3D model with three layers: skin, muscles, and skeleton. It supports orbit, zoom, front/back/left/right views, X-ray skin ghosting, and a spin toggle.
+- Models are bundled locally in `frontend/public/models` and load through three.js + GLTFLoader with a local Draco decoder, so the viewer works offline. The source and CC BY-SA attribution live in `docs/licenses/anatomy-3d-NOTICE`.
+- Domain mapping from model structure names: head and neck → neurobehavioral, chest → cardiovascular, core/abdomen → metabolic, limbs and bone → musculoskeletal, whole body → immune. Sleep is a schedule domain, not a region.
+- Clicking a structure selects its domain and highlights the matching meshes with the domain status color. The Systems rows remain the keyboard and screen-reader control surface.
+- If WebGL is unavailable or the model files fail to load, the viewer automatically falls back to the older 2D `body-muscles` SVG map.
+- Motion is limited to the user-controlled orbit and a short camera transition. Spin is off by default; reduced-motion users get no automatic rotation.
 
 ---
 

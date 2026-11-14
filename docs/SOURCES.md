@@ -115,3 +115,12 @@ The assistant must cite at least one article slug per answer, and must escalate 
 - **License:** Apache-2.0
 - **Use:** on-device face landmarks for the forehead and cheek regions used by the camera pulse estimate. The WASM runtime and the `face_landmarker.task` model load from CDN at runtime; no model or video data is uploaded by AstraHealth.
 - **Notice:** the package and model are used under their upstream licenses; AstraHealth does not redistribute the model.
+
+### 3D human anatomy models
+
+- **Source project:** `alex-chan/3d-human-body-anatomy` — https://github.com/alex-chan/3d-human-body-anatomy
+- **Upstream data:** Z-Anatomy (https://www.z-anatomy.com/), built on BodyParts3D from the Database Center for Life Science.
+- **License:** CC BY-SA 4.0 (Z-Anatomy) and CC BY-SA 2.1 Japan (BodyParts3D).
+- **Use:** the skin, muscle, and skeleton GLB layers in the Flight Deck body-systems viewer.
+- **Files:** `frontend/public/models/{skin,muscles,skeleton}.glb`; Draco decoder files in `frontend/public/draco/` are from three.js (MIT).
+- **Notice:** `docs/licenses/anatomy-3d-NOTICE`.
