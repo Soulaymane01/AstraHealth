@@ -43,6 +43,7 @@ from app.schemas.mission import (
     SpaceWeatherEventRead,
     TapeEventRead,
 )
+from app.schemas.prediction import PredictionRead, PredictionSignalRead
 from app.schemas.quiz import (
     QuizListItemRead,
     QuizQuestionRead,
@@ -129,6 +130,8 @@ __all__ = [
     "MissionContextRead",
     "MissionProfileUpdate",
     "MissionRead",
+    "PredictionRead",
+    "PredictionSignalRead",
     "PrivacyRead",
     "PrivacyUpdate",
     "QuizListItemRead",

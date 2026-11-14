@@ -56,6 +56,7 @@
 - **Motivation** — a credit ledger, Mission Rank, commendations, a one-time allowance catalog, streaks with a single grace day, and a Mission Log that records the whole loop. Never tied to health values.
 - **Crew** — consent-based status sharing, a privacy-filtered readiness roster, and a consistency board with no health values. Direct crew communication stays outside the health tool.
 - **Flight Surgeon console** — a separate Earth-side dashboard for the medical officer: all crew readiness and alerts, the full capture and manual record, metric trends, clinical assessments/diagnoses, alert acknowledgement, and instructions or check-in requests sent back to the crew. Shared assessments and requests appear on the astronaut’s Flight Deck.
+- **Early warning and Clinical Copilot** — a transparent 48–72-hour risk view per crew member (HRV, sleep, temperature, oxygen, hydration, mood, and more) with evidence and monitoring suggestions, plus a decision-support copilot that summarizes the record, explains the risk, and suggests questions. The copilot refuses diagnosis, prescriptions, and doses; the flight surgeon makes the clinical decision.
 - **Quizzes** — Know Yourself and the consent-gated Know Your Crew, with scoring, source explanations, and a first-completion credit award.
 - **Knowledge and AI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
@@ -228,7 +229,7 @@ docs/         Plan, API, design, sources, demo script
 
 ## Data honesty
 
-AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered measurements, camera-derived heart rate, and clearly labeled simulated habitat/suit sensor captures, alongside simulated crew telemetry and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context comes from NASA DONKI when a key is configured, with a labeled seeded fixture as the fallback.
+AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered measurements, camera-derived heart rate, and clearly labeled simulated habitat/suit sensor captures, alongside simulated crew telemetry and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. The early-warning scores and clinical copilot are transparent heuristics and decision support, not validated medical devices or diagnostic systems. Space-weather context comes from NASA DONKI when a key is configured, with a labeled seeded fixture as the fallback.
 
 AstraHealth provides guidance, not diagnosis. Red-flag findings always route to a flight surgeon.
 

@@ -8,7 +8,9 @@ import {
 import { api } from "@/lib/api/client";
 import type {
   Alert,
+  AssistantAnswer,
   MetricSeries,
+  Prediction,
   SurgeonAssessment,
   SurgeonCrewDetail,
   SurgeonCrewSummary,
@@ -63,12 +65,41 @@ export function useSurgeonSeries(crewId: number | undefined, code: string, days:
   });
 }
 
+export function useSurgeonPrediction(crewId: number | undefined) {
+  return useQuery({
+    queryKey: queryKeys.surgeonPrediction(crewId ?? 0),
+    queryFn: async (): Promise<Prediction> => {
+      if (!crewId) throw new Error("No crew member selected.");
+      const { data } = await api.GET("/surgeon/crew/{crew_user_id}/prediction", {
+        params: { path: { crew_user_id: crewId } },
+      });
+      if (!data) throw new Error("Unable to load the early-warning analysis.");
+      return data;
+    },
+    enabled: Boolean(crewId),
+  });
+}
+
+export function useAskSurgeonAssistant(crewId: number) {
+  return useMutation({
+    mutationFn: async (question: string): Promise<AssistantAnswer> => {
+      const { data } = await api.POST("/surgeon/crew/{crew_user_id}/assistant", {
+        params: { path: { crew_user_id: crewId } },
+        body: { question },
+      });
+      if (!data) throw new Error("The clinical copilot could not answer.");
+      return data;
+    },
+  });
+}
+
 function invalidateSurgeon(
   queryClient: ReturnType<typeof useQueryClient>,
   crewId: number,
 ): void {
   void queryClient.invalidateQueries({ queryKey: queryKeys.surgeonCrew });
   void queryClient.invalidateQueries({ queryKey: queryKeys.surgeonDetail(crewId) });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.surgeonPrediction(crewId) });
   void queryClient.invalidateQueries({ queryKey: queryKeys.surgeonUpdates });
 }
 

@@ -33,5 +33,7 @@ export const queryKeys = {
   surgeonDetail: (crewId: number) => ["surgeon", "crew", crewId] as const,
   surgeonSeries: (crewId: number, code: string, days: number) =>
     ["surgeon", "crew", crewId, "series", code, days] as const,
+  surgeonPrediction: (crewId: number) =>
+    ["surgeon", "crew", crewId, "prediction"] as const,
   surgeonUpdates: ["surgeon", "updates"] as const,
 };

@@ -103,6 +103,56 @@ def test_surgeon_assessment_and_instruction_reach_the_crew(
     assert detail.json()["instructions"][0]["status"] == "completed"
 
 
+def test_surgeon_assistant_supports_without_diagnosing(
+    client: TestClient,
+    db_session: Session,
+    test_user: User,
+    auth_headers: dict[str, str],
+    metric_definitions: None,
+    content_seed: None,
+) -> None:
+    surgeon = _surgeon(db_session)
+    create_crew_with_member(db_session, test_user)
+    headers = _headers(surgeon)
+
+    prediction = client.get(
+        f"/surgeon/crew/{test_user.id}/prediction", headers=headers
+    )
+    assert prediction.status_code == 200
+    assert prediction.json()["risk_level"] in {"low", "moderate", "high"}
+    assert prediction.json()["disclaimer"]
+
+    risk = client.post(
+        f"/surgeon/crew/{test_user.id}/assistant",
+        json={"question": "What is the early-warning risk?"},
+        headers=headers,
+    )
+    assert risk.status_code == 200
+    risk_body = risk.json()
+    assert risk_body["mode"] == "rule_based"
+    assert risk_body["refused"] is False
+    assert "decision support" in risk_body["answer"].lower()
+    assert risk_body["citations"]
+
+    refusal = client.post(
+        f"/surgeon/crew/{test_user.id}/assistant",
+        json={"question": "Diagnose the fever and prescribe a dose."},
+        headers=headers,
+    )
+    assert refusal.status_code == 200
+    refusal_body = refusal.json()
+    assert refusal_body["refused"] is True
+    assert "can't diagnose" in refusal_body["answer"].lower()
+    assert refusal_body["citations"][0]["slug"] == "red-flags"
+
+    forbidden = client.post(
+        f"/surgeon/crew/{test_user.id}/assistant",
+        json={"question": "What is the risk?"},
+        headers=auth_headers,
+    )
+    assert forbidden.status_code == 403
+
+
 def test_surgeon_can_read_trends_acknowledge_alerts_and_capture(
     client: TestClient,
     db_session: Session,

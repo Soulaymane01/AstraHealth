@@ -1,11 +1,13 @@
 import {
+  CalendarClock,
   ClipboardList,
   LogOut,
   RefreshCw,
   Send,
+  Sparkles,
   Stethoscope,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -21,14 +23,18 @@ import { sourceLabel } from "@/features/telemetry/telemetry-config";
 import { useMetricDefinitions } from "@/features/telemetry/queries";
 import {
   useAcknowledgeCrewAlert,
+  useAskSurgeonAssistant,
   useCreateAssessment,
   useCreateInstruction,
   useSimulateCrewCapture,
   useSurgeonCrew,
   useSurgeonDetail,
+  useSurgeonPrediction,
   useSurgeonSeries,
 } from "@/features/surgeon/queries";
 import type {
+  AssistantCitation,
+  Prediction,
   SurgeonAssessment,
   SurgeonCrewSummary,
   SurgeonInstruction,
@@ -37,7 +43,7 @@ import type {
 import { asStatus } from "@/lib/status";
 import { cn, displayMetricValue, formatRelativeTime, initials, titleCase } from "@/lib/utils";
 
-type TabKey = "overview" | "trends" | "captures" | "clinical";
+type TabKey = "overview" | "trends" | "captures" | "clinical" | "copilot";
 type Days = 7 | 30 | 90;
 
 const TABS: { key: TabKey; label: string }[] = [
@@ -45,6 +51,7 @@ const TABS: { key: TabKey; label: string }[] = [
   { key: "trends", label: "Trends" },
   { key: "captures", label: "Captures" },
   { key: "clinical", label: "Clinical record" },
+  { key: "copilot", label: "Copilot" },
 ];
 
 const NO_EVENTS: TapeEvent[] = [];
@@ -57,6 +64,164 @@ const DOMAIN_LABELS: Record<string, string> = {
   metabolic: "Metabolic & nutrition",
   immune: "Immune & sensory",
 };
+
+const RISK_BADGE: Record<Prediction["risk_level"], string> = {
+  high: "border-critical/30 bg-critical-soft text-critical",
+  moderate: "border-watch/30 bg-watch-soft text-watch",
+  low: "border-nominal/25 bg-nominal-soft text-nominal",
+};
+
+const RISK_RING: Record<Prediction["risk_level"], string> = {
+  high: "border-critical/30 bg-critical-soft/40",
+  moderate: "border-watch/30 bg-watch-soft/40",
+  low: "border-nominal/25 bg-nominal-soft/40",
+};
+
+const SIGNAL_BADGE: Record<"watch" | "moderate" | "high", string> = {
+  high: RISK_BADGE.high,
+  moderate: RISK_BADGE.moderate,
+  watch: "border-line bg-surface-muted text-muted",
+};
+
+const DEFAULT_COPILOT_QUESTIONS = [
+  "What is the early-warning risk?",
+  "What is driving the readiness score?",
+  "Which signals are worsening?",
+  "What should I monitor next?",
+  "What questions should I ask the crew?",
+  "Summarize the last 72 hours.",
+];
+
+const COPILOT_WELCOME =
+  "I can summarize the captures, explain the early-warning risk, and suggest questions or monitoring. I do not diagnose or prescribe; the flight surgeon decides.";
+
+interface CopilotMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  citations?: AssistantCitation[];
+  refused?: boolean;
+  mode?: string;
+}
+
+function PredictionCard({
+  prediction,
+  onAsk,
+}: {
+  prediction: Prediction;
+  onAsk?: () => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span
+          className={cn(
+            "rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide",
+            RISK_BADGE[prediction.risk_level],
+          )}
+        >
+          {prediction.risk_level} risk
+        </span>
+        <span className="text-[11px] text-muted">
+          {prediction.risk_score}/100 · next {prediction.horizon_hours}h · confidence{" "}
+          {prediction.confidence} · coverage{" "}
+          {Math.round(prediction.data_coverage * 100)}%
+        </span>
+      </div>
+      <p className="text-[13px] leading-relaxed text-ink-2">{prediction.summary}</p>
+
+      {prediction.red_flags.length > 0 && (
+        <div className="rounded-lg border border-critical/25 bg-critical-soft px-3 py-2 text-[11px] leading-relaxed text-critical">
+          Red flags: {prediction.red_flags.join("; ")}.
+        </div>
+      )}
+
+      {prediction.drivers.length > 0 && (
+        <div>
+          <p className="text-[10px] uppercase tracking-wide text-muted">Signals</p>
+          <div className="mt-1.5 space-y-1.5">
+            {prediction.drivers.map((driver) => (
+              <div
+                key={driver.metric}
+                className="rounded-lg border border-line bg-surface px-2.5 py-2"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold text-ink">{driver.label}</p>
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
+                      SIGNAL_BADGE[driver.severity],
+                    )}
+                  >
+                    {driver.severity}
+                  </span>
+                </div>
+                <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
+                  {driver.evidence}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <p className="text-[10px] uppercase tracking-wide text-muted">Suggested monitoring</p>
+        <ul className="mt-1 list-disc space-y-1 pl-4 text-[11px] leading-relaxed text-ink-2">
+          {prediction.recommendations.map((recommendation) => (
+            <li key={recommendation}>{recommendation}</li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-2">
+        <p className="max-w-[70%] text-[10px] leading-relaxed text-muted">
+          {prediction.disclaimer}
+        </p>
+        {onAsk && (
+          <Button variant="secondary" size="sm" onClick={onAsk}>
+            <Sparkles size={11} aria-hidden />
+            Ask Copilot
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EarlyWarningBanner({
+  prediction,
+  onOpen,
+}: {
+  prediction: Prediction;
+  onOpen: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+        RISK_RING[prediction.risk_level],
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <CalendarClock size={17} className="mt-0.5 shrink-0 text-ink-2" aria-hidden />
+        <div>
+          <p className="text-sm font-semibold text-ink">
+            Early warning · {prediction.risk_level} risk · next{" "}
+            {prediction.horizon_hours} hours
+          </p>
+          <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">
+            {prediction.summary}
+          </p>
+        </div>
+      </div>
+      <Button variant="secondary" size="sm" className="shrink-0" onClick={onOpen}>
+        <Sparkles size={12} aria-hidden />
+        Open Copilot
+      </Button>
+    </div>
+  );
+}
 
 function formatDateTime(value: string | null | undefined): string {
   if (!value) return "—";
@@ -181,10 +346,24 @@ export function SurgeonPage() {
   const [instructionMessage, setInstructionMessage] = useState("");
 
   const seriesQuery = useSurgeonSeries(activeId, metricCode, days);
+  const predictionQuery = useSurgeonPrediction(activeId);
+  const askAssistant = useAskSurgeonAssistant(activeId ?? 0);
   const createAssessment = useCreateAssessment(activeId ?? 0);
   const createInstruction = useCreateInstruction(activeId ?? 0);
   const acknowledgeAlert = useAcknowledgeCrewAlert(activeId ?? 0);
   const simulateCapture = useSimulateCrewCapture(activeId ?? 0);
+  const [copilotMessages, setCopilotMessages] = useState<CopilotMessage[]>([
+    { id: "welcome", role: "assistant", content: COPILOT_WELCOME },
+  ]);
+  const [copilotDraft, setCopilotDraft] = useState("");
+  const [copilotSuggestions, setCopilotSuggestions] = useState(DEFAULT_COPILOT_QUESTIONS);
+
+  useEffect(() => {
+    setTab("overview");
+    setCopilotMessages([{ id: "welcome", role: "assistant", content: COPILOT_WELCOME }]);
+    setCopilotDraft("");
+    setCopilotSuggestions(DEFAULT_COPILOT_QUESTIONS);
+  }, [activeId]);
 
   const metrics = metricsQuery.data ?? [];
   const metricMap = useMemo(
@@ -218,6 +397,7 @@ export function SurgeonPage() {
   }
 
   const detail = detailQuery.data;
+  const prediction = predictionQuery.data ?? detail?.prediction;
   const member = detail?.member;
   const readiness = detail?.readiness;
   const status = readiness ? asStatus(readiness.status) : null;
@@ -286,6 +466,54 @@ export function SurgeonPage() {
         ? "Please complete a Systems Check and repeat your vitals."
         : "Please repeat the affected measurement when the next sensor window is available.",
     );
+  };
+
+  const sendCopilot = (question = copilotDraft) => {
+    const trimmed = question.trim();
+    if (!trimmed || askAssistant.isPending) return;
+    setCopilotMessages((current) => [
+      ...current,
+      { id: crypto.randomUUID(), role: "user", content: trimmed },
+    ]);
+    setCopilotDraft("");
+    askAssistant.mutate(trimmed, {
+      onSuccess: (answer) => {
+        setCopilotMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: answer.answer,
+            citations: answer.citations,
+            refused: answer.refused,
+            mode: answer.mode,
+          },
+        ]);
+        setCopilotSuggestions(
+          answer.suggestions.length > 0 ? answer.suggestions : DEFAULT_COPILOT_QUESTIONS,
+        );
+      },
+      onError: (error) => {
+        setCopilotMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content:
+              error instanceof Error
+                ? error.message
+                : "The clinical copilot could not answer right now.",
+          },
+        ]);
+      },
+    });
+  };
+
+  const openCopilot = (question?: string) => {
+    setTab("copilot");
+    if (question) {
+      window.setTimeout(() => sendCopilot(question), 60);
+    }
   };
 
   return (
@@ -388,6 +616,17 @@ export function SurgeonPage() {
                         ? formatRelativeTime(memberSummary.last_capture_at)
                         : "pending"}
                     </p>
+                    {memberSummary.risk_level && (
+                      <span
+                        className={cn(
+                          "mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
+                          RISK_BADGE[memberSummary.risk_level],
+                        )}
+                      >
+                        Early warning {memberSummary.risk_level} ·{" "}
+                        {memberSummary.risk_horizon_hours}h
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -519,6 +758,10 @@ export function SurgeonPage() {
                     Review and assess
                   </Button>
                 </div>
+              )}
+
+              {prediction && (
+                <EarlyWarningBanner prediction={prediction} onOpen={() => openCopilot()} />
               )}
 
               <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-surface p-1">
@@ -1117,6 +1360,136 @@ export function SurgeonPage() {
                       )}
                     </Panel>
                   </div>
+                </div>
+              )}
+
+              {tab === "copilot" && (
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <Panel
+                    title="Early-warning analysis"
+                    subtitle="Transparent signals from the recent record. Not a diagnosis."
+                  >
+                    {prediction ? (
+                      <PredictionCard
+                        prediction={prediction}
+                        onAsk={() => sendCopilot("What is the early-warning risk?")}
+                      />
+                    ) : predictionQuery.isLoading ? (
+                      <Skeleton className="h-64 w-full" />
+                    ) : (
+                      <p className="text-sm text-muted">
+                        Not enough recent data for an early-warning analysis.
+                      </p>
+                    )}
+                  </Panel>
+
+                  <Panel
+                    title="Clinical Copilot"
+                    subtitle="Decision support. It explains and suggests; it does not diagnose."
+                    actions={
+                      <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
+                        <Sparkles size={9} aria-hidden />
+                        AI
+                      </span>
+                    }
+                  >
+                    <div
+                      className="max-h-[360px] space-y-3 overflow-y-auto pr-1"
+                      role="log"
+                      aria-live="polite"
+                    >
+                      {copilotMessages.map((message) => (
+                        <div
+                          key={message.id}
+                          className={cn(
+                            "max-w-[94%] rounded-lg px-3 py-2.5",
+                            message.role === "user"
+                              ? "ml-auto bg-accent-soft"
+                              : "bg-surface-muted",
+                          )}
+                        >
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {message.refused && (
+                              <span className="rounded-full bg-critical-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-critical">
+                                Refused
+                              </span>
+                            )}
+                            {message.mode && (
+                              <span className="text-[9px] uppercase tracking-wide text-muted">
+                                {message.mode === "llm" ? "LLM" : "Rule-based"}
+                              </span>
+                            )}
+                          </div>
+                          <p className="mt-1 text-[12px] leading-relaxed text-ink">
+                            {message.content}
+                          </p>
+                          {message.citations && message.citations.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {message.citations.map((citation) => (
+                                <a
+                                  key={citation.slug}
+                                  href={citation.source_url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-md border border-line bg-surface px-1.5 py-0.5 text-[9px] text-ink-2 hover:border-accent/30 hover:text-accent"
+                                >
+                                  {citation.title}
+                                </a>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                      {askAssistant.isPending && (
+                        <p className="rounded-lg bg-surface-muted px-3 py-2 text-[11px] text-muted">
+                          Reading the record and early-warning signals…
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {copilotSuggestions.slice(0, 5).map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => sendCopilot(suggestion)}
+                          disabled={askAssistant.isPending}
+                          className="rounded-full border border-line bg-surface px-2.5 py-1 text-[10px] text-ink-2 transition-colors hover:border-accent/30 hover:text-accent disabled:opacity-50"
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+
+                    <form
+                      className="mt-2 flex items-center gap-2"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        sendCopilot();
+                      }}
+                    >
+                      <input
+                        value={copilotDraft}
+                        onChange={(event) => setCopilotDraft(event.target.value)}
+                        placeholder="Ask about the record, risk, or next steps…"
+                        aria-label="Ask the clinical copilot"
+                        className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-xs text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
+                      />
+                      <Button
+                        type="submit"
+                        variant="primary"
+                        size="icon"
+                        aria-label="Send to copilot"
+                        disabled={askAssistant.isPending}
+                      >
+                        <Send size={13} aria-hidden />
+                      </Button>
+                    </form>
+                    <p className="mt-2 text-[10px] leading-relaxed text-muted">
+                      The copilot summarizes evidence and flags early-warning signals. It never
+                      diagnoses or prescribes; clinical judgment remains with the flight surgeon.
+                    </p>
+                  </Panel>
                 </div>
               )}
             </>

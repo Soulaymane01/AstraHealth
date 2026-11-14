@@ -69,9 +69,15 @@ All routes require a `flight_surgeon` account. Medical access is intentionally b
 | GET | `/surgeon/crew/{id}` | Full clinical record: readiness, history, alerts, latest capture, measurements, check-ins, assessments, instructions |
 | GET | `/surgeon/crew/{id}/metrics/{code}/series?days=7\|30\|90` | Trend series for one crew member |
 | POST | `/surgeon/crew/{id}/captures/simulate` | Force a simulated capture and recompute readiness |
+| GET | `/surgeon/crew/{id}/prediction` | Transparent 48–72-hour early-warning analysis with drivers, confidence, and monitoring suggestions |
+| POST | `/surgeon/crew/{id}/assistant` | Clinical decision-support copilot; summarizes and explains but refuses diagnosis/prescription |
 | POST | `/surgeon/crew/{id}/assessments` | Create a clinical assessment/diagnosis |
 | POST | `/surgeon/crew/{id}/instructions` | Send a note, check-in request, or measurement request |
 | POST | `/surgeon/crew/{id}/alerts/{alert_id}/ack` | Acknowledge a crew alert |
+
+The prediction endpoint is deliberately transparent: it reports `risk_score`, `risk_level`, `horizon_hours`, `drivers` (metric, direction, severity, z-score, weekly trend, evidence), `recommendations`, `confidence`, `data_coverage`, `red_flags`, and a disclaimer. An active critical alert or red flag forces the high-risk band. It is an early-warning heuristic, not a diagnosis or a validated deterioration model.
+
+The assistant endpoint returns the same cited-answer shape as the crew assistant. It is prompted to summarize the clinician’s record, explain early-warning signals, and suggest questions or monitoring; it refuses diagnosis, prescriptions, and doses. With `LLM_PROVIDER=none` it uses the deterministic cited engine; when configured, the LLM path is post-checked and falls back if the response is unsafe or empty.
 
 ### Crew-facing surgeon updates
 

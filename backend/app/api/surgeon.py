@@ -21,10 +21,13 @@ from app.models import (
 )
 from app.schemas import (
     AlertRead,
+    AssistantAnswerRead,
+    AssistantQuestion,
     CaptureFeedRead,
     CheckinRead,
     MeasurementRead,
     MetricSeriesRead,
+    PredictionRead,
     ReadinessSnapshotRead,
     SurgeonAssessmentCreate,
     SurgeonAssessmentRead,
@@ -40,12 +43,14 @@ from app.services.captures import (
     build_capture_feed,
     simulate_capture,
 )
+from app.services.prediction import predict_crew_risk
 from app.services.readiness import (
     SEVERITY_ORDER,
     compute_and_persist_readiness,
     profile_for_user,
 )
 from app.services.surgeon import assessment_read, crew_updates, instruction_read
+from app.services.surgeon_assistant import answer_surgeon_question
 from app.services.telemetry import TELEMETRY_RANGES, build_metric_series
 from app.services.training import alert_read, training_items_map
 
@@ -116,8 +121,13 @@ def _last_checkin_at(db: Session, user_id: int) -> datetime | None:
     )
 
 
-def _summary(db: Session, member: User) -> SurgeonCrewSummaryRead:
+def _summary(
+    db: Session,
+    member: User,
+    prediction: PredictionRead | None = None,
+) -> SurgeonCrewSummaryRead:
     snapshot = _latest_snapshot(db, member.id)
+    risk = prediction or predict_crew_risk(db, member)
     active, critical = _active_alert_counts(db, member.id)
     last_capture = db.scalar(
         select(Measurement)
@@ -148,6 +158,9 @@ def _summary(db: Session, member: User) -> SurgeonCrewSummaryRead:
         last_capture_source=last_capture.source if last_capture else None,
         last_checkin_at=_last_checkin_at(db, member.id),
         open_instructions=int(open_instructions or 0),
+        risk_score=risk.risk_score,
+        risk_level=risk.risk_level,
+        risk_horizon_hours=risk.horizon_hours,
     )
 
 
@@ -213,6 +226,7 @@ def read_crew_detail(
     del surgeon
     member = _crew_member(db, crew_user_id)
     _ensure_capture(db, member)
+    prediction = predict_crew_risk(db, member)
 
     snapshot = _latest_snapshot(db, member.id)
     alerts = list(
@@ -275,9 +289,10 @@ def read_crew_detail(
     feed = build_capture_feed(db, member)
 
     return SurgeonCrewDetailRead(
-        member=_summary(db, member),
+        member=_summary(db, member, prediction),
         mission=_mission_for_member(db, member),
         readiness=ReadinessSnapshotRead.model_validate(snapshot) if snapshot else None,
+        prediction=prediction,
         readiness_history=[
             ReadinessSnapshotRead.model_validate(item) for item in history
         ],
@@ -419,6 +434,31 @@ def acknowledge_crew_alert(
     db.commit()
     db.refresh(alert)
     return alert_read(alert, training_items_map(db))
+
+
+@router.get("/crew/{crew_user_id}/prediction", response_model=PredictionRead)
+def read_crew_prediction(
+    crew_user_id: int,
+    surgeon: User = Depends(get_current_surgeon),
+    db: Session = Depends(get_db),
+) -> PredictionRead:
+    del surgeon
+    member = _crew_member(db, crew_user_id)
+    _ensure_capture(db, member)
+    return predict_crew_risk(db, member)
+
+
+@router.post("/crew/{crew_user_id}/assistant", response_model=AssistantAnswerRead)
+def ask_surgeon_assistant(
+    crew_user_id: int,
+    payload: AssistantQuestion,
+    surgeon: User = Depends(get_current_surgeon),
+    db: Session = Depends(get_db),
+) -> AssistantAnswerRead:
+    del surgeon
+    member = _crew_member(db, crew_user_id)
+    _ensure_capture(db, member)
+    return answer_surgeon_question(db, member, payload.question)
 
 
 @router.get("/crew/{crew_user_id}/updates", response_model=SurgeonUpdatesRead)

@@ -94,6 +94,16 @@ Added after the audit to match the “astronaut does not type vitals” requirem
 
 **Verification:** 87 backend tests; smoke, typecheck, build, and axe pass; the surgeon console and crew panel were exercised in the browser.
 
+### Post-audit feature: early warning and Clinical Copilot
+
+- Added a transparent prediction service (`services/prediction.py`): baseline z-scores, 7-day slopes, active-alert weights, red-flag overrides, confidence/data coverage, and ranked drivers for a 48–72-hour horizon.
+- Added `/surgeon/crew/{id}/prediction` and risk fields on the crew summary, so the roster shows early-warning level and horizon.
+- Added `/surgeon/crew/{id}/assistant`: a surgeon-facing, cited decision-support copilot. It summarizes readiness, alerts, captures, check-ins, and early-warning drivers; refuses diagnosis, prescriptions, and doses; deterministically cites HRP articles; optional LLM path has a post-check and falls back safely.
+- The console adds early-warning badges to the roster, a banner, a detailed Copilot tab with the risk card, suggested questions, chat, citations, and the refusal path. The crew-facing assistant is unchanged.
+- The prediction is explicitly not a validated deterioration model or a diagnosis; clinical judgment remains with the surgeon.
+
+**Verification:** prediction and assistant tests plus the full suite; browser flow for risk badge, Copilot risk answer, citations, and refusal.
+
 ---
 
 ## 1. Verdict

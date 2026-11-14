@@ -7,6 +7,7 @@ from app.schemas.alert import AlertRead
 from app.schemas.capture import CaptureFeedRead
 from app.schemas.checkin import CheckinRead
 from app.schemas.metric import MeasurementRead
+from app.schemas.prediction import PredictionRead
 from app.schemas.readiness import ReadinessSnapshotRead
 
 
@@ -32,6 +33,9 @@ class SurgeonCrewSummaryRead(BaseModel):
     last_capture_source: str | None
     last_checkin_at: datetime | None
     open_instructions: int
+    risk_score: int | None
+    risk_level: Literal["low", "moderate", "high"] | None
+    risk_horizon_hours: int | None
 
 
 class SurgeonAssessmentCreate(BaseModel):
@@ -79,6 +83,7 @@ class SurgeonCrewDetailRead(BaseModel):
     member: SurgeonCrewSummaryRead
     mission: SurgeonMissionRead
     readiness: ReadinessSnapshotRead | None
+    prediction: PredictionRead
     readiness_history: list[ReadinessSnapshotRead]
     alerts: list[AlertRead]
     latest_capture: CaptureFeedRead

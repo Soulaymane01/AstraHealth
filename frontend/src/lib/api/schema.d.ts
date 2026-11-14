@@ -960,6 +960,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/surgeon/crew/{crew_user_id}/prediction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Prediction */
+        get: operations["read_crew_prediction_surgeon_crew__crew_user_id__prediction_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/assistant": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ask Surgeon Assistant */
+        post: operations["ask_surgeon_assistant_surgeon_crew__crew_user_id__assistant_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/surgeon/crew/{crew_user_id}/updates": {
         parameters: {
             query?: never;
@@ -1691,6 +1725,59 @@ export interface components {
             /** Comms Delay Min */
             comms_delay_min: number;
         };
+        /** PredictionRead */
+        PredictionRead: {
+            /** Risk Score */
+            risk_score: number;
+            /**
+             * Risk Level
+             * @enum {string}
+             */
+            risk_level: "low" | "moderate" | "high";
+            /** Horizon Hours */
+            horizon_hours: number;
+            /** Summary */
+            summary: string;
+            /** Drivers */
+            drivers: components["schemas"]["PredictionSignalRead"][];
+            /** Recommendations */
+            recommendations: string[];
+            /**
+             * Confidence
+             * @enum {string}
+             */
+            confidence: "low" | "medium" | "high";
+            /** Data Coverage */
+            data_coverage: number;
+            /** Red Flags */
+            red_flags: string[];
+            /** Disclaimer */
+            disclaimer: string;
+        };
+        /** PredictionSignalRead */
+        PredictionSignalRead: {
+            /** Metric */
+            metric: string;
+            /** Label */
+            label: string;
+            /** Direction */
+            direction: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "watch" | "moderate" | "high";
+            /** Latest Value */
+            latest_value: number;
+            /** Unit */
+            unit: string;
+            /** Z */
+            z: number | null;
+            /** Trend Per Week */
+            trend_per_week: number | null;
+            /** Evidence */
+            evidence: string;
+        };
         /** PrivacyRead */
         PrivacyRead: {
             /** Share Status */
@@ -2026,6 +2113,7 @@ export interface components {
             member: components["schemas"]["SurgeonCrewSummaryRead"];
             mission: components["schemas"]["SurgeonMissionRead"];
             readiness: components["schemas"]["ReadinessSnapshotRead"] | null;
+            prediction: components["schemas"]["PredictionRead"];
             /** Readiness History */
             readiness_history: components["schemas"]["ReadinessSnapshotRead"][];
             /** Alerts */
@@ -2066,6 +2154,12 @@ export interface components {
             last_checkin_at: string | null;
             /** Open Instructions */
             open_instructions: number;
+            /** Risk Score */
+            risk_score: number | null;
+            /** Risk Level */
+            risk_level: ("low" | "moderate" | "high") | null;
+            /** Risk Horizon Hours */
+            risk_horizon_hours: number | null;
         };
         /** SurgeonInstructionCreate */
         SurgeonInstructionCreate: {
@@ -4091,6 +4185,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AlertRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_crew_prediction_surgeon_crew__crew_user_id__prediction_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PredictionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    ask_surgeon_assistant_surgeon_crew__crew_user_id__assistant_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssistantQuestion"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssistantAnswerRead"];
                 };
             };
             /** @description Validation Error */
