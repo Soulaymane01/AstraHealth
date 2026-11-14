@@ -79,6 +79,8 @@ The prediction endpoint is deliberately transparent: it reports `risk_score`, `r
 
 The assistant endpoint returns the same cited-answer shape as the crew assistant. It is prompted to summarize the clinician’s record, explain early-warning signals, and suggest questions or monitoring; it refuses diagnosis, prescriptions, and doses. With `LLM_PROVIDER=none` it uses the deterministic cited engine; when configured, the LLM path is post-checked and falls back if the response is unsafe or empty.
 
+When the prediction crosses a threshold, the backend creates one deduplicated AI follow-up instruction supervised by the flight surgeon. Instructions expose `source` (`surgeon` or `ai`), `protocol`, `target_metrics`, `due_at`, and `reason`. The crew can start the focused Systems Check from the request; a successful check-in closes it automatically. The same protocol is not reissued for 12 hours after completion.
+
 ### Crew-facing surgeon updates
 
 | Method | Path | Purpose |

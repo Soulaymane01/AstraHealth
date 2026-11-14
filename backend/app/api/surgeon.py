@@ -43,6 +43,7 @@ from app.services.captures import (
     build_capture_feed,
     simulate_capture,
 )
+from app.services.followups import ensure_ai_followup
 from app.services.prediction import predict_crew_risk
 from app.services.readiness import (
     SEVERITY_ORDER,
@@ -214,6 +215,7 @@ def list_crew(
     members = _crew_members(db)
     for member in members:
         _ensure_capture(db, member)
+        ensure_ai_followup(db, member)
     return [_summary(db, member) for member in members]
 
 
@@ -226,6 +228,7 @@ def read_crew_detail(
     del surgeon
     member = _crew_member(db, crew_user_id)
     _ensure_capture(db, member)
+    ensure_ai_followup(db, member)
     prediction = predict_crew_risk(db, member)
 
     snapshot = _latest_snapshot(db, member.id)
@@ -445,6 +448,7 @@ def read_crew_prediction(
     del surgeon
     member = _crew_member(db, crew_user_id)
     _ensure_capture(db, member)
+    ensure_ai_followup(db, member)
     return predict_crew_risk(db, member)
 
 
@@ -458,6 +462,7 @@ def ask_surgeon_assistant(
     del surgeon
     member = _crew_member(db, crew_user_id)
     _ensure_capture(db, member)
+    ensure_ai_followup(db, member)
     return answer_surgeon_question(db, member, payload.question)
 
 

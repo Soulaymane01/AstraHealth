@@ -16,6 +16,7 @@ from app.models import (
     Measurement,
     MetricDefinition,
     ReadinessSnapshot,
+    SurgeonInstruction,
     User,
 )
 from app.schemas.assistant import AssistantAnswerRead, AssistantCitationRead
@@ -133,6 +134,7 @@ class SurgeonContext:
     prediction: PredictionRead
     checkins: list[Checkin]
     metrics: dict[str, dict[str, object]]
+    open_followups: list[SurgeonInstruction]
     articles: list[KnowledgeArticle]
 
 
@@ -220,6 +222,18 @@ def build_context(db: Session, member: User) -> SurgeonContext:
         )
 
     prediction = predict_crew_risk(db, member)
+    followups = list(
+        db.scalars(
+            select(SurgeonInstruction)
+            .where(
+                SurgeonInstruction.crew_user_id == member.id,
+                SurgeonInstruction.source == "ai",
+                SurgeonInstruction.status == "open",
+            )
+            .order_by(SurgeonInstruction.created_at.desc())
+            .limit(3)
+        ).all()
+    )
     return SurgeonContext(
         member=member,
         snapshot=snapshot,
@@ -227,6 +241,7 @@ def build_context(db: Session, member: User) -> SurgeonContext:
         prediction=prediction,
         checkins=checkins,
         metrics=metrics,
+        open_followups=followups,
         articles=[],
     )
 
@@ -276,12 +291,18 @@ def _prediction_answer(context: SurgeonContext) -> str:
         f"{driver.label}: {driver.evidence}" for driver in prediction.drivers[:3]
     )
     recommendations = " ".join(prediction.recommendations[:2])
+    followup = (
+        f"An AI follow-up request is open: {context.open_followups[0].message}"
+        if context.open_followups
+        else ""
+    )
     return (
         f"{prediction.summary} Risk score {prediction.risk_score}/100, "
         f"confidence {prediction.confidence}, data coverage "
         f"{round(prediction.data_coverage * 100)}%. "
         f"{('Drivers: ' + drivers + ' ') if drivers else ''}"
-        f"{recommendations} This is decision support, not a diagnosis."
+        f"{recommendations} {followup} "
+        "This is decision support, not a diagnosis."
     )
 
 

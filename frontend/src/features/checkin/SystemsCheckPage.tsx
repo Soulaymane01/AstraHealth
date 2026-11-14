@@ -14,7 +14,8 @@ import {
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
@@ -24,6 +25,7 @@ import { useAuthStore } from "@/features/auth/auth-store";
 import { PulseCamera } from "@/features/camera/PulseCamera";
 import { captureSourceLabel, isCaptureSource } from "@/features/captures/labels";
 import { useCaptureFeed } from "@/features/captures/queries";
+import { useAcknowledgeSurgeonUpdate } from "@/features/surgeon/queries";
 import {
   buildCheckinPayload,
   countStepValues,
@@ -90,6 +92,10 @@ export function SystemsCheckPage() {
   const syncQueued = useOfflineStore((state) => state.sync);
   const lastSyncedAt = useOfflineStore((state) => state.lastSyncedAt);
   const captureQuery = useCaptureFeed();
+  const [searchParams] = useSearchParams();
+  const focus = searchParams.get("focus");
+  const requestId = Number(searchParams.get("request")) || null;
+  const acknowledgeSurgeonUpdate = useAcknowledgeSurgeonUpdate();
 
   const [phase, setPhase] = useState<PagePhase>("loading");
   const [resumeDraft, setResumeDraft] = useState<CheckinDraft | null>(null);
@@ -110,6 +116,7 @@ export function SystemsCheckPage() {
   const stepPanelRef = useRef<HTMLDivElement>(null);
   const firstStepRender = useRef(true);
   const captureAppliedRef = useRef<string | null>(null);
+  const focusAppliedRef = useRef(false);
   const activeStep = CHECKIN_STEPS[step] ?? CHECKIN_STEPS[0];
   const activeSkipped = skipped.includes(activeStep.key);
   const isLastStep = step === CHECKIN_STEPS.length - 1;
@@ -137,6 +144,14 @@ export function SystemsCheckPage() {
     heading?.setAttribute("tabindex", "-1");
     heading?.focus({ preventScroll: true });
   }, [step, phase, reduce]);
+
+  useEffect(() => {
+    if (phase !== "ready" || !focus || focusAppliedRef.current) return;
+    const index = CHECKIN_STEPS.findIndex((candidate) => candidate.key === focus);
+    if (index < 0) return;
+    setStep(index);
+    focusAppliedRef.current = true;
+  }, [phase, focus]);
 
   useEffect(() => {
     const feed = captureQuery.data;
@@ -242,6 +257,7 @@ export function SystemsCheckPage() {
     setDirty(false);
     setSaveState("saved");
     setOverrideCaptures(false);
+    focusAppliedRef.current = false;
   };
 
   const startFresh = () => {
@@ -259,6 +275,7 @@ export function SystemsCheckPage() {
     setStepError(null);
     setSubmitError(null);
     setOverrideCaptures(false);
+    focusAppliedRef.current = false;
   };
 
   const updateMetric = (code: string, value: string) => {
@@ -366,6 +383,12 @@ export function SystemsCheckPage() {
       onSuccess: (result) => {
         if (user) void deleteCheckinDraft(user.id).catch(() => undefined);
         if (result.kind === "created") {
+          if (requestId) {
+            acknowledgeSurgeonUpdate.mutate(requestId, {
+              onError: () =>
+                toast.error("Check-in saved, but the follow-up request could not be closed."),
+            });
+          }
           navigate(`/check-in/report/${result.checkin.id}`);
           return;
         }
@@ -643,6 +666,12 @@ export function SystemsCheckPage() {
               </span>
             }
           >
+            {focus && (
+              <div className="mb-3 rounded-lg border border-accent/25 bg-accent-soft/50 px-3 py-2 text-[11px] leading-relaxed text-ink-2">
+                <span className="font-medium text-ink">Focused check requested.</span> Complete
+                this step and submit; the follow-up request closes automatically.
+              </div>
+            )}
             {(activeStep.key === "vitals" || activeStep.key === "training") &&
               captureQuery.data?.captured_at && (
                 <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-accent/20 bg-accent-soft/40 px-3 py-2 text-[11px] leading-relaxed text-ink-2">

@@ -1,12 +1,13 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import SurgeonAssessment, SurgeonInstruction
+from app.models import SurgeonAssessment, SurgeonInstruction, User
 from app.schemas import (
     SurgeonAssessmentRead,
     SurgeonInstructionRead,
     SurgeonUpdatesRead,
 )
+from app.services.followups import ensure_ai_followup
 
 
 def assessment_read(assessment: SurgeonAssessment) -> SurgeonAssessmentRead:
@@ -35,6 +36,11 @@ def instruction_read(instruction: SurgeonInstruction) -> SurgeonInstructionRead:
         kind=instruction.kind,
         message=instruction.message,
         status=instruction.status,
+        source=instruction.source,
+        protocol=instruction.protocol,
+        target_metrics=instruction.target_metrics,
+        due_at=instruction.due_at,
+        reason=instruction.reason,
         created_at=instruction.created_at,
         acknowledged_at=instruction.acknowledged_at,
         completed_at=instruction.completed_at,
@@ -42,6 +48,12 @@ def instruction_read(instruction: SurgeonInstruction) -> SurgeonInstructionRead:
 
 
 def crew_updates(db: Session, crew_user_id: int) -> SurgeonUpdatesRead:
+    member = db.get(User, crew_user_id)
+    if member is not None:
+        # Anomaly detection runs before the feed is read, so the astronaut can
+        # receive a specific AI follow-up request without waiting for a manual
+        # surgeon action.
+        ensure_ai_followup(db, member)
     assessments = db.scalars(
         select(SurgeonAssessment)
         .where(

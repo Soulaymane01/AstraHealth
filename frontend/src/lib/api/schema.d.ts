@@ -2188,6 +2188,16 @@ export interface components {
             message: string;
             /** Status */
             status: string;
+            /** Source */
+            source: string;
+            /** Protocol */
+            protocol: string | null;
+            /** Target Metrics */
+            target_metrics: string[];
+            /** Due At */
+            due_at: string | null;
+            /** Reason */
+            reason: string | null;
             /**
              * Created At
              * Format: date-time

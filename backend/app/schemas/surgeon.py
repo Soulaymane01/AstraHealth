@@ -74,6 +74,11 @@ class SurgeonInstructionRead(BaseModel):
     kind: str
     message: str
     status: str
+    source: str
+    protocol: str | None
+    target_metrics: list[str]
+    due_at: datetime | None
+    reason: str | None
     created_at: datetime
     acknowledged_at: datetime | None
     completed_at: datetime | None

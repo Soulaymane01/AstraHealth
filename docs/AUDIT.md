@@ -101,8 +101,10 @@ Added after the audit to match the “astronaut does not type vitals” requirem
 - Added `/surgeon/crew/{id}/assistant`: a surgeon-facing, cited decision-support copilot. It summarizes readiness, alerts, captures, check-ins, and early-warning drivers; refuses diagnosis, prescriptions, and doses; deterministically cites HRP articles; optional LLM path has a post-check and falls back safely.
 - The console adds early-warning badges to the roster, a banner, a detailed Copilot tab with the risk card, suggested questions, chat, citations, and the refusal path. The crew-facing assistant is unchanged.
 - The prediction is explicitly not a validated deterioration model or a diagnosis; clinical judgment remains with the surgeon.
+- **Closed-loop AI follow-up:** when an anomaly is detected, the system creates one deduplicated AI request supervised by the flight surgeon. It names a specific protocol (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), target metrics, reason, and due time. The astronaut sees it on the Flight Deck and can start a focused Systems Check at the right step; a successful check-in closes the request automatically. Suggested requests are not repeated for 12 hours after completion.
+- Added `source`, `protocol`, `target_metrics`, `due_at`, and `reason` to surgeon instructions, with a migration. The Copilot answer also names the open AI follow-up.
 
-**Verification:** prediction and assistant tests plus the full suite; browser flow for risk badge, Copilot risk answer, citations, and refusal.
+**Verification:** 93 backend tests; prediction, AI follow-up dedupe, focused-check flow, Copilot refusal/citations, smoke, typecheck, build, axe, and the full demo flow.
 
 ---
 

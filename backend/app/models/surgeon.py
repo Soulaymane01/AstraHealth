@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
@@ -46,6 +46,11 @@ class SurgeonInstruction(TimestampMixin, Base):
     kind: Mapped[str] = mapped_column(String(30), nullable=False, default="note")
     message: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="open")
+    source: Mapped[str] = mapped_column(String(20), nullable=False, default="surgeon")
+    protocol: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    target_metrics: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     acknowledged_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
