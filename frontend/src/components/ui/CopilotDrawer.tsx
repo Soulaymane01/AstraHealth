@@ -135,7 +135,12 @@ export function CopilotDrawer({
       </div>
 
       <div className="border-t border-line px-4 py-3">
-        <div className="mb-2 flex gap-1.5 overflow-x-auto pb-1">
+        <div
+          className="mb-2 flex gap-1.5 overflow-x-auto pb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+          role="group"
+          aria-label="Suggested questions"
+          tabIndex={0}
+        >
           {suggestions.map((suggestion) => (
             <button
               key={suggestion}

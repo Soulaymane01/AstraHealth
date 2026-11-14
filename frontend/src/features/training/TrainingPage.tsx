@@ -159,8 +159,8 @@ export function TrainingPage() {
         <LogSessionForm key={selectedItem.code} item={selectedItem} onClose={closeLog} />
       )}
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-8">
+      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">
+        <div className="min-w-0 space-y-4 lg:col-span-8">
           <Panel
             title="Training plan"
             subtitle={
@@ -202,7 +202,7 @@ export function TrainingPage() {
           </Panel>
         </div>
 
-        <div className="space-y-4 lg:col-span-4">
+        <div className="min-w-0 space-y-4 lg:col-span-4">
           <Panel title="Today's roster" subtitle="Check-in, hydration, training, and sleep.">
             <DutyRoster roster={roster} onLog={openLog} onCheckin={() => navigate("/check-in")} />
           </Panel>

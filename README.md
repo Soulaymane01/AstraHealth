@@ -88,6 +88,8 @@ make start
 
 `make start` starts PostgreSQL if needed, applies migrations, seeds the demo state, and runs both servers. Press **Ctrl+C** to stop the API and web app; PostgreSQL stays running.
 
+`make start-demo` resets the scripted mission to day 42 first. Use it (or run `make reset-demo`) when the database was seeded on an earlier day.
+
 Prefer separate terminals? Use `make db`, then `make api` and `make web` in two shells.
 
 Open **http://localhost:5173** — sign in with a demo account. The shell shows a **Demo** badge for the seeded mission. The styleguide is hidden in demo mode; set `VITE_DEMO_MODE=false` and restart Vite to expose `/styleguide`.
@@ -109,7 +111,7 @@ make demo-verify
 
 Everything works with safe local defaults:
 
-- **NASA space weather** — set `NASA_API_KEY` for live DONKI context; fixtures are used when it is empty.
+- **NASA space weather** — the demo ships a seeded DONKI-style event. A live DONKI client is deferred; `NASA_API_KEY` is reserved for it.
 - **AI Flight Surgeon** — defaults to `LLM_PROVIDER=none`, which uses the deterministic cited answer engine. Set `LLM_PROVIDER=openai`, `LLM_API_KEY`, and `LLM_MODEL` to use an OpenAI-compatible chat endpoint; `LLM_BASE_URL` defaults to `https://api.openai.com/v1`. Refusal and red-flag answers always stay rule-based.
 - **Camera pulse** — MediaPipe WASM and the face model load from CDN at runtime; no camera assets are committed. Override `VITE_MEDIAPIPE_WASM_URL` and `VITE_MEDIAPIPE_MODEL_URL` to self-host them. Camera permission is optional and the manual heart-rate field remains the fallback.
 
@@ -200,7 +202,7 @@ PostgreSQL 16
 Optional: NASA DONKI (space weather) and an OpenAI-compatible LLM.
 ```
 
-The check-in is one database transaction: measurements, symptoms, snapshot, alerts, credits, streak, and achievements either all commit or none do. The offline queue keeps the same idempotency key across retries, so reconnect cannot create a duplicate.
+The check-in, measurements, symptoms, credits, streak, and achievements commit atomically. Readiness and alerts are computed immediately after and are best-effort: an engine failure never discards a health submission. Hard rules are evaluated even before a personal baseline exists, so a first check-in can still raise a red-flag alert. The offline queue keeps the same idempotency key across retries, so reconnect cannot create a duplicate.
 
 ---
 
@@ -217,7 +219,7 @@ docs/         Plan, API, design, sources, demo script
 
 ## Data honesty
 
-AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered and camera-derived measurements, clearly labeled simulated crew telemetry, and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context comes from NASA DONKI when a key is configured, and from fixtures otherwise.
+AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered and camera-derived measurements, clearly labeled simulated crew telemetry, and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context is a seeded DONKI-style fixture in this build; live DONKI is a deferred integration.
 
 AstraHealth provides guidance, not diagnosis. Red-flag findings always route to a flight surgeon.
 

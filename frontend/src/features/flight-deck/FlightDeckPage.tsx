@@ -11,7 +11,7 @@ import { MissionTape, type TapeEventType } from "@/components/ui/MissionTape";
 import { Panel } from "@/components/ui/Panel";
 import { ReadinessRing } from "@/components/ui/ReadinessRing";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge, StatusPill } from "@/components/ui/Status";
+import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { useOfflineStore } from "@/features/offline/store";
@@ -216,7 +216,9 @@ export function FlightDeckPage() {
     );
   }
 
-  const error = missionQuery.error ?? readinessQuery.error ?? alertsQuery.error;
+  // Alerts are handled locally so an alerts outage does not blank the whole
+  // dashboard; the rest of the readiness view can still render.
+  const error = missionQuery.error ?? readinessQuery.error;
   if (error && !online) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-xl items-center">
@@ -306,6 +308,7 @@ export function FlightDeckPage() {
 
   const readiness = readinessQuery.data;
   const alerts = alertsQuery.data ?? [];
+  const alertsError = alertsQuery.isError;
   const context = contextQuery.data;
   const name = user ? firstName(user.full_name) : "Commander";
   const status = readiness ? asStatus(readiness.status) : "unknown";
@@ -439,7 +442,7 @@ export function FlightDeckPage() {
       )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-8">
+        <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:col-span-5">
           <Panel
             title="Readiness"
             subtitle="Composite score across six domains."
@@ -491,29 +494,71 @@ export function FlightDeckPage() {
 
           <Panel
             title="Next action"
-            actions={<span className="text-xs text-muted">From the latest alert</span>}
+            actions={<span className="text-xs text-muted">From the most severe alert</span>}
           >
             <p className="text-sm leading-relaxed text-ink">
-              {alerts[0]?.recommended_action ?? "Continue your current countermeasure plan."}
+              {alertsError
+                ? "Alerts could not be loaded. Check the connection before relying on this view."
+                : (alerts[0]?.recommended_action ??
+                  "Continue your current countermeasure plan.")}
             </p>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-3"
-              onClick={() => navigate("/check-in")}
-            >
-              Log a check-in
-            </Button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" onClick={() => navigate("/check-in")}>
+                Log a check-in
+              </Button>
+              {alertsError && (
+                <Button variant="ghost" size="sm" onClick={() => void alertsQuery.refetch()}>
+                  Retry alerts
+                </Button>
+              )}
+            </div>
+          </Panel>
+
+          <Panel title="Systems" subtitle="Scores relative to your personal baseline.">
+            <div className="space-y-0.5">
+              {DOMAIN_ROWS.map((domain) => (
+                <DomainRail
+                  key={domain.key}
+                  name={domain.name}
+                  score={domainScores[domain.key] ?? 0}
+                  status={domainStatus(domain.key)}
+                  delta={domainDelta(domain.key)}
+                  active={selectedDomain === domain.key}
+                  onClick={() => selectDomain(domain.key)}
+                />
+              ))}
+            </div>
+            <p className="mt-3 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
+              Sleep and circadian rhythm are tracked as a schedule, not a body region.
+            </p>
           </Panel>
         </div>
 
-        <div className="space-y-3 lg:col-span-4">
+        <div className="order-3 min-w-0 space-y-3 lg:col-span-7">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold tracking-[-0.01em] text-ink">Needs attention</h2>
-            <span className="text-xs text-muted">{alerts.length} active</span>
+            <span className="text-xs text-muted">
+              {alertsError ? "Unavailable" : `${alerts.length} active`}
+            </span>
           </div>
 
-          {alerts.length > 0 ? (
+          {alertsError ? (
+            <Panel>
+              <p className="text-sm font-medium text-ink">Alerts are unavailable.</p>
+              <p className="mt-1 text-xs leading-relaxed text-ink-2">
+                This is not an all-clear. Check the connection and retry before relying on the
+                dashboard.
+              </p>
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mt-3"
+                onClick={() => void alertsQuery.refetch()}
+              >
+                Retry alerts
+              </Button>
+            </Panel>
+          ) : alerts.length > 0 ? (
             alerts.map((alert) => (
               <AnomalyCard
                 key={alert.id}
@@ -544,19 +589,18 @@ export function FlightDeckPage() {
             </Panel>
           )}
         </div>
-      </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
         <Panel
-          className="lg:col-span-7"
+          className="order-2 min-w-0 lg:order-1 lg:col-span-7"
           title="Body systems"
-          subtitle="Click a muscle group to inspect its domain."
+          subtitle="Click or tap a muscle group. Use the Systems list for keyboard selection."
         >
           <AnatomyMap
             regions={anatomyRegions}
             selectedDomain={selectedDomain}
             onSelectDomain={selectDomain}
           />
+          <StatusLegend className="mt-3 border-t border-line pt-3" />
           <DomainDetailPanel
             detail={domainQuery.data}
             loading={domainQuery.isLoading}
@@ -566,26 +610,7 @@ export function FlightDeckPage() {
           />
         </Panel>
 
-        <div className="space-y-4 lg:col-span-5">
-          <Panel title="Systems" subtitle="Scores relative to your personal baseline.">
-            <div className="space-y-0.5">
-              {DOMAIN_ROWS.map((domain) => (
-                <DomainRail
-                  key={domain.key}
-                  name={domain.name}
-                  score={domainScores[domain.key] ?? 0}
-                  status={domainStatus(domain.key)}
-                  delta={domainDelta(domain.key)}
-                  active={selectedDomain === domain.key}
-                  onClick={() => selectDomain(domain.key)}
-                />
-              ))}
-            </div>
-            <p className="mt-3 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
-              Sleep and circadian rhythm are tracked as a schedule, not a body region.
-            </p>
-          </Panel>
-
+        <div className="order-4 min-w-0 space-y-4 lg:col-span-5">
           <Panel
             title="Why this score?"
             subtitle="100 minus the weighted contribution of each metric."

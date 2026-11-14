@@ -102,6 +102,8 @@ def test_checkin_report_matches_snapshot_and_awards_credits_once(
     reference = datetime.now(UTC) - timedelta(hours=6)
     add_series(db_session, test_user, "heart_rate", 66.0, 66.0, reference)
     add_series(db_session, test_user, "sleep_duration_h", 7.2, 7.0, reference)
+    # Three domains are required for a comparable composite score.
+    add_series(db_session, test_user, "exercise_load_min", 30.0, 30.0, reference)
     compute_and_persist_readiness(
         db_session, test_user, profile_for_user(db_session, test_user), reference
     )
@@ -214,7 +216,7 @@ def test_checkin_report_handles_insufficient_data(
     assert data["recommended_action"]
 
 
-def test_checkin_rolls_back_everything_when_readiness_fails(
+def test_checkin_survives_a_readiness_failure(
     client: TestClient,
     db_session: Session,
     auth_headers: dict[str, str],
@@ -237,28 +239,99 @@ def test_checkin_rolls_back_everything_when_readiness_fails(
     payload = {
         "entries": [{"metric_code": "heart_rate", "value": 72}],
         "symptoms": [{"region": "head", "symptom": "headache", "severity": 2}],
-        "idempotency_key": "rollback-checkin",
+        "idempotency_key": "survives-checkin",
     }
     response = client.post("/checkins", json=payload, headers=auth_headers)
-    assert response.status_code == 500
-    assert response.json()["detail"] == "Check-in could not be completed. Nothing was saved."
+    assert response.status_code == 201
+    checkin_id = response.json()["id"]
 
-    assert db_session.scalar(select(func.count(Checkin.id))) == 0
-    assert db_session.scalar(select(func.count(Measurement.id))) == 0
-    assert db_session.scalar(select(func.count(CreditEvent.id))) == 0
-    assert db_session.scalar(select(func.count(Streak.id))) == 0
-    assert db_session.scalar(select(func.count(UserAchievement.id))) == 0
+    # The submission and its credits survive; only the readiness snapshot is
+    # missing, and the report explains that honestly.
+    assert db_session.scalar(select(func.count(Checkin.id))) == 1
+    assert db_session.scalar(select(func.count(Measurement.id))) == 2
+    assert db_session.scalar(select(func.count(CreditEvent.id))) == 1
+    assert db_session.scalar(select(func.count(Streak.id))) == 1
+    assert db_session.scalar(select(func.count(UserAchievement.id))) >= 1
 
-    # A retry with the same idempotency key must succeed because the failed
-    # transaction left no row behind.
+    report = client.get(f"/checkins/{checkin_id}/report", headers=auth_headers)
+    assert report.status_code == 200
+    assert report.json()["insufficient_data"] is True
+    assert report.json()["credits"] == 40
+
+    # Idempotent replay returns the same committed check-in.
     monkeypatch.setattr(
         "app.api.checkins.compute_and_persist_readiness",
         original,
     )
     retry = client.post("/checkins", json=payload, headers=auth_headers)
     assert retry.status_code == 201
+    assert retry.json()["id"] == checkin_id
     assert db_session.scalar(select(func.count(Checkin.id))) == 1
     assert db_session.scalar(select(func.count(CreditEvent.id))) == 1
+
+
+def test_first_checkin_red_flags_create_alerts_without_a_snapshot(
+    client: TestClient, auth_headers: dict[str, str], metric_definitions: None
+) -> None:
+    response = client.post(
+        "/checkins",
+        json={
+            "entries": [
+                {"metric_code": "body_temp_c", "value": 38.5},
+                {"metric_code": "heart_rate", "value": 120},
+            ],
+            "symptoms": [
+                {"region": "chest", "symptom": "chest pain", "severity": 7, "duration": "10 min"}
+            ],
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+
+    alerts = client.get("/alerts", headers=auth_headers)
+    assert alerts.status_code == 200
+    assert {alert["rule_id"] for alert in alerts.json()} >= {"R1", "R7"}
+
+    readiness = client.get("/readiness", headers=auth_headers)
+    assert readiness.status_code == 404
+
+    report = client.get(f"/checkins/{response.json()['id']}/report", headers=auth_headers)
+    assert report.status_code == 200
+    body = report.json()
+    assert body["insufficient_data"] is True
+    assert body["score"] is None
+    assert {alert["rule_id"] for alert in body["alerts"]} >= {"R1", "R7"}
+
+
+def test_offline_checkin_keeps_the_time_it_was_taken(
+    client: TestClient,
+    db_session: Session,
+    auth_headers: dict[str, str],
+    test_user: User,
+    metric_definitions: None,
+) -> None:
+    taken_at = datetime.now(UTC) - timedelta(days=2, hours=3)
+    response = client.post(
+        "/checkins",
+        json={
+            "entries": [{"metric_code": "heart_rate", "value": 71}],
+            "started_at": taken_at.isoformat(),
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    assert response.json()["started_at"].startswith(taken_at.date().isoformat())
+
+    measured = client.get(
+        "/measurements", params={"metric": "heart_rate"}, headers=auth_headers
+    ).json()
+    assert measured[-1]["measured_at"].startswith(taken_at.date().isoformat())
+
+    streak = db_session.scalar(
+        select(Streak).where(Streak.user_id == test_user.id, Streak.kind == "checkin")
+    )
+    assert streak is not None
+    assert streak.last_date == taken_at.date()
 
 
 def test_checkin_preserves_camera_source_and_confidence(

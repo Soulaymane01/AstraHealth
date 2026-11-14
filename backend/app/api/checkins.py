@@ -103,9 +103,18 @@ def create_checkin(
         )
 
     now = datetime.now(UTC)
+    started_at = payload.started_at or now
+    if started_at.tzinfo is None:
+        started_at = started_at.replace(tzinfo=UTC)
+    else:
+        started_at = started_at.astimezone(UTC)
+    # A device clock can drift; accept a small skew but never a future reading.
+    if started_at > now + timedelta(minutes=5):
+        started_at = now
+
     checkin = Checkin(
         user_id=user.id,
-        started_at=payload.started_at or now,
+        started_at=started_at,
         completed_at=now,
         status="completed",
         notes=payload.notes,
@@ -127,8 +136,7 @@ def create_checkin(
     db.add(checkin)
 
     try:
-        # Flush first so the credit event can reference the check-in id and the
-        # readiness engine can see the new measurements and symptoms.
+        # Flush first so the credit event can reference the check-in id.
         db.flush()
         checkin_id = checkin.id
 
@@ -150,7 +158,8 @@ def create_checkin(
                     metric_code=entry.metric_code,
                     value=entry.value,
                     unit=metrics[entry.metric_code].unit,
-                    measured_at=now,
+                    # An offline check-in keeps the time it was actually taken.
+                    measured_at=started_at,
                     source=source,
                     confidence=confidence,
                 )
@@ -165,7 +174,7 @@ def create_checkin(
                         metric_code="symptom_score",
                         value=min(10, sum(symptom.severity for symptom in payload.symptoms)),
                         unit=symptom_metric.unit,
-                        measured_at=now,
+                        measured_at=started_at,
                         source="derived",
                     )
                 )
@@ -179,13 +188,8 @@ def create_checkin(
                 ref_id=str(checkin_id),
             )
         )
-        update_streak(db, user, "checkin", now.date(), now)
+        update_streak(db, user, "checkin", started_at.date(), now)
         evaluate_achievements(db, user, now)
-
-        # The test session disables autoflush, so flush explicitly before the
-        # readiness query runs.
-        db.flush()
-        compute_and_persist_readiness(db, user, profile_for_user(db, user), now)
         db.commit()
     except IntegrityError as exc:
         db.rollback()
@@ -210,6 +214,16 @@ def create_checkin(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Check-in was saved but could not be reloaded.",
         )
+
+    # Readiness is best-effort. A bug in the analytics engine must never discard
+    # a health submission that was already committed above.
+    try:
+        compute_and_persist_readiness(db, user, profile_for_user(db, user), now)
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Readiness computation failed for check-in %s", checkin_id)
+
     return created
 
 

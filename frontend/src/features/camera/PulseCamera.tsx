@@ -111,6 +111,7 @@ export function PulseCamera({
   const totalFramesRef = useRef(0);
   const motionRef = useRef(0);
   const lastBoxRef = useRef<Box | null>(null);
+  const runIdRef = useRef(0);
   const [status, setStatus] = useState<CameraStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<PpgResult | null>(null);
@@ -135,6 +136,9 @@ export function PulseCamera({
   };
 
   const cleanup = () => {
+    // Invalidate any in-flight start() so a late getUserMedia/model load cannot
+    // reactivate the camera after Cancel or unmount.
+    runIdRef.current += 1;
     stopLoop();
     stopStream();
     closeLandmarker();
@@ -241,8 +245,12 @@ export function PulseCamera({
       return;
     }
 
+    cleanup();
+    const runId = runIdRef.current;
+
     setStatus("requesting");
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    if (runIdRef.current !== runId) return;
     setError(null);
     setResult(null);
     setProgress(0);
@@ -260,15 +268,31 @@ export function PulseCamera({
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
         audio: false,
       });
+      if (runIdRef.current !== runId) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
       streamRef.current = stream;
       const video = videoRef.current;
       if (!video) throw new Error("Video element unavailable");
       video.srcObject = stream;
       await video.play();
+      if (runIdRef.current !== runId) {
+        stopStream();
+        return;
+      }
 
       setStatus("loading");
       const media = await import("@mediapipe/tasks-vision");
+      if (runIdRef.current !== runId) {
+        stopStream();
+        return;
+      }
       const fileset = await media.FilesetResolver.forVisionTasks(WASM_BASE);
+      if (runIdRef.current !== runId) {
+        stopStream();
+        return;
+      }
       let landmarker: FaceLandmarker;
       try {
         landmarker = await media.FaceLandmarker.createFromOptions(fileset, {
@@ -287,10 +311,16 @@ export function PulseCamera({
           minTrackingConfidence: 0.6,
         });
       }
+      if (runIdRef.current !== runId) {
+        landmarker.close();
+        stopStream();
+        return;
+      }
       landmarkerRef.current = landmarker;
       setStatus("measuring");
       rafRef.current = requestAnimationFrame(detect);
     } catch (caught) {
+      if (runIdRef.current !== runId) return;
       cleanup();
       setStatus("error");
       setError(cameraErrorMessage(caught));

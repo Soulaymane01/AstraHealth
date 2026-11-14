@@ -70,7 +70,12 @@ export function MissionTape({
 
   return (
     <div className={cn("w-full", className)}>
-      <div className="overflow-x-auto pb-1">
+      <div
+        className="overflow-x-auto pb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/25"
+        role="group"
+        aria-label="Mission tape timeline"
+        tabIndex={0}
+      >
         <div className="min-w-[640px] px-5">
           <div className="relative h-24">
             <div className="absolute left-0 right-0 top-1/2 h-px bg-line" />

@@ -15,7 +15,7 @@ export function MetricInput({ field, value, error, onChange }: MetricInputProps)
   return (
     <div
       className={cn(
-        "rounded-xl border border-line bg-surface px-3.5 py-3 transition-colors focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/10",
+        "min-w-0 rounded-xl border border-line bg-surface px-3.5 py-3 transition-colors focus-within:border-accent/40 focus-within:ring-2 focus-within:ring-accent/10",
         error && "border-critical/40 focus-within:border-critical/50 focus-within:ring-critical/10",
       )}
     >
@@ -36,12 +36,13 @@ export function MetricInput({ field, value, error, onChange }: MetricInputProps)
           type="text"
           inputMode="decimal"
           autoComplete="off"
+          size={1}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={field.placeholder ?? "—"}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          className="min-w-0 flex-1 bg-transparent text-2xl font-semibold tabular tracking-tight text-ink outline-none placeholder:text-muted/40"
+          className="w-0 min-w-0 flex-1 bg-transparent text-2xl font-semibold tabular tracking-tight text-ink outline-none placeholder:text-muted/40"
         />
         <span className="shrink-0 text-xs text-muted">{field.unit}</span>
       </div>

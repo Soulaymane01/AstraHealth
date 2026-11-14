@@ -551,8 +551,8 @@ export function SystemsCheckPage() {
         <CheckinProgress steps={CHECKIN_STEPS} current={step} skipped={skipped} />
       </Panel>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-8">
+      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-8">
           <Panel
             title={activeStep.title}
             subtitle={activeStep.description}
@@ -689,7 +689,7 @@ export function SystemsCheckPage() {
           </Panel>
         </div>
 
-        <aside className="space-y-4 lg:col-span-4 lg:sticky lg:top-20 lg:self-start">
+        <aside className="min-w-0 space-y-4 lg:col-span-4 lg:sticky lg:top-20 lg:self-start">
           <Panel title="This check-in" subtitle="Saved on this device until you submit.">
             <div className="divide-y divide-line">
               {CHECKIN_STEPS.map((definition) => {

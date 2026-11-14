@@ -37,7 +37,7 @@ export function App() {
       <AppErrorBoundary>
         <OfflineProvider />
         <RouterProvider router={router} />
-        <Toaster position="top-right" theme="light" richColors closeButton />
+        <Toaster position="top-right" theme="light" closeButton />
       </AppErrorBoundary>
     </QueryClientProvider>
   );

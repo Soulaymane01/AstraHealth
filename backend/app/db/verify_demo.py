@@ -112,7 +112,12 @@ def main() -> int:
 
         if mission is not None:
             day = max(1, int((datetime.now(UTC) - mission.start_at).total_seconds() // 86400))
-            checks.append(("mission day", 41 <= day <= 43, f"day {day}"))
+            # Elapsed wall-clock time is not a failure: the demo still works on
+            # a later day, but the scripted screenshots expect day 42.
+            detail = f"day {day}"
+            if day > 43:
+                detail += " (run make reset-demo for the scripted day 42)"
+            checks.append(("mission day", day >= 41, detail))
             weather = session.scalar(select(SpaceWeatherEvent).limit(1))
             checks.append(
                 ("space weather", weather is not None, weather.kind if weather else "missing")

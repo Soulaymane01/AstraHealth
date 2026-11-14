@@ -186,6 +186,9 @@ def update_streak(
     previous = streak.current
     if streak.last_date == day:
         return StreakUpdate(streak=streak)
+    # A late offline check-in must not rewind a streak that has already moved on.
+    if streak.last_date is not None and day < streak.last_date:
+        return StreakUpdate(streak=streak)
 
     if streak.last_date is None:
         streak.current = 1

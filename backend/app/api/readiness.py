@@ -37,7 +37,9 @@ def _compute(db: Session, user: User) -> ReadinessSnapshot:
         reference_time,
     )
     if snapshot is None:
-        db.rollback()
+        # A rule-only evaluation (for example a first check-in red flag) still
+        # creates alerts. Keep them even though there is no composite score.
+        db.commit()
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Not enough measurements to compute readiness yet.",

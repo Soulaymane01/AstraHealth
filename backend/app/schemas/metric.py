@@ -21,7 +21,7 @@ class MetricDefinitionRead(BaseModel):
 
 class MeasurementCreate(BaseModel):
     metric_code: str = Field(min_length=1, max_length=60)
-    value: float
+    value: float = Field(allow_inf_nan=False)
     measured_at: datetime | None = None
     source: Literal["manual", "device", "camera_rppg", "derived"] = "manual"
     confidence: float | None = Field(default=None, ge=0, le=1)

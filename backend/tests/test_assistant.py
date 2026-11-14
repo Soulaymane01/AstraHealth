@@ -153,3 +153,23 @@ def test_assistant_refuses_diagnosis_and_escalates_red_flags(
     assert "red-flags" in {
         citation["slug"] for citation in red_body["citations"]
     }
+
+    medication = client.post(
+        "/assistant/ask",
+        json={"question": "Can I take ibuprofen for my headache?"},
+        headers=auth_headers,
+    )
+    assert medication.status_code == 200
+    medication_body = medication.json()
+    assert medication_body["refused"] is True
+    assert "medication" in medication_body["answer"].lower()
+    assert medication_body["citations"][0]["slug"] == "red-flags"
+
+    bone = client.post(
+        "/assistant/ask",
+        json={"question": "How do I prevent bone loss on Mars?"},
+        headers=auth_headers,
+    )
+    assert bone.status_code == 200
+    # The question-specific article must lead, not an unrelated active alert.
+    assert bone.json()["citations"][0]["slug"] == "bone-loading"

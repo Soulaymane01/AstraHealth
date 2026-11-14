@@ -32,6 +32,12 @@ TREND_Z_THRESHOLD = 2.0
 TREND_ALERT_LIMIT = 2
 CONTRIBUTION_SCALE = 10.0
 
+# A score built from only one or two domains is not a comparable readiness
+# picture. Below this share of the profile weight, a reassuring (nominal/watch)
+# result is suppressed instead of being shown as a false "all clear". Low
+# scores and fired hard rules are still returned.
+MIN_WEIGHT_COVERAGE = 0.5
+
 DOMAIN_KEYS = {
     "Cardiovascular": "cardiovascular",
     "Musculoskeletal": "musculoskeletal",
@@ -211,6 +217,7 @@ class ReadinessResult:
     triggered_rules: list[dict[str, Any]] = field(repr=False)
     rule_metrics: set[str] = field(repr=False)
     metrics: list[dict[str, Any]] = field(repr=False)
+    has_score: bool = True
 
 
 @lru_cache
@@ -343,6 +350,8 @@ def compute_readiness(
     user: User,
     profile: str,
     reference_time: datetime,
+    *,
+    for_alerts: bool = False,
 ) -> ReadinessResult | None:
     metrics = db.scalars(
         select(MetricDefinition).order_by(MetricDefinition.domain, MetricDefinition.name)
@@ -422,8 +431,37 @@ def compute_readiness(
             }
         )
 
+    # Evaluate hard rules from the latest values even when the user has no
+    # baseline yet. A first-ever check-in can still report a red flag.
+    symptoms = _latest_symptoms(db, user.id, reference_time)
+    today = reference_time.date()
+    fired: list[dict[str, Any]] = []
+
+    for rule in load_rules():
+        if evaluate_condition(rule["condition"], latest_values, daily_values, symptoms, today):
+            fired.append(rule)
+
+    fired_rule_ids = [rule["id"] for rule in fired]
+    rule_metrics = rule_metric_codes()
+
     if not domain_values:
-        return None
+        if not fired:
+            return None
+        rule_status = "nominal"
+        for rule in fired:
+            if SEVERITY_ORDER.get(rule["severity"], 0) > SEVERITY_ORDER.get(rule_status, 0):
+                rule_status = rule["severity"]
+        return ReadinessResult(
+            score=0.0,
+            status=rule_status,
+            domain_scores={},
+            factors=[],
+            fired_rules=fired_rule_ids,
+            triggered_rules=fired,
+            rule_metrics=rule_metrics,
+            metrics=[],
+            has_score=False,
+        )
 
     domain_scores = {
         key: round(statistics.mean(values), 1) for key, values in domain_values.items()
@@ -482,27 +520,39 @@ def compute_readiness(
         for factor in factor_rows
     ]
 
-    fired: list[dict[str, Any]] = []
-    symptoms = _latest_symptoms(db, user.id, reference_time)
-    today = reference_time.date()
-
-    for rule in load_rules():
-        if evaluate_condition(rule["condition"], latest_values, daily_values, symptoms, today):
-            fired.append(rule)
-
     status = status_for_score(score)
     for rule in fired:
         if SEVERITY_ORDER.get(rule["severity"], 0) > SEVERITY_ORDER.get(status, 0):
             status = rule["severity"]
+
+    # Sparse data must never read as a reassuring all-clear. Low scores and
+    # fired rules are still returned because they are actionable.
+    if total_weight < MIN_WEIGHT_COVERAGE and not fired and status in {"nominal", "watch"}:
+        if not for_alerts:
+            return None
+        # Alert reconciliation still needs the factor list (e.g. to resolve a
+        # trend alert when the metric has returned to baseline), but no
+        # composite snapshot is stored for a sparse result.
+        return ReadinessResult(
+            score=round(score, 1),
+            status=status,
+            domain_scores=domain_scores,
+            factors=factors,
+            fired_rules=fired_rule_ids,
+            triggered_rules=fired,
+            rule_metrics=rule_metrics,
+            metrics=metric_details,
+            has_score=False,
+        )
 
     return ReadinessResult(
         score=round(score, 1),
         status=status,
         domain_scores=domain_scores,
         factors=factors,
-        fired_rules=[rule["id"] for rule in fired],
+        fired_rules=fired_rule_ids,
         triggered_rules=fired,
-        rule_metrics=rule_metric_codes(),
+        rule_metrics=rule_metrics,
         metrics=metric_details,
     )
 
@@ -626,7 +676,14 @@ def persist_readiness(
     user: User,
     result: ReadinessResult,
     reference_time: datetime,
-) -> ReadinessSnapshot:
+) -> ReadinessSnapshot | None:
+    # A rule-only result (no baseline yet) still produces alerts, but there is
+    # no composite score to store.
+    if not result.has_score:
+        generate_alerts(db, user, result, reference_time)
+        db.flush()
+        return None
+
     snapshot = ReadinessSnapshot(
         user_id=user.id,
         computed_at=reference_time,
@@ -648,7 +705,7 @@ def compute_and_persist_readiness(
     profile: str,
     reference_time: datetime,
 ) -> ReadinessSnapshot | None:
-    result = compute_readiness(db, user, profile, reference_time)
+    result = compute_readiness(db, user, profile, reference_time, for_alerts=True)
     if result is None:
         return None
     return persist_readiness(db, user, result, reference_time)

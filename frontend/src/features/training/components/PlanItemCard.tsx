@@ -16,7 +16,7 @@ export function PlanItemCard({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border border-line bg-surface p-4",
+        "flex min-w-0 flex-col rounded-xl border border-line bg-surface p-4",
         item.priority === 1 && "border-watch/25",
       )}
     >

@@ -82,7 +82,7 @@ Regenerate after every contract change. Hand-written request/response types are 
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/checkins` | Create a check-in, measurements, credit event, snapshot, and alerts in one transaction |
+| POST | `/checkins` | Create the check-in, measurements, credit event, streak, and achievements atomically; compute the readiness snapshot and alerts immediately after (best-effort) |
 | GET | `/checkins` | History |
 | GET | `/checkins/{id}` | One check-in |
 | GET | `/checkins/{id}/report` | Systems Report with score delta, top factors, action, credits, and active alerts |
@@ -146,6 +146,18 @@ Regenerate after every contract change. Hand-written request/response types are 
 
 `POST /checkins` accepts an optional `idempotency_key` (max 80 characters). A repeat request from the same user with the same key returns the existing check-in instead of creating another; a unique constraint enforces the same rule under concurrency. The offline queue reuses the original key on every retry, so reconnecting cannot duplicate a check-in.
 
+### Check-in transaction and timestamps
+
+The check-in, measurements, symptoms, credit event, streak, and achievements commit first. Readiness computation runs immediately after and is best-effort: if the engine fails, the health submission and credits are kept, and the report shows `insufficient_data` instead of losing the readings.
+
+`started_at` is the time the check-in was actually taken. Measurement rows and the streak date use it, so an offline check-in synced later does not move readings or streaks to the reconnect day. Future timestamps more than five minutes ahead are clamped to server time.
+
+### Readiness rules without a baseline
+
+Hard rules are evaluated from the latest readings even when no personal baseline exists. A first-ever check-in that reports a red flag creates the alert (for example R1 and R7) but no composite score; the report returns `insufficient_data: true` with the active alerts. Sparse data below 50% of the mission profile weight never produces a reassuring `nominal`/`watch` score.
+
+`GET /alerts` returns active alerts sorted by severity first (critical, caution, watch), then newest first within a severity.
+
 ### Check-in measurement metadata
 
 `POST /checkins` accepts an optional `meta` object per entry. The camera path sends `{ "source": "camera_rppg", "confidence": 0.0–1.0 }`; manual edits clear that metadata and store `source=manual`. Unknown sources fall back to `manual`, and confidence outside 0–1 is dropped.
@@ -172,4 +184,4 @@ Regenerate after every contract change. Hand-written request/response types are 
 }
 ```
 
-`mode` is `rule_based` or `llm`. `refused` is `true` when the question asks for a diagnosis or prescription; the refusal still cites the red-flag article. Red-flag questions always return a rule-based escalation, even when an LLM is configured. Answers are capped at 120 words.
+`mode` is `rule_based` or `llm`. `refused` is `true` when the question asks for a diagnosis, prescription, medication, treatment, or dose; the refusal still cites the red-flag article. Red-flag questions always return a rule-based escalation, even when an LLM is configured. Answers are capped at 120 words. Question-specific citations lead; active-alert citations are a fallback.

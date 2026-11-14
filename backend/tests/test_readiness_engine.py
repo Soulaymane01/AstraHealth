@@ -39,16 +39,61 @@ def test_baseline_and_zscore(db_session, metric_definitions, test_user) -> None:
     assert result.status == "critical"
 
 
-def test_missing_domains_are_excluded(db_session, metric_definitions, test_user) -> None:
+def test_sparse_nominal_data_is_not_reported(db_session, metric_definitions, test_user) -> None:
     add_series(db_session, test_user, "heart_rate", 60, 60)
     add_series(db_session, test_user, "hrv_rmssd", 50, 50)
 
     result = compute_readiness(db_session, test_user, "mars_transit", REFERENCE)
 
+    assert result is None
+
+
+def test_missing_domains_are_excluded(db_session, metric_definitions, test_user) -> None:
+    add_series(db_session, test_user, "heart_rate", 60, 60)
+    add_series(db_session, test_user, "hrv_rmssd", 50, 50)
+    add_series(db_session, test_user, "sleep_duration_h", 8, 8)
+    add_series(db_session, test_user, "exercise_load_min", 30, 30)
+
+    result = compute_readiness(db_session, test_user, "mars_transit", REFERENCE)
+
     assert result is not None
-    assert result.domain_scores == {"cardiovascular": 100.0}
+    assert set(result.domain_scores) == {"cardiovascular", "sleep", "musculoskeletal"}
     assert result.score == 100.0
     assert result.status == "nominal"
+
+
+def test_first_checkin_red_flag_returns_rule_only_result(
+    db_session, metric_definitions, test_user
+) -> None:
+    for code, value in (("body_temp_c", 38.5), ("heart_rate", 120)):
+        metric = db_session.get(MetricDefinition, code)
+        db_session.add(
+            Measurement(
+                user_id=test_user.id,
+                metric_code=code,
+                value=value,
+                unit=metric.unit,
+                measured_at=REFERENCE,
+                source="manual",
+            )
+        )
+    checkin = Checkin(
+        user_id=test_user.id,
+        started_at=REFERENCE - timedelta(minutes=5),
+        completed_at=REFERENCE,
+        status="completed",
+    )
+    checkin.symptoms.append(Symptom(region="chest", symptom="chest pain", severity=7))
+    db_session.add(checkin)
+    db_session.flush()
+
+    result = compute_readiness(db_session, test_user, "mars_transit", REFERENCE)
+
+    assert result is not None
+    assert result.has_score is False
+    assert "R1" in result.fired_rules
+    assert "R7" in result.fired_rules
+    assert result.status == "critical"
 
 
 def test_r1_fires_and_overrides_a_high_composite(db_session, metric_definitions, test_user) -> None:

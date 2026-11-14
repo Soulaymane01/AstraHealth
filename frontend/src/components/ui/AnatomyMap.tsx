@@ -120,7 +120,7 @@ export function AnatomyMap({
           viewBox={viewBox}
           role="img"
           aria-label={`${viewLabel} anatomical body map. ${selected?.label ?? ""} selected. Use the Systems list for keyboard selection.`}
-          className="relative z-[1] h-[360px] w-auto drop-shadow-[0_18px_36px_rgba(15,27,45,0.16)] sm:h-[420px]"
+          className="relative z-[1] h-[420px] w-auto drop-shadow-[0_18px_36px_rgba(15,27,45,0.16)] sm:h-[480px]"
           onPointerLeave={() => setHoveredId(null)}
         >
           <g>
@@ -152,7 +152,7 @@ export function AnatomyMap({
                   key={`tint-${muscle.id}`}
                   d={muscle.path}
                   fill={meta.hex}
-                  fillOpacity={isSelected ? 0.34 : 0.15}
+                  fillOpacity={isSelected ? 0.55 : 0.32}
                   stroke="#FFFFFF"
                   strokeWidth={0.55}
                   strokeLinejoin="round"
@@ -165,7 +165,7 @@ export function AnatomyMap({
             <path
               d={hovered.path}
               fill={hoveredMeta.hex}
-              fillOpacity={0.58}
+              fillOpacity={0.7}
               stroke={hoveredMeta.hex}
               strokeWidth={0.6}
               strokeLinejoin="round"
@@ -192,7 +192,7 @@ export function AnatomyMap({
         <p className="absolute bottom-3 left-3 z-10 max-w-[70%] truncate text-[10px] text-muted">
           {hovered && hoveredDomain
             ? `${hovered.name} · ${regions[hoveredDomain]?.label ?? ""}`
-            : "Hover a muscle to inspect it."}
+            : "Hover or tap a muscle to inspect it."}
         </p>
       </div>
 

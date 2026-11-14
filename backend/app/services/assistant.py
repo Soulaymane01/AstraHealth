@@ -36,13 +36,32 @@ REFUSAL_TERMS = (
     "prescribe",
     "prescription",
     "dosage",
+    "dose",
     "what medication",
     "which antibiotic",
+    "antibiotic",
+    "medication",
+    "medicine",
+    "drug",
+    "pill",
+    "tablet",
+    "painkiller",
+    "pain killer",
+    "ibuprofen",
+    "acetaminophen",
+    "paracetamol",
+    "aspirin",
     "treat my",
+    "treat a",
+    "treatment",
     "cure",
     "what disease",
     "do i have",
     "is this cancer",
+    "what should i take",
+    "what can i take",
+    "can i take",
+    "should i take",
 )
 
 RED_FLAG_TERMS = (
@@ -161,14 +180,16 @@ def _base_context(
 
 def _article_slugs(intent: str, alerts: list[Alert]) -> list[str]:
     slugs: list[str] = []
+    # Question-specific evidence comes first; active-alert guidance is a useful
+    # fallback, not the lead citation.
+    for slug in INTENT_SLUGS.get(intent, INTENT_SLUGS["general"]):
+        if slug not in slugs:
+            slugs.append(slug)
     if intent not in {"refusal", "red_flag", "red_flag_info"}:
         for alert in alerts:
             slug = slug_for_rule(alert.rule_id)
             if slug and slug not in slugs:
                 slugs.append(slug)
-    for slug in INTENT_SLUGS.get(intent, INTENT_SLUGS["general"]):
-        if slug not in slugs:
-            slugs.append(slug)
     return slugs
 
 
@@ -308,12 +329,12 @@ def _deterministic_answer(
 
     if intent == "refusal":
         text = (
-            "I can't diagnose or prescribe. This tool explains your data and points to "
-            "NASA guidance; it does not replace the flight surgeon. If chest pain, "
-            "shortness of breath, fainting, sudden vision loss, a fever with a fast heart "
-            "rate, or thoughts of self-harm are present, stop activity and contact the "
-            "flight surgeon now. For a non-urgent concern, describe what you noticed and "
-            "when it started."
+            "I can't diagnose, prescribe, or recommend medications or doses. This tool "
+            "explains your data and points to NASA guidance; it does not replace the "
+            "flight surgeon. If chest pain, shortness of breath, fainting, sudden vision "
+            "loss, a fever with a fast heart rate, or thoughts of self-harm are present, "
+            "stop activity and contact the flight surgeon now. For a non-urgent concern, "
+            "describe what you noticed and when it started."
         )
         return text, True
 

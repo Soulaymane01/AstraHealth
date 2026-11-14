@@ -718,6 +718,24 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
 
     computed: dict[str, tuple[float, str]] = {}
     for key, user in users.items():
+        # Give each seeded check-in its own snapshot so opening it in the
+        # Systems Report shows the state at that moment instead of "insufficient
+        # data". Older-than-baseline check-ins are skipped by the engine.
+        seeded_checkins = session.scalars(
+            select(Checkin)
+            .where(Checkin.user_id == user.id)
+            .order_by(Checkin.completed_at.asc())
+        ).all()
+        for seeded_checkin in seeded_checkins:
+            if seeded_checkin.completed_at is None:
+                continue
+            compute_and_persist_readiness(
+                session,
+                user,
+                mission.profile,
+                seeded_checkin.completed_at,
+            )
+
         snapshot = None
         for day_offset in range(6, -1, -1):
             snapshot = compute_and_persist_readiness(

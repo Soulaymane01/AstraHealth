@@ -12,13 +12,22 @@ export function AppLayout() {
 
   return (
     <div className="min-h-[100dvh] bg-canvas">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:text-sm focus:text-ink focus:shadow-lg"
+      >
+        Skip to content
+      </a>
       <Sidebar />
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
       <div className="lg:pl-60">
         <TopBar onOpenNav={() => setMobileOpen(true)} />
         <OfflineBanner />
-        <main className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8">
+        <main
+          id="main"
+          className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8"
+        >
           <Outlet />
         </main>
       </div>
