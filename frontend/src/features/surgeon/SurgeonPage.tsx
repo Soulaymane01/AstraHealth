@@ -1,17 +1,24 @@
 import {
+  Activity,
   CalendarClock,
+  ChevronLeft,
   ClipboardCheck,
   ClipboardList,
+  HeartPulse,
   LayoutDashboard,
   LineChart,
   LogOut,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
   PersonStanding,
   RefreshCw,
   ScanLine,
   Send,
   Sparkles,
   Stethoscope,
+  Thermometer,
+  Wind,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -24,10 +31,10 @@ import { DomainRail } from "@/components/ui/DomainRail";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
-import { ReadinessRing } from "@/components/ui/ReadinessRing";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge, StatusPill } from "@/components/ui/Status";
 import { useAuthStore } from "@/features/auth/auth-store";
+import { useShellStore } from "@/features/shell/shell-store";
 import { MetricChart } from "@/features/telemetry/components/MetricChart";
 import { sourceLabel } from "@/features/telemetry/telemetry-config";
 import { useMetricDefinitions } from "@/features/telemetry/queries";
@@ -71,6 +78,13 @@ const SECTIONS: { key: TabKey; label: string; icon: LucideIcon }[] = [
 ];
 
 const NO_EVENTS: TapeEvent[] = [];
+
+const KEY_VITALS = [
+  { code: "heart_rate", label: "Heart rate", icon: HeartPulse },
+  { code: "hrv_rmssd", label: "HRV", icon: Activity },
+  { code: "spo2", label: "Oxygen", icon: Wind },
+  { code: "body_temp_c", label: "Temperature", icon: Thermometer },
+];
 
 const DOMAIN_LABELS: Record<string, string> = {
   cardiovascular: "Cardiovascular",
@@ -553,55 +567,163 @@ function CrewPicker({
   );
 }
 
-function PatientSidebar({
+function SurgeonTopBar({
+  member,
+  missionLabel,
+  collapsed,
+  onToggle,
+  showSidebarToggle,
+  showUserActions,
+  userName,
+  onSignOut,
+}: {
+  member?: SurgeonCrewSummary;
+  missionLabel?: string;
+  collapsed: boolean;
+  onToggle: () => void;
+  showSidebarToggle: boolean;
+  showUserActions: boolean;
+  userName?: string;
+  onSignOut: () => void;
+}) {
+  return (
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur print:hidden lg:px-8">
+      {showSidebarToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-muted transition-colors hover:bg-surface-muted hover:text-ink lg:inline-flex"
+        >
+          {collapsed ? <PanelLeftOpen size={15} aria-hidden /> : <PanelLeftClose size={15} aria-hidden />}
+        </button>
+      )}
+
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-semibold tracking-[-0.01em] text-ink">
+          {member ? member.full_name : "AstraHealth · Flight Surgeon"}
+        </p>
+        <p className="truncate text-[11px] text-muted">
+          {member
+            ? `${titleCase(member.role)}${missionLabel ? ` · ${missionLabel}` : ""}`
+            : "Earth · Mission Control"}
+        </p>
+      </div>
+
+      {showUserActions && (
+        <>
+          <span className="hidden rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-ink-2 sm:inline-flex">
+            {userName ?? "Flight Surgeon"}
+          </span>
+          <Button variant="ghost" size="sm" onClick={onSignOut}>
+            <LogOut size={13} aria-hidden />
+            Sign out
+          </Button>
+        </>
+      )}
+    </header>
+  );
+}
+
+function SurgeonSidebar({
   member,
   activeSection,
+  collapsed,
   onSection,
   onSwitch,
+  userName,
+  onSignOut,
 }: {
   member?: SurgeonCrewSummary;
   activeSection: TabKey;
+  collapsed: boolean;
   onSection: (section: TabKey) => void;
   onSwitch: () => void;
+  userName?: string;
+  onSignOut: () => void;
 }) {
   const memberStatus = member?.readiness_status ? asStatus(member.readiness_status) : null;
 
   return (
-    <aside className="w-full shrink-0 space-y-3 lg:sticky lg:top-20 lg:w-60 lg:self-start">
-      {member && (
-        <div
-          className={cn(
-            "rounded-2xl border p-3",
-            memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
-          )}
-        >
-          <div className="flex items-center gap-2">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[11px] font-semibold text-ink-2">
-              {initials(member.full_name)}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold text-ink">{member.full_name}</p>
-              <p className="text-[10px] text-ink-2">{titleCase(member.role)}</p>
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-30 hidden border-r border-line bg-surface transition-[width] duration-300 lg:flex lg:flex-col",
+        collapsed ? "w-[76px]" : "w-60",
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center py-5",
+          collapsed ? "justify-center px-0" : "gap-2.5 px-4",
+        )}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+          <Stethoscope size={17} aria-hidden />
+        </span>
+        {!collapsed && (
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-semibold tracking-[-0.01em] text-ink">AstraHealth</p>
+              <span className="rounded-full bg-watch-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-watch">
+                Demo
+              </span>
             </div>
-            {memberStatus && <StatusPill status={memberStatus} />}
+            <p className="text-[11px] text-muted">Flight Surgeon</p>
           </div>
-          <div className="mt-3 flex items-end justify-between">
-            <p className="text-3xl font-semibold leading-none tabular text-ink">
-              {member.readiness_score !== null ? Math.round(member.readiness_score) : "—"}
-            </p>
-            <p className="text-[9px] text-ink-2">readiness</p>
-          </div>
-          <button
-            type="button"
-            onClick={onSwitch}
-            className="mt-3 w-full rounded-lg bg-surface/80 px-2 py-1.5 text-[10px] font-semibold text-accent transition-colors hover:bg-surface"
+        )}
+      </div>
+
+      {member && (
+        <div className={cn("mb-2", collapsed ? "px-2" : "px-3")}>
+          <div
+            className={cn(
+              "rounded-2xl border",
+              memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
+              collapsed ? "p-1.5" : "p-2.5",
+            )}
           >
-            ← Switch astronaut
-          </button>
+            <div className={cn("flex items-center gap-2", collapsed && "justify-center")}>
+              <button
+                type="button"
+                onClick={onSwitch}
+                title="Switch astronaut"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[10px] font-semibold text-ink-2"
+              >
+                {initials(member.full_name)}
+              </button>
+              {!collapsed && (
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-ink">{member.full_name}</p>
+                  <p className="text-[10px] text-ink-2">{titleCase(member.role)}</p>
+                </div>
+              )}
+              {!collapsed && memberStatus && (
+                <>
+                  <span
+                    className={cn("h-2 w-2 shrink-0 rounded-full", STATUS_META[memberStatus].dot)}
+                    title={STATUS_META[memberStatus].label}
+                    aria-hidden
+                  />
+                  <span className="sr-only">{STATUS_META[memberStatus].label}</span>
+                </>
+              )}
+            </div>
+            {!collapsed && (
+              <button
+                type="button"
+                onClick={onSwitch}
+                className="mt-2 flex w-full items-center justify-center gap-1 rounded-lg bg-surface/80 px-2 py-1 text-[10px] font-semibold text-accent transition-colors hover:bg-surface"
+              >
+                <ChevronLeft size={10} aria-hidden />
+                Switch astronaut
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      <nav className="flex flex-wrap gap-1 lg:flex-col" aria-label="Patient record sections">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2" aria-label="Patient record sections">
         {SECTIONS.map((section) => {
           const Icon = section.icon;
           const active = activeSection === section.key;
@@ -611,23 +733,80 @@ function PatientSidebar({
               type="button"
               onClick={() => onSection(section.key)}
               aria-pressed={active}
+              title={collapsed ? section.label : undefined}
+              aria-label={collapsed ? section.label : undefined}
               className={cn(
-                "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors",
+                "relative flex w-full items-center rounded-lg text-sm transition-colors",
+                collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-3 py-2",
                 active
                   ? "bg-accent-soft font-medium text-accent"
                   : "text-ink-2 hover:bg-surface-muted hover:text-ink",
               )}
             >
-              <Icon size={14} aria-hidden />
-              {section.label}
+              <Icon size={collapsed ? 18 : 16} aria-hidden />
+              {!collapsed && section.label}
             </button>
           );
         })}
       </nav>
-      <p className="px-1 text-[10px] text-muted">
-        Guidance only · clinical judgment stays with the surgeon.
-      </p>
+
+      <div className={cn("border-t border-line", collapsed ? "p-2" : "p-3")}>
+        <div className={cn("flex items-center rounded-lg", collapsed ? "flex-col gap-1 py-1" : "gap-2.5 px-2 py-2")}>
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">
+            {initials(userName ?? "Flight Surgeon")}
+          </span>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-ink">{userName ?? "Flight Surgeon"}</p>
+              <p className="text-[11px] text-muted">Flight Surgeon</p>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={onSignOut}
+            aria-label="Sign out"
+            title="Sign out"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-ink"
+          >
+            <LogOut size={14} aria-hidden />
+          </button>
+        </div>
+      </div>
     </aside>
+  );
+}
+
+function SurgeonSectionNav({
+  activeSection,
+  onSection,
+}: {
+  activeSection: TabKey;
+  onSection: (section: TabKey) => void;
+}) {
+  return (
+    <nav className="mb-3 flex gap-1 overflow-x-auto pb-1 lg:hidden" aria-label="Patient record sections">
+      {SECTIONS.map((section) => {
+        const Icon = section.icon;
+        const active = activeSection === section.key;
+        return (
+          <button
+            key={section.key}
+            type="button"
+            onClick={() => onSection(section.key)}
+            aria-pressed={active}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] transition-colors",
+              active
+                ? "border-accent/30 bg-accent-soft font-medium text-accent"
+                : "border-line bg-surface text-muted",
+            )}
+          >
+            <Icon size={11} aria-hidden />
+            {section.label}
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -651,6 +830,8 @@ export function SurgeonPage() {
   const [days, setDays] = useState<Days>(30);
   const [captureFilter, setCaptureFilter] = useState<"all" | "capture" | "manual">("all");
   const [showAllCaptures, setShowAllCaptures] = useState(false);
+  const sidebarCollapsed = useShellStore((state) => state.sidebarCollapsed);
+  const toggleSidebar = useShellStore((state) => state.toggleSidebar);
   const [diagnosis, setDiagnosis] = useState("");
   const [findings, setFindings] = useState("");
   const [plan, setPlan] = useState("");
@@ -725,7 +906,6 @@ export function SurgeonPage() {
   const status = readiness ? asStatus(readiness.status) : null;
   const activeAlerts = (detail?.alerts ?? []).filter((alert) => alert.status === "active");
   const criticalAlerts = activeAlerts.filter((alert) => alert.severity === "critical");
-  const latestAssessment = detail?.assessments[0];
   const filteredMeasurements = (detail?.measurements ?? []).filter((measurement) => {
     if (captureFilter === "capture") {
       return measurement.source.endsWith("_capture");
@@ -841,50 +1021,48 @@ export function SurgeonPage() {
   const selfHarmScreen = (quizzesQuery.data ?? []).find(
     (quiz) => quiz.latest_self_harm_flag,
   );
+  const missionLabel = detail?.mission
+    ? `${detail.mission.name} · Day ${detail.mission.mission_day}`
+    : undefined;
 
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center gap-3 px-4 py-3 lg:px-6">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
-            <Stethoscope size={17} aria-hidden />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="flex items-center gap-1.5 text-sm font-semibold tracking-[-0.01em] text-ink">
-              AstraHealth · Flight Surgeon
-              <span className="rounded-full bg-watch-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-watch">
-                Demo
-              </span>
-            </p>
-            <p className="truncate text-[11px] text-muted">
-              Earth · Mission Control
-              {detail?.mission
-                ? ` · ${detail.mission.name} · Day ${detail.mission.mission_day} · ${detail.mission.comms_delay_min} min delay`
-                : ""}
-            </p>
-          </div>
-          <span className="hidden rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-ink-2 sm:inline-flex">
-            {user?.full_name ?? "Flight Surgeon"}
-          </span>
-          <Button variant="ghost" size="sm" onClick={signOut}>
-            <LogOut size={13} aria-hidden />
-            Sign out
-          </Button>
-        </div>
-      </header>
-
-      {!activeId ? (
-        <CrewPicker crew={crew} onSelect={selectCrew} />
-      ) : (
-      <div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4 lg:flex-row lg:px-6">
-        <PatientSidebar
+      {activeId && (
+        <SurgeonSidebar
           member={member}
           activeSection={tab}
+          collapsed={sidebarCollapsed}
           onSection={setTab}
           onSwitch={switchCrew}
+          userName={user?.full_name}
+          onSignOut={signOut}
+        />
+      )}
+
+      <div
+        className={cn(
+          "transition-[padding] duration-300",
+          activeId && (sidebarCollapsed ? "lg:pl-[76px]" : "lg:pl-60"),
+        )}
+      >
+        <SurgeonTopBar
+          member={member}
+          missionLabel={missionLabel}
+          collapsed={sidebarCollapsed}
+          onToggle={toggleSidebar}
+          showSidebarToggle={Boolean(activeId)}
+          showUserActions={!activeId}
+          userName={user?.full_name}
+          onSignOut={signOut}
         />
 
-        <main className="min-w-0 flex-1 space-y-4">
+        {!activeId ? (
+          <CrewPicker crew={crew} onSelect={selectCrew} />
+        ) : (
+          <main className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-8">
+            <SurgeonSectionNav activeSection={tab} onSection={setTab} />
+
+            {detailQuery.isLoading && <PageSkeleton />}
           {detailQuery.isLoading && <PageSkeleton />}
 
           {detailQuery.isError && (
@@ -898,86 +1076,72 @@ export function SurgeonPage() {
 
           {detail && member && (
             <>
-              <Panel>
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
-                      {initials(member.full_name)}
-                    </span>
-                    <div className="min-w-0">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+                    {initials(member.full_name)}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h1 className="truncate text-xl font-semibold tracking-tight text-ink">
                         {member.full_name}
                       </h1>
-                      <p className="text-xs text-muted">
-                        {titleCase(member.role)} · {detail.mission.name} · Day{" "}
-                        {detail.mission.mission_day} · {titleCase(detail.mission.profile)}
-                      </p>
-                      <p className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted">
-                        <span>{activeAlerts.length} alerts</span>
-                        <span>·</span>
-                        <span>
-                          Capture{" "}
-                          {member.last_capture_at
-                            ? formatRelativeTime(member.last_capture_at)
-                            : "pending"}
-                        </span>
-                      </p>
+                      {status && <StatusPill status={status} />}
                     </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-5">
-                    {readiness && status && (
-                      <ReadinessRing
-                        score={readiness.score}
-                        status={status}
-                        size={120}
-                        factors={readiness.factors.length}
-                        className="shrink-0"
-                      />
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => simulateCapture.mutate(undefined, {
-                          onSuccess: () => toast.success("Capture received."),
-                          onError: (error) =>
-                            toast.error(
-                              error instanceof Error
-                                ? error.message
-                                : "Unable to simulate a capture.",
-                            ),
-                        })}
-                        disabled={simulateCapture.isPending}
-                      >
-                        <RefreshCw
-                          size={12}
-                          className={simulateCapture.isPending ? "animate-spin" : undefined}
-                          aria-hidden
-                        />
-                        Capture now
-                      </Button>
-                      <Button variant="secondary" size="sm" onClick={() => quickRequest("request_checkin")}>
-                        Request check-in
-                      </Button>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => {
-                          setTab("clinical");
-                          window.setTimeout(() => {
-                            document.getElementById("assessment-form")?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "center",
-                            });
-                          }, 50);
-                        }}
-                      >
-                        New assessment
-                      </Button>
-                    </div>
+                    <p className="text-xs text-muted">
+                      {titleCase(member.role)} · {detail.mission.name} · Day{" "}
+                      {detail.mission.mission_day}
+                    </p>
+                    <p className="mt-1 text-[10px] text-muted">
+                      {activeAlerts.length} alerts · Capture{" "}
+                      {member.last_capture_at
+                        ? formatRelativeTime(member.last_capture_at)
+                        : "pending"}
+                    </p>
                   </div>
                 </div>
-              </Panel>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => simulateCapture.mutate(undefined, {
+                      onSuccess: () => toast.success("Capture received."),
+                      onError: (error) =>
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Unable to simulate a capture.",
+                        ),
+                    })}
+                    disabled={simulateCapture.isPending}
+                  >
+                    <RefreshCw
+                      size={12}
+                      className={simulateCapture.isPending ? "animate-spin" : undefined}
+                      aria-hidden
+                    />
+                    Capture now
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => quickRequest("request_checkin")}>
+                    Request check-in
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setTab("clinical");
+                      window.setTimeout(() => {
+                        document.getElementById("assessment-form")?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                      }, 50);
+                    }}
+                  >
+                    New assessment
+                  </Button>
+                </div>
+              </div>
 
               {criticalAlerts.length > 0 && (
                 <div className="flex flex-col gap-2 rounded-xl border border-critical/30 bg-critical-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1031,65 +1195,82 @@ export function SurgeonPage() {
 
               {tab === "overview" && (
                 <div className="space-y-4">
-                  <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="grid gap-4 lg:grid-cols-12">
                     <Panel
-                      title="Latest sensor capture"
+                      className="lg:col-span-7"
+                      title="Vitals"
                       subtitle={
                         detail.latest_capture.captured_at
                           ? `${detail.latest_capture.source_label} · ${formatRelativeTime(
                               detail.latest_capture.captured_at,
                             )}`
-                          : "Waiting for the next capture."
+                          : "No capture yet"
                       }
                       actions={
-                        <span className="rounded-full bg-accent-soft px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
-                          Simulated
-                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setTab("captures")}
+                          className="text-[10px] font-medium text-accent hover:text-accent-strong"
+                        >
+                          All captures →
+                        </button>
                       }
                     >
-                      {detail.latest_capture.metrics.length === 0 ? (
-                        <p className="text-sm text-muted">No capture data yet.</p>
-                      ) : (
-                        <dl className="grid gap-2 sm:grid-cols-2">
-                          {detail.latest_capture.metrics.map((metric) => (
-                            <div
-                              key={metric.metric_code}
-                              className="flex items-baseline justify-between gap-2 rounded-lg bg-surface-muted/60 px-2.5 py-1.5"
-                            >
-                              <dt className="truncate text-[11px] text-muted">{metric.name}</dt>
-                              <dd className="shrink-0 text-xs font-semibold tabular text-ink">
-                                {displayMetricValue(metric.value)}{" "}
-                                <span className="text-[10px] font-normal text-muted">
-                                  {metric.unit}
-                                </span>
-                              </dd>
+                      <div className="grid grid-cols-2 gap-2">
+                        {KEY_VITALS.map(({ code, label, icon: Icon }) => {
+                          const captured = detail.latest_capture.metrics.find(
+                            (metric) => metric.metric_code === code,
+                          );
+                          const measured = detail.measurements.find(
+                            (measurement) => measurement.metric_code === code,
+                          );
+                          const value = captured?.value ?? measured?.value;
+                          const unit = captured?.unit ?? measured?.unit;
+                          return (
+                            <div key={code} className="rounded-2xl bg-surface-muted/70 px-3 py-3">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
+                                  {label}
+                                </p>
+                                <Icon size={14} className="text-accent/70" aria-hidden />
+                              </div>
+                              <p className="mt-1 text-3xl font-semibold leading-none tabular tracking-tight text-ink">
+                                {value !== undefined ? displayMetricValue(value) : "—"}
+                                {unit && (
+                                  <span className="ml-1 text-[10px] font-normal text-muted">
+                                    {unit}
+                                  </span>
+                                )}
+                              </p>
+                              <p className="mt-1 truncate text-[9px] text-muted">
+                                {captured
+                                  ? "Current capture"
+                                  : measured
+                                    ? formatRelativeTime(measured.measured_at)
+                                    : "No reading"}
+                              </p>
                             </div>
-                          ))}
-                        </dl>
-                      )}
+                          );
+                        })}
+                      </div>
                     </Panel>
 
                     <Panel
+                      className="lg:col-span-5"
                       title="Readiness"
-                      subtitle={
-                        readiness
-                          ? `Computed ${formatPublished(readiness.computed_at)}`
-                          : "No composite score yet."
-                      }
+                      subtitle="Six domains"
+                      actions={status ? <StatusPill status={status} /> : undefined}
                     >
                       {readiness ? (
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-2xl font-semibold tabular text-ink">
-                              {displayMetricValue(readiness.score)}
-                              <span className="text-xs font-normal text-muted"> / 100</span>
-                            </p>
-                            {status && <StatusPill status={status} />}
-                          </div>
+                          <p className="text-4xl font-semibold tabular tracking-tight text-ink">
+                            {displayMetricValue(readiness.score)}
+                            <span className="text-xs font-normal text-muted"> / 100</span>
+                          </p>
                           <div className="space-y-1.5">
                             {Object.entries(readiness.domain_scores).map(([key, value]) => (
                               <div key={key} className="flex items-center gap-2">
-                                <span className="w-32 shrink-0 truncate text-[10px] text-ink-2">
+                                <span className="w-28 shrink-0 truncate text-[10px] text-ink-2">
                                   {DOMAIN_LABELS[key] ?? titleCase(key)}
                                 </span>
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
@@ -1101,174 +1282,93 @@ export function SurgeonPage() {
                                     style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
                                   />
                                 </div>
-                                <span className="w-8 text-right text-[10px] tabular text-ink-2">
+                                <span className="w-7 text-right text-[10px] tabular text-ink-2">
                                   {Math.round(value)}
                                 </span>
                               </div>
                             ))}
                           </div>
                           {readiness.fired_rules.length > 0 && (
-                            <p className="text-[11px] text-critical">
-                              Hard rules fired: {readiness.fired_rules.join(", ")}
+                            <p className="text-[10px] font-medium text-critical">
+                              Rule override · {readiness.fired_rules.join(", ")}
                             </p>
                           )}
                         </div>
                       ) : (
-                        <p className="text-sm text-ink-2">
-                          The astronaut needs a baseline before a composite score can be computed.
-                        </p>
+                        <p className="text-sm text-muted">No baseline yet.</p>
                       )}
                     </Panel>
                   </div>
 
-                  <div className="grid gap-4 lg:grid-cols-2">
-                    <Panel
-                      title="Active alerts"
-                      subtitle="Newest and most severe first."
-                      actions={<span className="text-xs text-muted">{activeAlerts.length}</span>}
-                    >
-                      {activeAlerts.length === 0 ? (
-                        <p className="rounded-lg bg-surface-muted px-3 py-2.5 text-xs text-muted">
-                          No active alerts.
-                        </p>
-                      ) : (
-                        <div className="space-y-2">
-                          {activeAlerts.map((alert) => (
-                            <article
-                              key={alert.id}
-                              className={cn(
-                                "rounded-2xl border px-3 py-2",
-                                STATUS_META[asStatus(alert.severity)].surface,
-                              )}
-                            >
-                              <Disclosure
-                                defaultOpen={alert.severity === "critical"}
-                                summary={
-                                  <span className="flex min-w-0 flex-wrap items-center gap-2">
-                                    <StatusBadge status={asStatus(alert.severity)} />
-                                    <span className="truncate text-xs font-semibold text-ink">
-                                      {alert.title}
-                                    </span>
-                                    <span className="ml-auto shrink-0 text-[9px] text-muted">
-                                      {formatRelativeTime(alert.created_at)}
-                                    </span>
+                  <Panel
+                    title="Alerts"
+                    subtitle="Tap for detail"
+                    actions={<span className="text-xs text-muted">{activeAlerts.length}</span>}
+                  >
+                    {activeAlerts.length === 0 ? (
+                      <p className="rounded-xl bg-nominal-soft px-3 py-2.5 text-xs text-nominal">
+                        No active alerts.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {activeAlerts.map((alert) => (
+                          <article
+                            key={alert.id}
+                            className={cn(
+                              "rounded-2xl border px-3 py-2",
+                              STATUS_META[asStatus(alert.severity)].surface,
+                            )}
+                          >
+                            <Disclosure
+                              defaultOpen={alert.severity === "critical"}
+                              summary={
+                                <span className="flex min-w-0 flex-wrap items-center gap-2">
+                                  <StatusBadge status={asStatus(alert.severity)} />
+                                  <span className="truncate text-xs font-semibold text-ink">
+                                    {alert.title}
                                   </span>
-                                }
-                                summaryClassName="items-start"
-                                bodyClassName="space-y-2"
-                              >
-                                <p className="text-[11px] leading-relaxed text-ink">
-                                  {alert.rationale}
+                                  <span className="ml-auto shrink-0 text-[9px] text-muted">
+                                    {formatRelativeTime(alert.created_at)}
+                                  </span>
+                                </span>
+                              }
+                              summaryClassName="items-start"
+                              bodyClassName="space-y-2"
+                            >
+                              <p className="text-[11px] leading-relaxed text-ink">
+                                {alert.rationale}
+                              </p>
+                              {alert.recommended_action && (
+                                <p className="rounded-lg bg-surface/75 px-2.5 py-2 text-[10px] leading-relaxed text-ink-2">
+                                  {alert.recommended_action}
                                 </p>
-                                {alert.recommended_action && (
-                                  <p className="rounded-lg bg-surface/75 px-2.5 py-2 text-[10px] leading-relaxed text-ink-2">
-                                    {alert.recommended_action}
-                                  </p>
-                                )}
-                                <div className="flex justify-end">
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      acknowledgeAlert.mutate(alert.id, {
-                                        onSuccess: () => toast.success("Alert acknowledged."),
-                                        onError: (error) =>
-                                          toast.error(
-                                            error instanceof Error
-                                              ? error.message
-                                              : "Unable to acknowledge the alert.",
-                                          ),
-                                      })
-                                    }
-                                    disabled={acknowledgeAlert.isPending}
-                                    className="rounded-full bg-surface/80 px-2 py-0.5 text-[9px] font-semibold text-ink-2"
-                                  >
-                                    Acknowledge
-                                  </button>
-                                </div>
-                              </Disclosure>
-                            </article>
-                          ))}
-                        </div>
-                      )}
-                    </Panel>
-
-                    <Panel
-                      title="Recent check-ins"
-                      subtitle="Subjective data and symptoms."
-                      actions={
-                        <span className="text-xs text-muted">{detail.checkins.length}</span>
-                      }
-                    >
-                      {detail.checkins.length === 0 ? (
-                        <p className="text-sm text-muted">No check-ins yet.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {detail.checkins.slice(0, 4).map((checkin) => (
-                            <div
-                              key={checkin.id}
-                              className="rounded-lg border border-line px-3 py-2"
-                            >
-                              <Disclosure
-                                summary={
-                                  <span className="flex flex-wrap items-center gap-2">
-                                    <span className="text-xs font-medium text-ink">
-                                      {formatDateTime(checkin.completed_at)}
-                                    </span>
-                                    <span className="ml-auto text-[9px] text-muted">
-                                      {checkin.entries.length} readings ·{" "}
-                                      {checkin.symptoms.length} symptoms
-                                    </span>
-                                  </span>
-                                }
-                                meta={checkin.symptoms.length > 0 ? "Symptoms" : undefined}
-                                summaryClassName="items-start"
-                                bodyClassName="space-y-2"
-                              >
-                                {checkin.symptoms.length > 0 ? (
-                                  <p className="text-[11px] leading-relaxed text-critical">
-                                    {checkin.symptoms
-                                      .map(
-                                        (symptom) =>
-                                          `${symptom.symptom} (${symptom.severity}/10)`,
-                                      )
-                                      .join(", ")}
-                                  </p>
-                                ) : (
-                                  <p className="text-[10px] text-muted">No symptoms logged.</p>
-                                )}
-                                {checkin.notes && (
-                                  <p className="text-[10px] leading-relaxed text-muted">
-                                    {checkin.notes}
-                                  </p>
-                                )}
-                              </Disclosure>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </Panel>
-                  </div>
-
-                  {latestAssessment && (
-                    <Panel title="Latest clinical assessment">
-                      <Disclosure
-                        summary={
-                          <span className="flex flex-wrap items-center gap-2">
-                            <span className="text-[12px] font-semibold text-ink">
-                              {latestAssessment.working_diagnosis}
-                            </span>
-                            <span className="ml-auto text-[9px] text-muted">
-                              {formatRelativeTime(latestAssessment.created_at)}
-                            </span>
-                          </span>
-                        }
-                        meta={latestAssessment.share_with_crew ? "Shared" : "Surgeon only"}
-                        summaryClassName="items-start"
-                      >
-                        <AssessmentCard assessment={latestAssessment} />
-                      </Disclosure>
-                    </Panel>
-                  )}
+                              )}
+                              <div className="flex justify-end">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    acknowledgeAlert.mutate(alert.id, {
+                                      onSuccess: () => toast.success("Alert acknowledged."),
+                                      onError: (error) =>
+                                        toast.error(
+                                          error instanceof Error
+                                            ? error.message
+                                            : "Unable to acknowledge the alert.",
+                                        ),
+                                    })
+                                  }
+                                  disabled={acknowledgeAlert.isPending}
+                                  className="rounded-full bg-surface/80 px-2 py-0.5 text-[9px] font-semibold text-ink-2"
+                                >
+                                  Acknowledge
+                                </button>
+                              </div>
+                            </Disclosure>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </Panel>
                 </div>
               )}
 
@@ -1957,9 +2057,9 @@ export function SurgeonPage() {
               )}
             </>
           )}
-        </main>
+          </main>
+        )}
       </div>
-      )}
     </div>
   );
 }
