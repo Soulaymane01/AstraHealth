@@ -12,6 +12,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/Button";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { ReadinessRing } from "@/components/ui/ReadinessRing";
@@ -30,6 +31,7 @@ import {
   useSurgeonCrew,
   useSurgeonDetail,
   useSurgeonPrediction,
+  useSurgeonQuizzes,
   useSurgeonSeries,
 } from "@/features/surgeon/queries";
 import type {
@@ -43,13 +45,14 @@ import type {
 import { asStatus, STATUS_META, statusFromScore } from "@/lib/status";
 import { cn, displayMetricValue, formatRelativeTime, initials, titleCase } from "@/lib/utils";
 
-type TabKey = "overview" | "trends" | "captures" | "clinical" | "copilot";
+type TabKey = "overview" | "trends" | "captures" | "quizzes" | "clinical" | "copilot";
 type Days = 7 | 30 | 90;
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "overview", label: "Overview" },
   { key: "trends", label: "Trends" },
   { key: "captures", label: "Captures" },
+  { key: "quizzes", label: "Quizzes" },
   { key: "clinical", label: "Clinical record" },
   { key: "copilot", label: "Copilot" },
 ];
@@ -347,6 +350,7 @@ export function SurgeonPage() {
 
   const seriesQuery = useSurgeonSeries(activeId, metricCode, days);
   const predictionQuery = useSurgeonPrediction(activeId);
+  const quizzesQuery = useSurgeonQuizzes(activeId);
   const askAssistant = useAskSurgeonAssistant(activeId ?? 0);
   const createAssessment = useCreateAssessment(activeId ?? 0);
   const createInstruction = useCreateInstruction(activeId ?? 0);
@@ -1105,6 +1109,114 @@ export function SurgeonPage() {
                       </table>
                     </div>
                   )}
+                </Panel>
+              )}
+
+              {tab === "quizzes" && (
+                <Panel
+                  title="Health literacy"
+                  subtitle={`Quiz results for ${member.full_name}.`}
+                >
+                  {quizzesQuery.isLoading ? (
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      <Skeleton className="h-44 w-full" />
+                      <Skeleton className="h-44 w-full" />
+                    </div>
+                  ) : quizzesQuery.isError ? (
+                    <QueryError
+                      title="Quiz results unavailable"
+                      message="The quiz results could not be loaded."
+                      onRetry={() => void quizzesQuery.refetch()}
+                      retrying={quizzesQuery.isFetching}
+                    />
+                  ) : (
+                    <div className="grid gap-3 lg:grid-cols-2">
+                      {(quizzesQuery.data ?? []).map((quiz) => {
+                        const best = quiz.best_score;
+                        const latest = quiz.attempts[0];
+                        const modeLabel = quiz.mode === "crew" ? "Crew" : "Self";
+                        return (
+                          <article
+                            key={quiz.slug}
+                            className="rounded-2xl border border-line bg-surface p-3.5"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="min-w-0">
+                                <span className="inline-flex rounded-full bg-accent-soft px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-accent">
+                                  {modeLabel}
+                                </span>
+                                <h3 className="mt-2 text-[13px] font-semibold leading-snug text-ink">
+                                  {quiz.title}
+                                </h3>
+                                <p className="mt-0.5 text-[10px] text-muted">
+                                  {quiz.question_count} questions
+                                </p>
+                              </div>
+                              <div className="shrink-0 text-right">
+                                <p className="text-3xl font-semibold leading-none tabular text-ink">
+                                  {best === null ? "—" : Math.round(best)}
+                                </p>
+                                <p className="mt-1 text-[9px] text-muted">best %</p>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line">
+                              <div
+                                className="h-full rounded-full bg-accent"
+                                style={{ width: `${Math.max(0, Math.min(100, best ?? 0))}%` }}
+                              />
+                            </div>
+
+                            <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted">
+                              <span>
+                                {quiz.attempt_count} attempt
+                                {quiz.attempt_count === 1 ? "" : "s"}
+                              </span>
+                              <span>
+                                {latest ? formatRelativeTime(latest.completed_at) : "Not taken"}
+                              </span>
+                            </div>
+
+                            {latest && (
+                              <p className="mt-2 rounded-lg bg-surface-muted px-2.5 py-1.5 text-[10px] text-ink-2">
+                                Latest: <span className="font-semibold text-ink">{Math.round(latest.score)}%</span>
+                                {latest.subject_name ? ` · about ${latest.subject_name}` : ""}
+                              </p>
+                            )}
+
+                            {quiz.attempts.length > 1 && (
+                              <Disclosure
+                                className="mt-2 border-t border-line pt-2"
+                                summary="All attempts"
+                                meta={`${quiz.attempts.length}`}
+                                summaryClassName="text-[10px] font-medium text-accent"
+                              >
+                                <ul className="space-y-1.5">
+                                  {quiz.attempts.map((attempt) => (
+                                    <li
+                                      key={attempt.id}
+                                      className="flex items-center justify-between gap-2 text-[10px]"
+                                    >
+                                      <span className="text-muted">
+                                        {formatDateTime(attempt.completed_at)}
+                                        {attempt.subject_name ? ` · ${attempt.subject_name}` : ""}
+                                      </span>
+                                      <span className="font-semibold tabular text-ink">
+                                        {Math.round(attempt.score)}%
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </Disclosure>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <p className="mt-3 text-[10px] text-muted">
+                    Health-literacy checks only · not a clinical finding.
+                  </p>
                 </Panel>
               )}
 

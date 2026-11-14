@@ -10,6 +10,7 @@ export type SurgeonCrewDetail = components["schemas"]["SurgeonCrewDetailRead"];
 export type SurgeonAssessment = components["schemas"]["SurgeonAssessmentRead"];
 export type SurgeonInstruction = components["schemas"]["SurgeonInstructionRead"];
 export type SurgeonUpdates = components["schemas"]["SurgeonUpdatesRead"];
+export type SurgeonQuizSummary = components["schemas"]["SurgeonQuizSummaryRead"];
 export type SurgeonMission = components["schemas"]["SurgeonMissionRead"];
 export type Prediction = components["schemas"]["PredictionRead"];
 export type PredictionSignal = components["schemas"]["PredictionSignalRead"];

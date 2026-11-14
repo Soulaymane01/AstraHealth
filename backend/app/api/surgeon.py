@@ -14,6 +14,8 @@ from app.models import (
     Measurement,
     MetricDefinition,
     Mission,
+    Quiz,
+    QuizAttempt,
     ReadinessSnapshot,
     SurgeonAssessment,
     SurgeonInstruction,
@@ -36,6 +38,8 @@ from app.schemas import (
     SurgeonInstructionCreate,
     SurgeonInstructionRead,
     SurgeonMissionRead,
+    SurgeonQuizAttemptRead,
+    SurgeonQuizSummaryRead,
     SurgeonUpdatesRead,
 )
 from app.services.captures import (
@@ -217,6 +221,55 @@ def list_crew(
         _ensure_capture(db, member)
         ensure_ai_followup(db, member)
     return [_summary(db, member) for member in members]
+
+
+@router.get(
+    "/crew/{crew_user_id}/quizzes",
+    response_model=list[SurgeonQuizSummaryRead],
+)
+def read_crew_quizzes(
+    crew_user_id: int,
+    _: User = Depends(get_current_surgeon),
+    db: Session = Depends(get_db),
+) -> list[SurgeonQuizSummaryRead]:
+    member = _crew_member(db, crew_user_id)
+    quizzes = list(db.scalars(select(Quiz).order_by(Quiz.mode, Quiz.title)).all())
+    rows = db.execute(
+        select(QuizAttempt, User)
+        .outerjoin(User, QuizAttempt.subject_user_id == User.id)
+        .where(QuizAttempt.user_id == member.id)
+        .order_by(QuizAttempt.completed_at.desc())
+    ).all()
+    by_quiz: dict[int, list[tuple[QuizAttempt, User | None]]] = {}
+    for attempt, subject in rows:
+        by_quiz.setdefault(attempt.quiz_id, []).append((attempt, subject))
+
+    result: list[SurgeonQuizSummaryRead] = []
+    for quiz in quizzes:
+        attempts = by_quiz.get(quiz.id, [])
+        result.append(
+            SurgeonQuizSummaryRead(
+                slug=quiz.slug,
+                title=quiz.title,
+                mode=quiz.mode,
+                question_count=len(quiz.questions),
+                attempt_count=len(attempts),
+                best_score=max((attempt.score for attempt, _ in attempts), default=None),
+                last_attempted_at=max(
+                    (attempt.completed_at for attempt, _ in attempts), default=None
+                ),
+                attempts=[
+                    SurgeonQuizAttemptRead(
+                        id=attempt.id,
+                        score=attempt.score,
+                        completed_at=attempt.completed_at,
+                        subject_name=subject.full_name if subject else None,
+                    )
+                    for attempt, subject in attempts
+                ],
+            )
+        )
+    return result
 
 
 @router.get("/crew/{crew_user_id}", response_model=SurgeonCrewDetailRead)

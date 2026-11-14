@@ -1,10 +1,11 @@
 from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.security import create_access_token
-from app.models import Alert, User
+from app.models import Alert, Quiz, QuizAttempt, User
 from tests.helpers import add_series, create_crew_with_member
 
 
@@ -52,6 +53,43 @@ def test_surgeon_console_is_role_protected_and_lists_the_crew(
     assert body["mission"]["name"] == "Test Mission"
     assert len(body["latest_capture"]["metrics"]) == 10
     assert body["latest_capture"]["simulated"] is True
+
+
+def test_surgeon_can_read_crew_quiz_results(
+    client: TestClient,
+    db_session: Session,
+    test_user: User,
+    content_seed: None,
+) -> None:
+    surgeon = _surgeon(db_session)
+    create_crew_with_member(db_session, test_user)
+    quiz = db_session.scalar(select(Quiz).where(Quiz.slug == "know-yourself"))
+    assert quiz is not None
+    db_session.add(
+        QuizAttempt(
+            quiz_id=quiz.id,
+            user_id=test_user.id,
+            answers=[2, 1, 1, 0, 2],
+            score=80.0,
+            completed_at=datetime.now(UTC),
+        )
+    )
+    db_session.commit()
+
+    headers = _headers(surgeon)
+    response = client.get(f"/surgeon/crew/{test_user.id}/quizzes", headers=headers)
+    assert response.status_code == 200
+    body = response.json()
+    quiz_result = next(item for item in body if item["slug"] == "know-yourself")
+    assert quiz_result["attempt_count"] == 1
+    assert quiz_result["best_score"] == 80.0
+    assert quiz_result["attempts"][0]["score"] == 80.0
+
+    forbidden = client.get(
+        f"/surgeon/crew/{test_user.id}/quizzes",
+        headers={"Authorization": f"Bearer {create_access_token(test_user.id)}"},
+    )
+    assert forbidden.status_code == 403
 
 
 def test_surgeon_assessment_and_instruction_reach_the_crew(

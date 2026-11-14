@@ -807,6 +807,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/surgeon/crew/{crew_user_id}/quizzes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Quizzes */
+        get: operations["read_crew_quizzes_surgeon_crew__crew_user_id__quizzes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/surgeon/crew/{crew_user_id}": {
         parameters: {
             query?: never;
@@ -2118,6 +2135,39 @@ export interface components {
             mission_day: number;
             /** Comms Delay Min */
             comms_delay_min: number;
+        };
+        /** SurgeonQuizAttemptRead */
+        SurgeonQuizAttemptRead: {
+            /** Id */
+            id: number;
+            /** Score */
+            score: number;
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /** Subject Name */
+            subject_name?: string | null;
+        };
+        /** SurgeonQuizSummaryRead */
+        SurgeonQuizSummaryRead: {
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Mode */
+            mode: string;
+            /** Question Count */
+            question_count: number;
+            /** Attempt Count */
+            attempt_count: number;
+            /** Best Score */
+            best_score: number | null;
+            /** Last Attempted At */
+            last_attempted_at: string | null;
+            /** Attempts */
+            attempts: components["schemas"]["SurgeonQuizAttemptRead"][];
         };
         /** SurgeonUpdatesRead */
         SurgeonUpdatesRead: {
@@ -3831,6 +3881,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SurgeonCrewSummaryRead"][];
+                };
+            };
+        };
+    };
+    read_crew_quizzes_surgeon_crew__crew_user_id__quizzes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonQuizSummaryRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

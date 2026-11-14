@@ -64,6 +64,8 @@ from app.schemas.surgeon import (
     SurgeonInstructionCreate,
     SurgeonInstructionRead,
     SurgeonMissionRead,
+    SurgeonQuizAttemptRead,
+    SurgeonQuizSummaryRead,
     SurgeonUpdatesRead,
 )
 from app.schemas.telemetry import (
@@ -153,6 +155,8 @@ __all__ = [
     "SurgeonInstructionCreate",
     "SurgeonInstructionRead",
     "SurgeonMissionRead",
+    "SurgeonQuizAttemptRead",
+    "SurgeonQuizSummaryRead",
     "SurgeonUpdatesRead",
     "SymptomCreate",
     "SymptomRead",

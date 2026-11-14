@@ -102,3 +102,21 @@ class SurgeonUpdatesRead(BaseModel):
     assessments: list[SurgeonAssessmentRead]
     instructions: list[SurgeonInstructionRead]
     open_instructions: int
+
+
+class SurgeonQuizAttemptRead(BaseModel):
+    id: int
+    score: float
+    completed_at: datetime
+    subject_name: str | None = None
+
+
+class SurgeonQuizSummaryRead(BaseModel):
+    slug: str
+    title: str
+    mode: str
+    question_count: int
+    attempt_count: int
+    best_score: float | None
+    last_attempted_at: datetime | None
+    attempts: list[SurgeonQuizAttemptRead]

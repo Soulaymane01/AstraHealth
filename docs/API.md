@@ -67,6 +67,7 @@ All routes require a `flight_surgeon` account. Medical access is intentionally b
 |---|---|---|
 | GET | `/surgeon/crew` | Crew summaries: readiness, alerts, last capture, open instructions |
 | GET | `/surgeon/crew/{id}` | Full clinical record: readiness, history, alerts, latest capture, measurements, check-ins, assessments, instructions |
+| GET | `/surgeon/crew/{id}/quizzes` | Health-literacy quiz summaries, best scores, and attempt history for one crew member |
 | GET | `/surgeon/crew/{id}/metrics/{code}/series?days=7\|30\|90` | Trend series for one crew member |
 | POST | `/surgeon/crew/{id}/captures/simulate` | Force a simulated capture and recompute readiness |
 | GET | `/surgeon/crew/{id}/prediction` | Transparent 48–72-hour early-warning analysis with drivers, confidence, and monitoring suggestions |

@@ -15,6 +15,7 @@ import type {
   SurgeonCrewDetail,
   SurgeonCrewSummary,
   SurgeonInstruction,
+  SurgeonQuizSummary,
   SurgeonUpdates,
 } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
@@ -74,6 +75,21 @@ export function useSurgeonPrediction(crewId: number | undefined) {
         params: { path: { crew_user_id: crewId } },
       });
       if (!data) throw new Error("Unable to load the early-warning analysis.");
+      return data;
+    },
+    enabled: Boolean(crewId),
+  });
+}
+
+export function useSurgeonQuizzes(crewId: number | undefined) {
+  return useQuery({
+    queryKey: queryKeys.surgeonQuizzes(crewId ?? 0),
+    queryFn: async (): Promise<SurgeonQuizSummary[]> => {
+      if (!crewId) throw new Error("No crew member selected.");
+      const { data } = await api.GET("/surgeon/crew/{crew_user_id}/quizzes", {
+        params: { path: { crew_user_id: crewId } },
+      });
+      if (!data) throw new Error("Unable to load quiz results.");
       return data;
     },
     enabled: Boolean(crewId),
