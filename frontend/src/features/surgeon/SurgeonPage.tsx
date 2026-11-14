@@ -2,6 +2,7 @@ import {
   CalendarClock,
   ClipboardList,
   LogOut,
+  PersonStanding,
   RefreshCw,
   Send,
   Sparkles,
@@ -11,7 +12,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
+import { AnatomyMap } from "@/components/ui/AnatomyMap";
 import { Button } from "@/components/ui/Button";
+import { DomainRail } from "@/components/ui/DomainRail";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
@@ -37,7 +40,9 @@ import {
 import type {
   AssistantCitation,
   Prediction,
+  MetricDefinition,
   SurgeonAssessment,
+  SurgeonCrewDetail,
   SurgeonCrewSummary,
   SurgeonInstruction,
   TapeEvent,
@@ -45,11 +50,13 @@ import type {
 import { asStatus, STATUS_META, statusFromScore } from "@/lib/status";
 import { cn, displayMetricValue, formatRelativeTime, initials, titleCase } from "@/lib/utils";
 
-type TabKey = "overview" | "trends" | "captures" | "quizzes" | "clinical" | "copilot";
+type TabKey = "overview" | "body" | "trends" | "captures" | "quizzes" | "clinical" | "copilot";
+type Measurement = SurgeonCrewDetail["measurements"][number];
 type Days = 7 | 30 | 90;
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: "overview", label: "Overview" },
+  { key: "body", label: "Body" },
   { key: "trends", label: "Trends" },
   { key: "captures", label: "Captures" },
   { key: "quizzes", label: "Quizzes" },
@@ -320,6 +327,124 @@ function InstructionCard({
   );
 }
 
+function BodySystemsTab({
+  detail,
+  metrics,
+  selectedDomain,
+  onSelectDomain,
+  onOpenTrend,
+}: {
+  detail: SurgeonCrewDetail;
+  metrics: MetricDefinition[];
+  selectedDomain: string;
+  onSelectDomain: (domain: string) => void;
+  onOpenTrend: (code: string) => void;
+}) {
+  const scores = detail.readiness?.domain_scores ?? {};
+  const previous = detail.readiness_history[1]?.domain_scores;
+  const domainStatus = (key: string) =>
+    scores[key] === undefined ? "unknown" : statusFromScore(scores[key]);
+  const regions = {
+    cardiovascular: { label: "Chest & heart", status: domainStatus("cardiovascular") },
+    musculoskeletal: { label: "Muscles & bone", status: domainStatus("musculoskeletal") },
+    metabolic: { label: "Core & metabolism", status: domainStatus("metabolic") },
+    neurobehavioral: { label: "Head & cognition", status: domainStatus("neurobehavioral") },
+    immune: { label: "Whole body", status: domainStatus("immune") },
+    sleep: { label: "Sleep & circadian", status: domainStatus("sleep") },
+  } as const;
+  const domainKeys = Object.keys(DOMAIN_LABELS);
+  const latest = new Map<string, Measurement>();
+  for (const measurement of detail.measurements) {
+    const current = latest.get(measurement.metric_code);
+    if (
+      !current ||
+      new Date(measurement.measured_at).getTime() > new Date(current.measured_at).getTime()
+    ) {
+      latest.set(measurement.metric_code, measurement);
+    }
+  }
+  const domainMetrics = metrics.filter(
+    (metric) => metric.domain === DOMAIN_LABELS[selectedDomain],
+  );
+
+  return (
+    <div className="grid gap-4 xl:grid-cols-12">
+      <Panel
+        className="xl:col-span-7"
+        title="Body systems"
+        subtitle="3D anatomy · click a region"
+      >
+        <AnatomyMap
+          regions={regions}
+          selectedDomain={selectedDomain}
+          onSelectDomain={onSelectDomain}
+        />
+      </Panel>
+
+      <div className="space-y-3 xl:col-span-5">
+        <Panel title="Domains" subtitle="Readiness by system">
+          <div className="space-y-0.5">
+            {domainKeys.map((key) => (
+              <DomainRail
+                key={key}
+                name={DOMAIN_LABELS[key]}
+                score={scores[key] ?? 0}
+                status={domainStatus(key)}
+                delta={
+                  scores[key] !== undefined && previous?.[key] !== undefined
+                    ? Math.round((scores[key] - previous[key]) * 10) / 10
+                    : undefined
+                }
+                active={selectedDomain === key}
+                onClick={() => onSelectDomain(key)}
+              />
+            ))}
+          </div>
+        </Panel>
+
+        <Panel
+          title={DOMAIN_LABELS[selectedDomain] ?? titleCase(selectedDomain)}
+          actions={<StatusPill status={domainStatus(selectedDomain)} />}
+        >
+          <p className="text-[11px] text-muted">
+            Latest readings · tap a metric for its trend
+          </p>
+          <div className="mt-2 divide-y divide-line">
+            {domainMetrics.length === 0 ? (
+              <p className="py-3 text-[11px] text-muted">No metrics mapped to this domain.</p>
+            ) : (
+              domainMetrics.map((metric) => {
+                const reading = latest.get(metric.code);
+                return (
+                  <button
+                    key={metric.code}
+                    type="button"
+                    onClick={() => onOpenTrend(metric.code)}
+                    className="flex w-full items-center justify-between gap-3 py-2 text-left transition-colors hover:bg-surface-muted/60"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] text-ink">{metric.name}</p>
+                      <p className="text-[9px] text-muted">
+                        {reading ? formatRelativeTime(reading.measured_at) : "No reading"}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-semibold tabular text-ink">
+                      {reading ? displayMetricValue(reading.value) : "—"}
+                      <span className="ml-1 text-[9px] font-normal text-muted">
+                        {reading?.unit ?? metric.unit}
+                      </span>
+                    </p>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </Panel>
+      </div>
+    </div>
+  );
+}
+
 export function SurgeonPage() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -335,9 +460,11 @@ export function SurgeonPage() {
   const detailQuery = useSurgeonDetail(activeId);
 
   const [tab, setTab] = useState<TabKey>("overview");
+  const [selectedDomain, setSelectedDomain] = useState("cardiovascular");
   const [metricCode, setMetricCode] = useState("hrv_rmssd");
   const [days, setDays] = useState<Days>(30);
   const [captureFilter, setCaptureFilter] = useState<"all" | "capture" | "manual">("all");
+  const [showAllCaptures, setShowAllCaptures] = useState(false);
   const [diagnosis, setDiagnosis] = useState("");
   const [findings, setFindings] = useState("");
   const [plan, setPlan] = useState("");
@@ -520,6 +647,10 @@ export function SurgeonPage() {
     }
   };
 
+  const selfHarmScreen = (quizzesQuery.data ?? []).find(
+    (quiz) => quiz.latest_self_harm_flag,
+  );
+
   return (
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
@@ -699,6 +830,10 @@ export function SurgeonPage() {
                         />
                         Capture now
                       </Button>
+                      <Button variant="secondary" size="sm" onClick={() => setTab("body")}>
+                        <PersonStanding size={12} aria-hidden />
+                        Body
+                      </Button>
                       <Button variant="secondary" size="sm" onClick={() => quickRequest("request_checkin")}>
                         Request check-in
                       </Button>
@@ -747,6 +882,27 @@ export function SurgeonPage() {
 
               {prediction && (
                 <EarlyWarningBanner prediction={prediction} onOpen={() => openCopilot()} />
+              )}
+
+              {selfHarmScreen && (
+                <button
+                  type="button"
+                  onClick={() => setTab("quizzes")}
+                  className="flex w-full items-center gap-3 rounded-2xl bg-critical px-4 py-3 text-left text-white shadow-[0_10px_28px_rgba(153,27,27,0.22)]"
+                >
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/15">
+                    <Sparkles size={15} aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/75">
+                      Screening flag
+                    </span>
+                    <span className="block truncate text-sm font-semibold">
+                      Self-harm response reported · review now
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-[10px] text-white/80">Open</span>
+                </button>
               )}
 
               <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-surface p-1">
@@ -876,35 +1032,55 @@ export function SurgeonPage() {
                             <article
                               key={alert.id}
                               className={cn(
-                                "rounded-2xl border px-3 py-2.5",
+                                "rounded-2xl border px-3 py-2",
                                 STATUS_META[asStatus(alert.severity)].surface,
                               )}
                             >
-                              <div className="flex items-center justify-between gap-2">
-                                <StatusBadge status={asStatus(alert.severity)} />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    acknowledgeAlert.mutate(alert.id, {
-                                      onSuccess: () => toast.success("Alert acknowledged."),
-                                      onError: (error) =>
-                                        toast.error(
-                                          error instanceof Error
-                                            ? error.message
-                                            : "Unable to acknowledge the alert.",
-                                        ),
-                                    })
-                                  }
-                                  disabled={acknowledgeAlert.isPending}
-                                  className="rounded-full bg-surface/80 px-2 py-0.5 text-[9px] font-semibold text-ink-2"
-                                >
-                                  Acknowledge
-                                </button>
-                              </div>
-                              <p className="mt-1.5 text-xs font-semibold text-ink">{alert.title}</p>
-                              <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-ink">
-                                {alert.rationale}
-                              </p>
+                              <Disclosure
+                                defaultOpen={alert.severity === "critical"}
+                                summary={
+                                  <span className="flex min-w-0 flex-wrap items-center gap-2">
+                                    <StatusBadge status={asStatus(alert.severity)} />
+                                    <span className="truncate text-xs font-semibold text-ink">
+                                      {alert.title}
+                                    </span>
+                                    <span className="ml-auto shrink-0 text-[9px] text-muted">
+                                      {formatRelativeTime(alert.created_at)}
+                                    </span>
+                                  </span>
+                                }
+                                summaryClassName="items-start"
+                                bodyClassName="space-y-2"
+                              >
+                                <p className="text-[11px] leading-relaxed text-ink">
+                                  {alert.rationale}
+                                </p>
+                                {alert.recommended_action && (
+                                  <p className="rounded-lg bg-surface/75 px-2.5 py-2 text-[10px] leading-relaxed text-ink-2">
+                                    {alert.recommended_action}
+                                  </p>
+                                )}
+                                <div className="flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      acknowledgeAlert.mutate(alert.id, {
+                                        onSuccess: () => toast.success("Alert acknowledged."),
+                                        onError: (error) =>
+                                          toast.error(
+                                            error instanceof Error
+                                              ? error.message
+                                              : "Unable to acknowledge the alert.",
+                                          ),
+                                      })
+                                    }
+                                    disabled={acknowledgeAlert.isPending}
+                                    className="rounded-full bg-surface/80 px-2 py-0.5 text-[9px] font-semibold text-ink-2"
+                                  >
+                                    Acknowledge
+                                  </button>
+                                </div>
+                              </Disclosure>
                             </article>
                           ))}
                         </div>
@@ -925,25 +1101,42 @@ export function SurgeonPage() {
                           {detail.checkins.slice(0, 4).map((checkin) => (
                             <div
                               key={checkin.id}
-                              className="rounded-lg border border-line px-3 py-2.5"
+                              className="rounded-lg border border-line px-3 py-2"
                             >
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <p className="text-xs font-medium text-ink">
-                                  {formatDateTime(checkin.completed_at)}
-                                </p>
-                                <span className="text-[10px] text-muted">
-                                  {checkin.entries.length} readings ·{" "}
-                                  {checkin.symptoms.length} symptoms
-                                </span>
-                              </div>
-                              {checkin.symptoms.length > 0 && (
-                                <p className="mt-1 text-[11px] text-critical">
-                                  {checkin.symptoms
-                                    .map((symptom) => `${symptom.symptom} (${symptom.severity}/10)`)
-                                    .join(", ")}
-                                </p>
-                              )}
-
+                              <Disclosure
+                                summary={
+                                  <span className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-medium text-ink">
+                                      {formatDateTime(checkin.completed_at)}
+                                    </span>
+                                    <span className="ml-auto text-[9px] text-muted">
+                                      {checkin.entries.length} readings ·{" "}
+                                      {checkin.symptoms.length} symptoms
+                                    </span>
+                                  </span>
+                                }
+                                meta={checkin.symptoms.length > 0 ? "Symptoms" : undefined}
+                                summaryClassName="items-start"
+                                bodyClassName="space-y-2"
+                              >
+                                {checkin.symptoms.length > 0 ? (
+                                  <p className="text-[11px] leading-relaxed text-critical">
+                                    {checkin.symptoms
+                                      .map(
+                                        (symptom) =>
+                                          `${symptom.symptom} (${symptom.severity}/10)`,
+                                      )
+                                      .join(", ")}
+                                  </p>
+                                ) : (
+                                  <p className="text-[10px] text-muted">No symptoms logged.</p>
+                                )}
+                                {checkin.notes && (
+                                  <p className="text-[10px] leading-relaxed text-muted">
+                                    {checkin.notes}
+                                  </p>
+                                )}
+                              </Disclosure>
                             </div>
                           ))}
                         </div>
@@ -952,14 +1145,39 @@ export function SurgeonPage() {
                   </div>
 
                   {latestAssessment && (
-                    <Panel
-                      title="Latest clinical assessment"
-                      subtitle="Shared with the crew when enabled."
-                    >
-                      <AssessmentCard assessment={latestAssessment} />
+                    <Panel title="Latest clinical assessment">
+                      <Disclosure
+                        summary={
+                          <span className="flex flex-wrap items-center gap-2">
+                            <span className="text-[12px] font-semibold text-ink">
+                              {latestAssessment.working_diagnosis}
+                            </span>
+                            <span className="ml-auto text-[9px] text-muted">
+                              {formatRelativeTime(latestAssessment.created_at)}
+                            </span>
+                          </span>
+                        }
+                        meta={latestAssessment.share_with_crew ? "Shared" : "Surgeon only"}
+                        summaryClassName="items-start"
+                      >
+                        <AssessmentCard assessment={latestAssessment} />
+                      </Disclosure>
                     </Panel>
                   )}
                 </div>
+              )}
+
+              {tab === "body" && detail && (
+                <BodySystemsTab
+                  detail={detail}
+                  metrics={metrics}
+                  selectedDomain={selectedDomain}
+                  onSelectDomain={setSelectedDomain}
+                  onOpenTrend={(code) => {
+                    setMetricCode(code);
+                    setTab("trends");
+                  }}
+                />
               )}
 
               {tab === "trends" && (
@@ -1081,7 +1299,7 @@ export function SurgeonPage() {
                           </tr>
                         </thead>
                         <tbody>
-                          {filteredMeasurements.slice(0, 50).map((measurement) => {
+                          {(showAllCaptures ? filteredMeasurements : filteredMeasurements.slice(0, 12)).map((measurement) => {
                             const metric = metricMap.get(measurement.metric_code);
                             return (
                               <tr key={measurement.id} className="border-b border-line/60">
@@ -1107,6 +1325,17 @@ export function SurgeonPage() {
                           })}
                         </tbody>
                       </table>
+                      {filteredMeasurements.length > 12 && (
+                        <button
+                          type="button"
+                          onClick={() => setShowAllCaptures((current) => !current)}
+                          className="mt-3 inline-flex items-center gap-1 text-[10px] font-medium text-accent hover:text-accent-strong"
+                        >
+                          {showAllCaptures
+                            ? "Show fewer"
+                            : `Show all ${filteredMeasurements.length} measurements`}
+                        </button>
+                      )}
                     </div>
                   )}
                 </Panel>
