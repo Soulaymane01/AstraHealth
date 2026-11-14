@@ -26,6 +26,7 @@ import { DomainRail } from "@/components/ui/DomainRail";
 import { MissionTape, type TapeEventType } from "@/components/ui/MissionTape";
 import { Panel } from "@/components/ui/Panel";
 import { ReadinessRing } from "@/components/ui/ReadinessRing";
+import { Sparkline } from "@/components/ui/Sparkline";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
@@ -43,6 +44,8 @@ import {
   type MissionProfile,
 } from "@/features/mission/queries";
 import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/readiness/queries";
+import { DutyRoster } from "@/features/training/components/DutyRoster";
+import { useTrainingRoster } from "@/features/training/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
 import type { Alert, DomainDetail, Readiness } from "@/lib/api/types";
 import { asStatus, statusFromScore, STATUS_META, type Status } from "@/lib/status";
@@ -63,6 +66,15 @@ const DOMAIN_ROWS = [
   { key: "metabolic", name: "Metabolic & nutrition" },
   { key: "immune", name: "Immune & sensory" },
 ];
+
+const DOMAIN_SHORT: Record<string, string> = {
+  cardiovascular: "Heart",
+  musculoskeletal: "Muscles",
+  sleep: "Sleep",
+  neurobehavioral: "Mind",
+  metabolic: "Metabolic",
+  immune: "Immune",
+};
 
 function profileLabel(profile: string): string {
   if (profile === "mars_transit") return "Mars transit";
@@ -347,7 +359,8 @@ export function FlightDeckPage() {
   const missionQuery = useMission();
   const readinessQuery = useReadiness();
   const alertsQuery = useAlerts();
-  const historyQuery = useReadinessHistory(2);
+  const historyQuery = useReadinessHistory(7);
+  const rosterQuery = useTrainingRoster();
   const contextQuery = useMissionContext();
   const tapeQuery = useMissionTape(tapeDays);
   const domainQuery = useDomainDetail(selectedDomain);
@@ -618,6 +631,10 @@ export function FlightDeckPage() {
     status: event.status ? asStatus(event.status) : undefined,
   }));
 
+  const trendScores = [...(historyQuery.data ?? [])].reverse().map((snapshot) => snapshot.score);
+  const trend = trendScores.length > 0 ? trendScores : [readiness.score];
+  const trendDelta = readiness.score - trend[0];
+
   return (
     <div>
       {header}
@@ -755,6 +772,132 @@ export function FlightDeckPage() {
             onClick={() => setDetail("weather")}
           />
         </div>
+      </div>
+
+      <div className="mt-4 grid gap-4 lg:grid-cols-12">
+        <Panel
+          className="lg:col-span-7"
+          title="7-day trend"
+          actions={<StatusPill status={status} />}
+        >
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-4xl font-semibold leading-none tabular tracking-tight text-ink">
+                {readiness.score.toFixed(0)}
+              </p>
+              <p className="mt-1 text-[10px] text-muted">readiness today</p>
+            </div>
+            <p
+              className={cn(
+                "pb-0.5 text-[11px] font-semibold tabular",
+                trendDelta >= 0 ? "text-nominal" : "text-caution",
+              )}
+            >
+              {trendDelta >= 0 ? "+" : ""}
+              {trendDelta.toFixed(1)} pts · 7 days
+            </p>
+          </div>
+
+          <Sparkline
+            values={trend}
+            status={status}
+            width={420}
+            height={72}
+            fill
+            strokeWidth={2.5}
+            className="mt-3 w-full"
+          />
+          <div className="mt-1 flex justify-between text-[9px] text-muted">
+            <span>7 days ago</span>
+            <span>Today</span>
+          </div>
+
+          <div className="mt-4 border-t border-line pt-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">
+                Since last check
+              </p>
+              <button
+                type="button"
+                onClick={() => navigate("/telemetry")}
+                className="text-[10px] font-medium text-accent hover:text-accent-strong"
+              >
+                Telemetry
+              </button>
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {DOMAIN_ROWS.map((domain) => ({
+                ...domain,
+                delta: domainDelta(domain.key) ?? 0,
+              }))
+                .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+                .slice(0, 3)
+                .map((domain) => (
+                  <div
+                    key={domain.key}
+                    className="min-w-0 rounded-xl border border-line bg-surface-muted/50 px-2.5 py-2"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          STATUS_META[domainStatus(domain.key)].dot,
+                        )}
+                      />
+                      <p className="truncate text-[9px] text-muted sm:hidden">
+                        {DOMAIN_SHORT[domain.key] ?? domain.name}
+                      </p>
+                      <p className="hidden truncate text-[9px] text-muted sm:block">
+                        {domain.name}
+                      </p>
+                    </div>
+                    <p
+                      className={cn(
+                        "mt-1 text-sm font-semibold tabular",
+                        domain.delta >= 0 ? "text-nominal" : "text-caution",
+                      )}
+                    >
+                      {domain.delta > 0 ? "+" : ""}
+                      {domain.delta.toFixed(1)}
+                    </p>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </Panel>
+
+        <Panel
+          className="lg:col-span-5"
+          title="Today"
+          actions={
+            <button
+              type="button"
+              onClick={() => navigate("/training")}
+              className="text-[10px] font-medium text-accent hover:text-accent-strong"
+            >
+              Open training
+            </button>
+          }
+        >
+          {rosterQuery.isLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-2 w-full" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+              <Skeleton className="h-9 w-full" />
+            </div>
+          ) : rosterQuery.data ? (
+            <DutyRoster
+              roster={rosterQuery.data}
+              onLog={(code) => navigate(`/training?item=${code}`)}
+              onCheckin={() => navigate("/check-in")}
+            />
+          ) : (
+            <p className="rounded-xl bg-surface-muted px-3 py-3 text-[11px] text-muted">
+              Today&apos;s roster is unavailable.
+            </p>
+          )}
+        </Panel>
       </div>
 
       <DetailSheet
