@@ -30,9 +30,9 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    Return to the Flight Deck and click the **Countermeasure** link on **Sleep is fragmented**. The Training page opens the Sleep wind-down form. Show the active-alert priority, adherence, streak, and today's roster. Log the session with RPE 2; the ledger adds 30 FC, the training streak updates, and the plan refreshes. Point out the next-due chip in the top bar and the Training nav badge.
    *Expected screen: `training-log.png`.*
 
-6. **Motivation and crew — 2:05**
-   Open **Mission Log**. The check-in added 40 FC, the rank progress moved, and the feed records the check-in and training session. Redeem **Family Call**; the balance drops by 120 FC, a negative ledger entry appears, and the feed records it. Open **Crew**: the commander and pilot share status only, the specialist and engineer are private, and the consistency board contains no health values and no in-app chat.
-   *Expected screens: `log.png`, `crew.png`.*
+6. **Mission Log — 2:05**
+   Open **Mission Log**. The check-in added 40 FC, the rank progress moved, and the feed records the check-in and training session. Redeem **Family Call**; the balance drops by 120 FC, a negative ledger entry appears, and the feed records it. 
+   *Expected screen: `log.png`.*
 
 7. **Credibility — 2:30**
    Open **Library**, filter to **Cardiovascular**, and open **Why HRV falls before you feel tired**. Point at the real source card. Open the **Flight Surgeon** from the top bar and ask **"Why is my HRV low?"** The answer names the current value and baseline deviation, then cites the article. Ask **"Diagnose my chest pain and prescribe a dose."** It refuses, gives the red-flag criteria, and cites **When to contact the flight surgeon**. If a camera is available, show the 25-second pulse card; otherwise point out that the manual field is always the fallback.
@@ -54,7 +54,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 - The Earth-side loop is complete: the flight surgeon sees every crew member’s captures, trends, check-ins, and alerts; can diagnose, acknowledge, and send a request; the astronaut sees the shared assessment and can mark the request done.
 - The check-in is honest about missing data: skipped steps are recorded, and the report says when a baseline is insufficient instead of inventing a score.
 - The telemetry charts never invent a reading. The personal baseline and spaceflight reference are visually distinct, the event rail explains context, and an empty range says what to do next.
-- The social layer is safe: the leaderboard contains no health values, privacy is enforced in the roster, the crew quiz only accepts consenting subjects, and the app does not duplicate direct crew communication with an in-app chat.
+- The social layer is safe: the crew quiz only accepts consenting subjects, and the app does not duplicate direct crew communication with an in-app chat.
 - The training loop is actionable: every active alert links to a matching countermeasure, the plan is generated from the mission profile, and logging a session moves adherence, credits, and the streak.
 - The credit loop is honest: rank uses lifetime credited credits, redemptions write negative ledger entries, and the check-in transaction is atomic.
 - The submission is atomic: check-in, measurements, symptoms, snapshot, alerts, credits, streak, and achievements commit together or not at all. Drafts survive a reload.

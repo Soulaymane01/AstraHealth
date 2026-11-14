@@ -84,7 +84,6 @@ export function useLogTrainingSession() {
         queryClient.invalidateQueries({ queryKey: queryKeys.credits }),
         queryClient.invalidateQueries({ queryKey: queryKeys.achievements }),
         queryClient.invalidateQueries({ queryKey: queryKeys.missionLog }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.crew }),
       ]);
     },
   });

@@ -216,10 +216,9 @@ Open **`docs/DEMO.md`** for a three-minute script. The short version:
 3. **Telemetry** - open HRV (RMSSD), switch the range, export CSV.
 4. **Training** - log a countermeasure with RPE.
 5. **Mission Log** - mission points, rank, streaks, achievements.
-6. **Crew** - privacy and the consistency board.
-7. **Library** - cited HRP articles.
-8. **Flight Surgeon** - ask "Why is my HRV low?" and show the citations.
-9. **Offline** - switch the browser offline, complete a check-in, then reconnect.
+6. **Library** - cited HRP articles.
+7. **Flight Surgeon** - ask "Why is my HRV low?" and show the citations.
+8. **Offline** - switch the browser offline, complete a check-in, then reconnect.
 
 The app is guidance only and not a medical device. All crew data is simulated.
 

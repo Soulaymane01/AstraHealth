@@ -231,15 +231,6 @@ check(
   Boolean(body?.includes("When to contact the flight surgeon") && body?.includes("Escalate now")),
 );
 
-// Crew
-await page.goto(`${base}/crew`, { waitUntil: "networkidle" });
-await page.waitForTimeout(1000);
-body = await page.textContent("body");
-check("crew board", Boolean(body?.includes("Crew board") && body?.includes("Consistency")));
-check("crew privacy", Boolean(body?.includes("Sharing") && body?.includes("Status only")));
-check("crew privacy note", Boolean(body?.includes("no health readings")));
-await page.screenshot({ path: path.join(out, "crew.png"), fullPage: true });
-
 // Mission log
 await page.goto(`${base}/log`, { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);

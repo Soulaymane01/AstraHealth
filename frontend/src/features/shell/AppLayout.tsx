@@ -20,7 +20,6 @@ function titleForPath(pathname: string): string {
   if (pathname.startsWith("/telemetry/metric/")) return "Metric detail";
   if (pathname.startsWith("/telemetry/domain/")) return "Domain summary";
   if (pathname === "/training") return "Training";
-  if (pathname === "/crew") return "Crew";
   if (pathname === "/quizzes") return "Quizzes";
   if (pathname.startsWith("/quizzes/")) return "Quiz";
   if (pathname === "/log") return "Mission Log";

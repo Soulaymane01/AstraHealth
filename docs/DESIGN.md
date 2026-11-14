@@ -44,7 +44,7 @@ The design system lives in code:
 | `--color-critical` | `#991B1B` | Critical status text and marks |
 | `--color-unknown` | `#475569` | No-data status |
 
-Status tints (`*-soft`) are used for pills, badges, and inline banners. The stronger `*-surface` tints fill whole status cards such as Telemetry domains, Crew readiness rows, and Flight Deck quick tiles. The palette is intentionally narrow: one accent for interaction, status color for state.
+Status tints (`*-soft`) are used for pills, badges, and inline banners. The stronger `*-surface` tints fill whole status cards such as Telemetry domains, alerts, and Flight Deck quick tiles. The palette is intentionally narrow: one accent for interaction, status color for state.
 
 ---
 
@@ -199,7 +199,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 - CSV export writes the in-range points only: `measured_at,value,unit,source,confidence`.
 - The chart also includes a screen-reader summary. The visual line is never the only source of the values.
 
-### 6.6 Crew and motivation
+### 6.6 Mission Log and motivation
 
 - The Mission Log is the motivation hub: a `RankBadge`, streaks, mission-point history, the activity feed, and the achievement grid.
 - Rank uses lifetime mission points, so consistency advances the astronaut. The rank card shows the next rank and the percentage progress.
@@ -207,10 +207,6 @@ The design intentionally uses fewer panels than a traditional mission-control da
 - Mission points are awarded for consistency only: check-ins, training adherence, quizzes, and streak milestones. They advance rank but never reflect a health reading.
 - Achievements are compact tiles with an icon, name, description, and unlock date. Locked tiles use a dashed border and a lock icon, never a red or warning surface.
 - A new achievement appears as a celebration panel on the check-in report and quiz result. There is no confetti or flash; the accent-soft surface and the unlock line carry the moment.
-- The Crew page has a privacy control, a consistency board, and a privacy-filtered readiness roster. There is no in-app chat or nudge inbox; direct crew communication stays in the habitat.
-- The crew board ranks consistency only. Consistency is 70% check-in coverage (target 7) plus 30% training coverage (target 5) over 14 days. No readiness field exists in the leaderboard schema, and no message is sent from the board.
-- Crew readiness is a separate roster. `private` shows a lock and no status; `status_only` shows the status label and not the score; `full` shows both. The current user always sees their own score.
-- The privacy control is a three-option segmented panel with a plain-language description. The change applies immediately to the roster and leaderboard.
 
 ### 6.7 Quizzes
 
@@ -308,7 +304,6 @@ Rules:
 - Skip and "No symptoms today" are separate actions: one records missing data, the other records a clean symptom report.
 - The report uses real headings and a linear reading order: action, score, factors, notes, credits, rank, streak, alerts.
 - Charts include a text summary in the surrounding panel. The telemetry chart has an `sr-only` summary, a recent-readings list, and an accessible event list.
-- The privacy control announces its state with `aria-pressed`; the crew board never relies on color to identify rank or readiness. The page states that no message is sent.
 - Quiz options are real buttons with `aria-pressed`; the consent select has an explicit label and the disabled Start action is explained in text.
 - Training duration and RPE inputs have explicit labels; RPE buttons expose `aria-pressed`. The nav reminder badge has a descriptive `title`, and the next-due chip has a text label, not color alone.
 - The mission-tape markers are decorative spans, not buttons; a screen-reader-only list states every event, and the Mission Log is the full interactive record. This also keeps dense marker clusters from becoming overlapping touch targets.

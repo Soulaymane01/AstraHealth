@@ -29,7 +29,6 @@ const INVALIDATE_KEYS = [
   ["credits"],
   ["achievements"],
   ["checkin"],
-  ["crew"],
   ["training"],
 ];
 

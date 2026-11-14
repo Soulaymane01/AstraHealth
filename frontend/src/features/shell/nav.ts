@@ -6,7 +6,6 @@ import {
   HelpCircle,
   LayoutDashboard,
   ScrollText,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,7 +21,6 @@ export const NAV_ITEMS: NavItem[] = [
   { to: "/check-in", label: "Systems Check", icon: ClipboardCheck },
   { to: "/telemetry", label: "Telemetry", icon: Activity },
   { to: "/training", label: "Training", icon: Dumbbell },
-  { to: "/crew", label: "Crew", icon: Users },
   { to: "/quizzes", label: "Quizzes", icon: HelpCircle },
   { to: "/log", label: "Mission Log", icon: ScrollText },
   { to: "/library", label: "Library", icon: BookOpen },

@@ -72,7 +72,6 @@ export function useCreateCheckin() {
         queryClient.invalidateQueries({ queryKey: ["credits"] }),
         queryClient.invalidateQueries({ queryKey: ["achievements"] }),
         queryClient.invalidateQueries({ queryKey: ["mission", "log"] }),
-        queryClient.invalidateQueries({ queryKey: ["crew"] }),
         queryClient.invalidateQueries({ queryKey: ["training"] }),
       ]);
     },
