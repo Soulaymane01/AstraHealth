@@ -72,6 +72,8 @@ def test_mission_context_returns_latest_event(
     body = response.json()
     assert body["latest_event"]["event_id"] == "TEST-GST"
     assert body["active"] is False
+    assert body["source"] == "fixture"
+    assert body["fetched_at"] is not None
 
 
 def test_mission_context_active_event(
