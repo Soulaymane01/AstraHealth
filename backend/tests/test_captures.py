@@ -1,10 +1,13 @@
+from datetime import UTC, datetime, timedelta
+
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import Measurement, User
+from app.models import Measurement, MetricDefinition, User
 from app.services.captures import (
     CAPTURE_METRICS,
+    build_capture_feed,
     capture_source_for_profile,
     simulate_capture,
 )
@@ -73,3 +76,34 @@ def test_capture_service_writes_capture_provenance(
     ).all()
     assert {row.source for row in rows} == {"mars_capture"}
     assert all("Simulated Mars transit sensors" in (row.notes or "") for row in rows)
+
+
+def test_checkin_capture_values_do_not_displace_the_sensor_feed(
+    db_session: Session,
+    test_user: User,
+    metric_definitions: None,
+) -> None:
+    simulate_capture(db_session, test_user, force=True)
+    db_session.commit()
+    captured_at = build_capture_feed(db_session, test_user)["captured_at"]
+    heart_rate = db_session.get(MetricDefinition, "heart_rate")
+
+    # A check-in can copy capture values with a capture source and no sensor
+    # note. That must not become the "latest capture batch".
+    db_session.add(
+        Measurement(
+            user_id=test_user.id,
+            metric_code="heart_rate",
+            value=72,
+            unit=heart_rate.unit,
+            measured_at=datetime.now(UTC) + timedelta(seconds=1),
+            source="mars_capture",
+            notes=None,
+        )
+    )
+    db_session.commit()
+
+    feed = build_capture_feed(db_session, test_user)
+
+    assert feed["captured_at"] == captured_at
+    assert len(feed["metrics"]) == len(CAPTURE_METRICS)

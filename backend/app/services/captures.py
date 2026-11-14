@@ -130,6 +130,10 @@ def latest_capture_time(db: Session, user_id: int) -> datetime | None:
         select(func.max(Measurement.measured_at)).where(
             Measurement.user_id == user_id,
             Measurement.source.in_(CAPTURE_SOURCES),
+            # Capture batches carry the "Simulated …" note. Check-ins can also
+            # write capture sources for auto-filled values, but those must not
+            # masquerade as a new sensor batch in the feed.
+            Measurement.notes.like("Simulated %"),
         )
     )
     return _as_utc(value) if value is not None else None
@@ -213,6 +217,7 @@ def build_capture_feed(
             Measurement.user_id == user.id,
             Measurement.measured_at == latest,
             Measurement.source.in_(CAPTURE_SOURCES),
+            Measurement.notes.like("Simulated %"),
         )
         .order_by(MetricDefinition.domain, MetricDefinition.name)
     ).all()

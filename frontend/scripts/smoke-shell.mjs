@@ -379,6 +379,17 @@ check(
 );
 await page.screenshot({ path: path.join(out, "checkin-camera.png"), fullPage: true });
 
+// Captured vitals are locked until the global override is used.
+await page
+  .getByText("Vitals captured automatically")
+  .waitFor({ timeout: 2000 })
+  .catch(() => {});
+const overrideButton = page.getByRole("button", { name: "Override captures" });
+if (await overrideButton.isVisible().catch(() => false)) {
+  await overrideButton.click();
+  await page.waitForTimeout(200);
+}
+
 await page.fill("#metric-heart_rate", "72");
 await page.fill("#metric-body_temp_c", "36.8");
 await page.getByRole("button", { name: /Continue/ }).click();
@@ -456,6 +467,15 @@ if (
 ) {
   await page.getByRole("button", { name: "Start fresh" }).click();
   await page.waitForTimeout(300);
+}
+await page
+  .getByText("Vitals captured automatically")
+  .waitFor({ timeout: 2000 })
+  .catch(() => {});
+const offlineOverride = page.getByRole("button", { name: "Override captures" });
+if (await offlineOverride.isVisible().catch(() => false)) {
+  await offlineOverride.click();
+  await page.waitForTimeout(200);
 }
 await page.fill("#metric-heart_rate", "70");
 await page.fill("#checkin-notes", offlineMarker);

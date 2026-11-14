@@ -18,7 +18,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screen: `domain.png`.*
 
 3. **Act — 0:40**
-   Start the Systems Check. The vitals are **already pre-filled** from the capture feed; point at the **Vitals captured automatically** banner and open **Why we ask** to show the HRP rationale. Override only if you want to demonstrate a manual fallback. Continue through sleep, mood, and the symptom step, entering sleep and mood manually. Use **No symptoms today** or tap a body region. On the last step, the captured load is pre-filled; add a hydration value, then complete the check-in. The footer states that the draft is saved on the device and that the submission is one transaction.
+   Start the Systems Check. The vitals are **already pre-filled and locked** from the capture feed; point at the **Vitals captured automatically** banner, the greyed fields, and the global **Override captures** button. Use it only if you want to demonstrate a manual fallback. Open **Why we ask** to show the HRP rationale. Continue through sleep, mood, and the symptom step, entering sleep and mood manually. Use **No symptoms today** or tap a body region. On the last step, the captured load is pre-filled; add a hydration value, then complete the check-in. The footer states that the draft is saved on the device and that the submission is one transaction.
    The Systems Report opens on **Recommended next action**, then shows the readiness delta, status transition, top factors with standard-deviation context, the 40 FC award, and active alerts. If you skip every step except one, the report shows the explicit **insufficient data** state instead of inventing a score.
    *Expected screens: `checkin.png`, `report.png`.*
 

@@ -6,6 +6,8 @@ import {
   Check,
   CloudUpload,
   HardDriveDownload,
+  Lock,
+  LockOpen,
   Radio,
   Save,
   WifiOff,
@@ -103,6 +105,7 @@ export function SystemsCheckPage() {
   const [dirty, setDirty] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storageUnavailable, setStorageUnavailable] = useState(false);
+  const [overrideCaptures, setOverrideCaptures] = useState(false);
 
   const stepPanelRef = useRef<HTMLDivElement>(null);
   const firstStepRender = useRef(true);
@@ -113,6 +116,10 @@ export function SystemsCheckPage() {
   const readingCount =
     Object.values(form.metrics).filter((value) => value.trim() !== "").length +
     form.symptoms.length;
+  const hasCapturedFields = Object.entries(form.metrics).some(
+    ([code, value]) =>
+      value.trim() !== "" && isCaptureSource(form.metricsMeta[code]?.source),
+  );
 
   useEffect(() => {
     if (phase !== "ready") return;
@@ -234,6 +241,7 @@ export function SystemsCheckPage() {
     setPhase("ready");
     setDirty(false);
     setSaveState("saved");
+    setOverrideCaptures(false);
   };
 
   const startFresh = () => {
@@ -250,6 +258,7 @@ export function SystemsCheckPage() {
     setErrors({});
     setStepError(null);
     setSubmitError(null);
+    setOverrideCaptures(false);
   };
 
   const updateMetric = (code: string, value: string) => {
@@ -589,7 +598,7 @@ export function SystemsCheckPage() {
             behind it, and the next action.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-muted">
+        <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <Save
             size={12}
             className={cn(
@@ -599,6 +608,22 @@ export function SystemsCheckPage() {
             aria-hidden
           />
           <span>{storageUnavailable ? "Draft storage unavailable" : saveLabel}</span>
+          {hasCapturedFields && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOverrideCaptures((current) => !current)}
+              aria-pressed={overrideCaptures}
+              title="Unlock or relock all automatically captured values in this check-in."
+            >
+              {overrideCaptures ? (
+                <Lock size={12} aria-hidden />
+              ) : (
+                <LockOpen size={12} aria-hidden />
+              )}
+              {overrideCaptures ? "Lock captures" : "Override captures"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -632,7 +657,10 @@ export function SystemsCheckPage() {
                     Simulated
                   </span>
                   <span className="text-muted">
-                    {formatRelativeTime(captureQuery.data.captured_at)} · override only if needed.
+                    {formatRelativeTime(captureQuery.data.captured_at)} ·{" "}
+                    {overrideCaptures
+                      ? "unlocked for editing"
+                      : "locked; use Override captures to edit"}
                   </span>
                 </div>
               )}
@@ -665,15 +693,23 @@ export function SystemsCheckPage() {
                         </p>
                       )}
                       <div className="grid gap-2 sm:grid-cols-2">
-                        {group.fields.map((field) => (
-                          <MetricInput
-                            key={field.code}
-                            field={field}
-                            value={form.metrics[field.code] ?? ""}
-                            error={errors[field.code]}
-                            onChange={(value) => updateMetric(field.code, value)}
-                          />
-                        ))}
+                        {group.fields.map((field) => {
+                          const value = form.metrics[field.code] ?? "";
+                          const locked =
+                            !overrideCaptures &&
+                            isCaptureSource(form.metricsMeta[field.code]?.source) &&
+                            value.trim() !== "";
+                          return (
+                            <MetricInput
+                              key={field.code}
+                              field={field}
+                              value={value}
+                              locked={locked}
+                              error={errors[field.code]}
+                              onChange={(next) => updateMetric(field.code, next)}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
                   ))}
