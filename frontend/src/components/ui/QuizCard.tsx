@@ -49,7 +49,8 @@ export function QuizCard({
       type="button"
       onClick={onStart}
       className={cn(
-        "group flex w-full flex-col gap-3 rounded-xl border border-line bg-surface p-4 text-left transition-colors hover:border-line-strong hover:bg-surface-muted/30",
+        "group flex w-full flex-col gap-3 rounded-2xl border p-4 text-left transition-transform duration-150 hover:-translate-y-0.5",
+        mode === "self" ? "border-accent/20 bg-accent-soft" : "border-watch/25 bg-watch-soft",
         className,
       )}
     >
@@ -71,12 +72,9 @@ export function QuizCard({
         )}
       </div>
 
-      <div>
-        <h2 className="text-sm font-semibold leading-snug text-ink">{title}</h2>
-        <p className="mt-1 text-xs text-ink-2">{meta.copy}</p>
-      </div>
+      <h2 className="text-sm font-semibold leading-snug text-ink">{title}</h2>
 
-      <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-xs">
+      <div className="mt-auto flex items-center justify-between border-t border-ink/10 pt-3 text-xs">
         <span className="text-muted">{questions} questions</span>
         <span
           className={cn("font-medium", status === "completed" ? "text-nominal" : "text-accent")}

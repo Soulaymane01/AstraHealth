@@ -41,10 +41,10 @@ The design system lives in code:
 | `--color-nominal` | `#036B53` | Nominal status text and marks |
 | `--color-watch` | `#92400E` | Watch status text and marks |
 | `--color-caution` | `#A33B0C` | Caution status text and marks |
-| `--color-critical` | `#B91C1C` | Critical status text and marks |
+| `--color-critical` | `#991B1B` | Critical status text and marks |
 | `--color-unknown` | `#475569` | No-data status |
 
-Status tints (`*-soft`) are used only as pill or badge backgrounds. The palette is intentionally narrow: one accent for interaction, four semantic colors for health state.
+Status tints (`*-soft`) are used for pills, badges, and inline banners. The stronger `*-surface` tints fill whole status cards such as Telemetry domains, Crew readiness rows, and Flight Deck quick tiles. The palette is intentionally narrow: one accent for interaction, status color for state.
 
 ---
 
@@ -94,6 +94,7 @@ The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, an
 | `MetricCard` | `MetricCard.tsx` | Single metric with trend |
 | `DomainRail` | `DomainRail.tsx` | Domain row with score and progress bar |
 | `Disclosure` | `Disclosure.tsx` | Inline expand/collapse for secondary detail, with `aria-expanded` |
+| `DetailSheet` | `DetailSheet.tsx` | Accessible modal sheet for a single focused detail view |
 | `AnomalyCard` | `AnomalyCard.tsx` | Alert with rationale and action |
 | `MissionTape` | `MissionTape.tsx` | Event timeline |
 | `StepIndicator` | `StepIndicator.tsx` | Compact progress primitive |
@@ -129,44 +130,45 @@ The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, an
 - Base body fill `#D8E3ED` with white separations; every domain carries a soft status tint, and the selected domain is stronger.
 - Hovering a muscle raises its status color and shows the muscle name plus domain in the footer. Clicking selects the domain.
 - The whole-body button selects the immune domain and draws a dashed halo.
-- The SVG is a mouse enhancement. The Systems rows are the keyboard and screen-reader control surface.
+- The layered SVG is a mouse enhancement. The Systems rows are the keyboard and screen-reader control surface.
 - No scan sweep, grid, or ambient motion. The front/back toggle and selection are the only state changes.
 
 ---
 
 ## 6. Density and layout
 
-- Maximum content width: 1152 px (`max-w-6xl`).
+- Maximum content width: 1280 px (`max-w-7xl`).
 - Page padding: 24 px mobile, 32 px desktop.
 - Card padding: 16–20 px.
 - Gaps: 16 px between cards, 32–40 px between sections.
-- Desktop Flight Deck: one 8/12 column for readiness and body, one 4/12 column for exceptions and today.
-- Mobile: strict single column. No horizontal scrolling except the mission tape.
+- Desktop Flight Deck: the readiness window (8/12) plus six visual quick tiles (4/12). All deeper content opens in a `DetailSheet`.
+- Mobile: strict single column. The readiness window keeps only the ring, status, summary, and next action; factor tiles appear from `sm` upward.
 
 The design intentionally uses fewer panels than a traditional mission-control dashboard. If a detail can live behind a click, it does.
 
 ### 6.1 App shell
 
-- Sidebar 240 px, fixed on desktop, hidden below 1024 px.
-- Top bar 64 px, sticky, showing readiness, MET, crew count, and comms delay. A slim status strip sits under it only when the device is offline, a check-in is queued, or a queued item failed.
-- Content max width 1152 px with 16–32 px padding.
+- Sidebar 240 px expanded, 76 px collapsed, fixed on desktop and hidden below 1024 px. The top-bar toggle persists the state. Collapsed mode shows icons only with tooltips and accessible names.
+- Top bar 64 px, sticky, showing the page title, mission subtitle, readiness chip, and MET. Crew count and comms delay live in the subtitle. A slim status strip sits under it only when the device is offline, a check-in is queued, or a queued item failed.
+- Content max width 1280 px with 16–32 px padding.
 - Mobile navigation is a 288 px drawer with a focus trap, Escape to close, and body scroll lock.
 - Auth pages use a split layout on desktop and a single column on mobile.
 - Active navigation uses a soft accent fill; no underlines, bars, or glow.
 
 ### 6.2 Flight Deck composition
 
-- A space-weather banner sits above the grid when a recent event exists.
-- Row 1: readiness and next action stacked on the left (8/12), exceptions on the right (4/12).
-- Row 2: anatomical body map plus selected-domain detail on the left (7/12), systems and "Why this score?" on the right (5/12).
-- Row 3: mission tape full width with a 7-day / 30-day toggle.
-- The anatomical map uses 70+ muscle regions with front and back views. Head and neck map to neurobehavioral, chest to cardiovascular, abdominals to metabolic, shoulders/arms/back/legs to musculoskeletal, and the whole-body halo to immune. Sleep is a schedule domain, not a region.
-- The selected-domain detail uses a light surface well, not a nested card.
-- Exceptions are full cards with rationale, recommended action, guidance link, and acknowledgement.
+- The default view is the readiness window: one ring, status, three key factors at `sm` and above, and a one-line next action.
+- A critical alert appears as a single full-width red ribbon above readiness. Everything else waits.
+- Six visual quick tiles open focused `DetailSheet` views: Body systems, Needs attention, Vitals, Flight Surgeon, Mission tape, and Space weather.
+- Body systems opens a wide sheet with the layered body map, the six domain rows, and the selected-domain metric detail.
+- The anatomical map has Skin, Muscular, and Skeletal layers with front/back views. Skin uses status-tinted body zones, muscular uses the 70+ `body-muscles` regions, and skeletal groups the skull, spine, ribs, pelvis, arms, and legs by domain.
+- Domains: head and neck → neurobehavioral, chest → cardiovascular, abdominals and core → metabolic, limbs and bone → musculoskeletal, whole body → immune. Sleep is a schedule domain, not a region.
+- Exceptions remain full alert cards inside the sheet with rationale, recommended action, guidance link, and acknowledgement.
+- Every detail sheet traps focus, closes on Escape, and returns focus to the tile that opened it.
 
 ### 6.3 Systems Check wizard
 
-- Five steps: Vitals, Sleep, Mood & Stress, Symptoms, Training & Nutrition. The left column holds the active step; the right column holds the running summary, notes, credit preview, and "What happens next".
+- Five steps: Vitals, Sleep, Mood & Stress, Symptoms, Training & Nutrition. The active step uses a centered, full-width form; notes live in an optional disclosure and the long summary sidebar is gone.
 - Progress uses five small rings. Complete steps are nominal green with a check, the active step is deep blue, skipped steps are a muted dash, and a labelled progress bar sits underneath.
 - Fields use large-touch inputs with a 24 px tabular value, unit, optional tag, and inline error. Scales are 1–5 with low/high anchors and an explicit Clear action.
 - Every step has a "Why we ask" disclosure. The copy is condensed from the corresponding knowledge article and names the NASA HRP source.

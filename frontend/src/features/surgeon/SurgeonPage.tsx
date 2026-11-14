@@ -40,7 +40,7 @@ import type {
   SurgeonInstruction,
   TapeEvent,
 } from "@/lib/api/types";
-import { asStatus } from "@/lib/status";
+import { asStatus, STATUS_META, statusFromScore } from "@/lib/status";
 import { cn, displayMetricValue, formatRelativeTime, initials, titleCase } from "@/lib/utils";
 
 type TabKey = "overview" | "trends" | "captures" | "clinical" | "copilot";
@@ -210,7 +210,7 @@ function EarlyWarningBanner({
             Early warning · {prediction.risk_level} risk · next{" "}
             {prediction.horizon_hours} hours
           </p>
-          <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">
+          <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-ink-2">
             {prediction.summary}
           </p>
         </div>
@@ -563,40 +563,39 @@ export function SurgeonPage() {
                     aria-pressed={selected}
                     onClick={() => selectCrew(memberSummary)}
                     className={cn(
-                      "w-full rounded-lg border px-3 py-2.5 text-left transition-colors",
-                      selected
-                        ? "border-accent/30 bg-accent-soft/50"
-                        : "border-line bg-surface hover:bg-surface-muted",
+                      "w-full rounded-2xl border px-3 py-2.5 text-left transition-transform hover:-translate-y-0.5",
+                      memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
+                      selected && "ring-2 ring-accent/40",
                     )}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-muted text-[10px] font-semibold text-ink-2">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[10px] font-semibold text-ink-2">
                           {initials(memberSummary.full_name)}
                         </span>
                         <div className="min-w-0">
                           <p className="truncate text-xs font-semibold text-ink">
                             {memberSummary.full_name}
                           </p>
-                          <p className="text-[10px] text-muted">{titleCase(memberSummary.role)}</p>
+                          <p className="text-[10px] text-ink-2">{titleCase(memberSummary.role)}</p>
                         </div>
                       </div>
                       {memberStatus && <StatusPill status={memberStatus} />}
                     </div>
-                    <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted">
-                      <span>
+                    <div className="mt-2 flex items-end justify-between gap-2">
+                      <p className="text-2xl font-semibold leading-none tabular text-ink">
                         {memberSummary.readiness_score !== null
-                          ? `Readiness ${Math.round(memberSummary.readiness_score)}`
-                          : "No score"}
-                      </span>
+                          ? Math.round(memberSummary.readiness_score)
+                          : "—"}
+                      </p>
                       <span className="flex items-center gap-1.5">
                         {memberSummary.active_alerts > 0 && (
                           <span
                             className={cn(
-                              "rounded-full px-1.5 py-0.5 font-medium",
+                              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
                               memberSummary.critical_alerts > 0
-                                ? "bg-critical-soft text-critical"
-                                : "bg-watch-soft text-watch",
+                                ? "bg-critical text-white"
+                                : "bg-surface/80 text-watch",
                             )}
                           >
                             {memberSummary.active_alerts} alert
@@ -604,38 +603,18 @@ export function SurgeonPage() {
                           </span>
                         )}
                         {memberSummary.open_instructions > 0 && (
-                          <span className="rounded-full bg-accent-soft px-1.5 py-0.5 text-accent">
+                          <span className="rounded-full bg-surface/80 px-1.5 py-0.5 text-[9px] font-medium text-accent">
                             {memberSummary.open_instructions} open
                           </span>
                         )}
                       </span>
                     </div>
-                    <p className="mt-1 text-[9px] text-muted">
-                      Capture{" "}
-                      {memberSummary.last_capture_at
-                        ? formatRelativeTime(memberSummary.last_capture_at)
-                        : "pending"}
-                    </p>
-                    {memberSummary.risk_level && (
-                      <span
-                        className={cn(
-                          "mt-1 inline-flex rounded-full border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
-                          RISK_BADGE[memberSummary.risk_level],
-                        )}
-                      >
-                        Early warning {memberSummary.risk_level} ·{" "}
-                        {memberSummary.risk_horizon_hours}h
-                      </span>
-                    )}
                   </button>
                 );
               })}
             </div>
           </Panel>
-          <div className="rounded-xl border border-line bg-surface-muted/40 px-3 py-2.5 text-[10px] leading-relaxed text-muted">
-            Medical console. Crew visibility preferences do not restrict flight-surgeon access.
-            Guidance only; clinical judgment remains with the surgeon.
-          </div>
+          <p className="px-1 text-[10px] text-muted">Guidance only · clinical judgment stays with the surgeon.</p>
         </aside>
 
         <main className="min-w-0 flex-1 space-y-4">
@@ -672,13 +651,15 @@ export function SurgeonPage() {
                         {titleCase(member.role)} · {detail.mission.name} · Day{" "}
                         {detail.mission.mission_day} · {titleCase(detail.mission.profile)}
                       </p>
-                      <p className="mt-1 text-[11px] text-muted">
-                        Last check-in {formatDateTime(member.last_checkin_at)} · capture{" "}
-                        {member.last_capture_at
-                          ? formatRelativeTime(member.last_capture_at)
-                          : "pending"}{" "}
-                        · {activeAlerts.length} active alert
-                        {activeAlerts.length === 1 ? "" : "s"}
+                      <p className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted">
+                        <span>{activeAlerts.length} alerts</span>
+                        <span>·</span>
+                        <span>
+                          Capture{" "}
+                          {member.last_capture_at
+                            ? formatRelativeTime(member.last_capture_at)
+                            : "pending"}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -843,16 +824,19 @@ export function SurgeonPage() {
                           <div className="space-y-1.5">
                             {Object.entries(readiness.domain_scores).map(([key, value]) => (
                               <div key={key} className="flex items-center gap-2">
-                                <span className="w-36 shrink-0 truncate text-[11px] text-ink-2">
+                                <span className="w-32 shrink-0 truncate text-[10px] text-ink-2">
                                   {DOMAIN_LABELS[key] ?? titleCase(key)}
                                 </span>
                                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-line">
                                   <div
-                                    className="h-full rounded-full bg-accent"
+                                    className={cn(
+                                      "h-full rounded-full",
+                                      STATUS_META[statusFromScore(value)].dot,
+                                    )}
                                     style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
                                   />
                                 </div>
-                                <span className="w-8 text-right text-[10px] tabular text-muted">
+                                <span className="w-8 text-right text-[10px] tabular text-ink-2">
                                   {Math.round(value)}
                                 </span>
                               </div>
@@ -887,25 +871,15 @@ export function SurgeonPage() {
                           {activeAlerts.map((alert) => (
                             <article
                               key={alert.id}
-                              className="rounded-lg border border-line px-3 py-2.5"
+                              className={cn(
+                                "rounded-2xl border px-3 py-2.5",
+                                STATUS_META[asStatus(alert.severity)].surface,
+                              )}
                             >
-                              <div className="flex flex-wrap items-center gap-2">
+                              <div className="flex items-center justify-between gap-2">
                                 <StatusBadge status={asStatus(alert.severity)} />
-                                <span className="text-[10px] uppercase tracking-wide text-muted">
-                                  {alert.rule_id}
-                                </span>
-                              </div>
-                              <p className="mt-1 text-xs font-semibold text-ink">{alert.title}</p>
-                              <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">
-                                {alert.rationale}
-                              </p>
-                              <p className="mt-1 text-[11px] leading-relaxed text-ink">
-                                {alert.recommended_action}
-                              </p>
-                              <div className="mt-1.5 flex flex-wrap gap-2">
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
+                                <button
+                                  type="button"
                                   onClick={() =>
                                     acknowledgeAlert.mutate(alert.id, {
                                       onSuccess: () => toast.success("Alert acknowledged."),
@@ -918,10 +892,15 @@ export function SurgeonPage() {
                                     })
                                   }
                                   disabled={acknowledgeAlert.isPending}
+                                  className="rounded-full bg-surface/80 px-2 py-0.5 text-[9px] font-semibold text-ink-2"
                                 >
                                   Acknowledge
-                                </Button>
+                                </button>
                               </div>
+                              <p className="mt-1.5 text-xs font-semibold text-ink">{alert.title}</p>
+                              <p className="mt-0.5 line-clamp-2 text-[10px] leading-relaxed text-ink">
+                                {alert.rationale}
+                              </p>
                             </article>
                           ))}
                         </div>
@@ -960,11 +939,7 @@ export function SurgeonPage() {
                                     .join(", ")}
                                 </p>
                               )}
-                              {checkin.notes && (
-                                <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                                  {checkin.notes}
-                                </p>
-                              )}
+
                             </div>
                           ))}
                         </div>
@@ -1349,11 +1324,7 @@ export function SurgeonPage() {
                                     .join(", ")}
                                 </p>
                               )}
-                              {checkin.notes && (
-                                <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                                  {checkin.notes}
-                                </p>
-                              )}
+
                             </div>
                           ))}
                         </div>

@@ -9,7 +9,13 @@ import { NAV_ITEMS } from "@/features/shell/nav";
 import { useTrainingReminders } from "@/features/training/queries";
 import { cn, initials, titleCase } from "@/lib/utils";
 
-export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+export function NavContent({
+  onNavigate,
+  collapsed = false,
+}: {
+  onNavigate?: () => void;
+  collapsed?: boolean;
+}) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const reminders = useTrainingReminders();
@@ -20,27 +26,39 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2.5 px-4 py-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft text-accent">
+      <div
+        className={cn(
+          "flex items-center py-5",
+          collapsed ? "justify-center px-0" : "gap-2.5 px-4",
+        )}
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
           <Orbit size={17} aria-hidden />
         </span>
-        <div>
-          <div className="flex items-center gap-1.5">
-            <p className="text-sm font-semibold tracking-[-0.01em] text-ink">AstraHealth</p>
-            {DEMO_MODE && (
-              <span
-                title="Seeded demonstration mission and crew data"
-                className="rounded-full bg-watch-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-watch"
-              >
-                Demo
-              </span>
-            )}
-          </div>
-          <p className="text-[11px] text-muted">Crew health</p>
-        </div>
+        {!collapsed && (
+          <>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-semibold tracking-[-0.01em] text-ink">AstraHealth</p>
+                {DEMO_MODE && (
+                  <span
+                    title="Seeded demonstration mission and crew data"
+                    className="rounded-full bg-watch-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-watch"
+                  >
+                    Demo
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted">Crew health</p>
+            </div>
+          </>
+        )}
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2" aria-label="Primary">
+      <nav
+        className={cn("flex-1 space-y-0.5 overflow-y-auto", collapsed ? "px-2" : "px-2")}
+        aria-label="Primary"
+      >
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           return (
@@ -49,18 +67,21 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               to={item.to}
               end={item.end}
               onClick={onNavigate}
+              title={collapsed ? item.label : undefined}
+              aria-label={collapsed ? item.label : undefined}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                  "relative flex items-center rounded-lg text-sm transition-colors",
+                  collapsed ? "justify-center px-0 py-2.5" : "gap-2.5 px-3 py-2",
                   isActive
                     ? "bg-accent-soft font-medium text-accent"
                     : "text-ink-2 hover:bg-surface-muted hover:text-ink",
                 )
               }
             >
-              <Icon size={16} aria-hidden />
-              {item.label}
-              {item.to === "/training" && dueCount > 0 && (
+              <Icon size={collapsed ? 18 : 16} aria-hidden />
+              {!collapsed && item.label}
+              {item.to === "/training" && dueCount > 0 && !collapsed && (
                 <span
                   className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-watch-soft px-1 text-[9px] font-medium tabular text-watch"
                   title={`${dueCount} training item${dueCount === 1 ? "" : "s"} due`}
@@ -68,23 +89,31 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
                   {dueCount}
                 </span>
               )}
+              {item.to === "/training" && dueCount > 0 && collapsed && (
+                <span className="absolute right-2 top-1.5 h-1.5 w-1.5 rounded-full bg-watch" />
+              )}
             </NavLink>
           );
         })}
       </nav>
 
-      <div className="border-t border-line p-3">
+      <div className={cn("border-t border-line", collapsed ? "p-2" : "p-3")}>
         <div
-          className="flex items-center gap-2.5 rounded-lg px-2 py-2"
-          title={`Sharing: ${user.share_status.replace("_", " ")}`}
+          className={cn(
+            "flex items-center rounded-lg",
+            collapsed ? "flex-col gap-1.5 py-1" : "gap-2.5 px-2 py-2",
+          )}
+          title={`${user.full_name} · ${titleCase(user.role)}`}
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[11px] font-semibold text-accent">
             {initials(user.full_name)}
           </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-xs font-medium text-ink">{user.full_name}</p>
-            <p className="truncate text-[11px] text-muted">{titleCase(user.role)}</p>
-          </div>
+          {!collapsed && (
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-medium text-ink">{user.full_name}</p>
+              <p className="truncate text-[11px] text-muted">{titleCase(user.role)}</p>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => {
@@ -92,6 +121,7 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               toast.success("Signed out.");
             }}
             aria-label="Sign out"
+            title="Sign out"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <LogOut size={14} aria-hidden />
@@ -106,10 +136,15 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
                 if (accepted) toast.success("AstraHealth installed.");
               });
             }}
-            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-surface-muted hover:text-ink"
+            aria-label="Install app"
+            title="Install app"
+            className={cn(
+              "mt-1 flex items-center gap-2 rounded-lg text-xs text-muted transition-colors hover:bg-surface-muted hover:text-ink",
+              collapsed ? "justify-center px-0 py-2" : "w-full px-3 py-2",
+            )}
           >
             <Download size={14} aria-hidden />
-            Install app
+            {!collapsed && "Install app"}
           </button>
         )}
 
@@ -117,10 +152,15 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           <NavLink
             to="/styleguide"
             onClick={onNavigate}
-            className="mt-1 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-surface-muted hover:text-ink"
+            aria-label="Design system"
+            title="Design system"
+            className={cn(
+              "mt-1 flex items-center gap-2 rounded-lg text-xs text-muted transition-colors hover:bg-surface-muted hover:text-ink",
+              collapsed ? "justify-center px-0 py-2" : "px-3 py-2",
+            )}
           >
             <Palette size={14} aria-hidden />
-            Design system
+            {!collapsed && "Design system"}
           </NavLink>
         )}
       </div>

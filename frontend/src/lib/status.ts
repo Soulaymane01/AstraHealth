@@ -16,6 +16,8 @@ export interface StatusMeta {
   hex: string;
   text: string;
   bg: string;
+  /** Stronger tint for whole status cards. */
+  surface: string;
   border: string;
   dot: string;
   icon: LucideIcon;
@@ -28,6 +30,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
     hex: "#036B53",
     text: "text-nominal",
     bg: "bg-nominal-soft",
+    surface: "bg-nominal-surface border-nominal/30",
     border: "border-nominal/20",
     dot: "bg-nominal",
     icon: CheckCircle2,
@@ -38,6 +41,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
     hex: "#92400E",
     text: "text-watch",
     bg: "bg-watch-soft",
+    surface: "bg-watch-surface border-watch/30",
     border: "border-watch/20",
     dot: "bg-watch",
     icon: Eye,
@@ -48,6 +52,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
     hex: "#A33B0C",
     text: "text-caution",
     bg: "bg-caution-soft",
+    surface: "bg-caution-surface border-caution/30",
     border: "border-caution/20",
     dot: "bg-caution",
     icon: AlertTriangle,
@@ -58,6 +63,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
     hex: "#B91C1C",
     text: "text-critical",
     bg: "bg-critical-soft",
+    surface: "bg-critical-surface border-critical/30",
     border: "border-critical/20",
     dot: "bg-critical",
     icon: AlertOctagon,
@@ -68,6 +74,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
     hex: "#475569",
     text: "text-unknown",
     bg: "bg-unknown-soft",
+    surface: "bg-unknown-surface border-unknown/30",
     border: "border-unknown/20",
     dot: "bg-unknown",
     icon: CircleHelp,

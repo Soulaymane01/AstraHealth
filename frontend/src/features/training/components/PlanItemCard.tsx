@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { BookOpen, Dumbbell, Plus, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/Button";
@@ -13,67 +13,71 @@ export function PlanItemCard({
   item: TrainingPlanItem;
   onLog: (item: TrainingPlanItem) => void;
 }) {
+  const Icon = item.kind === "countermeasure" ? Sparkles : Dumbbell;
+  const article = articleForDomain(item.domain);
+  const complete = item.remaining === 0;
+
   return (
     <div
       className={cn(
-        "flex min-w-0 flex-col rounded-xl border border-line bg-surface p-4",
-        item.priority === 1 && "border-watch/25",
+        "flex min-w-0 flex-col rounded-2xl border p-3.5",
+        complete
+          ? "border-nominal/25 bg-nominal-soft"
+          : item.priority === 1
+            ? "border-watch/30 bg-watch-soft"
+            : "border-line bg-surface",
       )}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-ink">{item.name}</p>
-          <p className="mt-0.5 text-[10px] text-muted">
+      <div className="flex items-center gap-2.5">
+        <span
+          className={cn(
+            "flex h-9 w-9 shrink-0 items-center justify-center rounded-full",
+            complete ? "bg-nominal text-white" : "bg-surface/80 text-accent",
+          )}
+        >
+          <Icon size={16} aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold text-ink">{item.name}</p>
+          <p className="text-[10px] text-muted">
             {item.domain} · {item.duration_min} min
           </p>
         </div>
-        {item.countermeasure_for.length > 0 && (
-          <span className="shrink-0 rounded-full bg-watch-soft px-2 py-0.5 text-[9px] font-medium text-watch">
-            Countermeasure
-          </span>
-        )}
+        <Button
+          variant={complete ? "ghost" : "secondary"}
+          size="sm"
+          className="h-7 w-7 shrink-0 p-0"
+          onClick={() => onLog(item)}
+          aria-label={`Log ${item.name}`}
+          title={`Log ${item.name}`}
+        >
+          <Plus size={13} aria-hidden />
+        </Button>
       </div>
 
-      {item.countermeasure_for.length > 0 && (
-        <p className="mt-2 rounded-lg bg-watch-soft/60 px-2.5 py-1.5 text-[10px] leading-relaxed text-watch">
-          For: {item.countermeasure_for.join(", ")}
-        </p>
-      )}
-
-      <div className="mt-3">
-        <div className="flex items-center justify-between gap-2 text-[10px] text-muted">
-          <span>
-            {item.completed} of {item.target_per_week} this week
-          </span>
-          <span className="tabular text-ink-2">{item.remaining} left</span>
-        </div>
-        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-line">
+      <div className="mt-auto flex items-center gap-2 pt-3">
+        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface/70">
           <div
             className={cn(
               "h-full rounded-full transition-[width] duration-500",
-              item.remaining === 0 ? "bg-nominal" : "bg-accent",
+              complete ? "bg-nominal" : "bg-accent",
             )}
-            style={{ width: `${item.adherence}%` }}
+            style={{ width: `${Math.max(4, item.adherence)}%` }}
           />
         </div>
-      </div>
-
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-2">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-[10px] text-muted">{item.description}</span>
-          {articleForDomain(item.domain) && (
-            <Link
-              to={`/library/${articleForDomain(item.domain)}`}
-              className="shrink-0 text-[10px] font-medium text-accent hover:text-accent-strong"
-            >
-              Learn
-            </Link>
-          )}
-        </div>
-        <Button variant="secondary" size="sm" className="shrink-0" onClick={() => onLog(item)}>
-          <Plus size={11} aria-hidden />
-          Log
-        </Button>
+        <span className="shrink-0 text-[10px] font-medium tabular text-ink-2">
+          {item.completed}/{item.target_per_week}
+        </span>
+        {article && (
+          <Link
+            to={`/library/${article}`}
+            aria-label={`Read about ${item.domain}`}
+            title="Read the evidence"
+            className="text-muted transition-colors hover:text-accent"
+          >
+            <BookOpen size={12} aria-hidden />
+          </Link>
+        )}
       </div>
     </div>
   );

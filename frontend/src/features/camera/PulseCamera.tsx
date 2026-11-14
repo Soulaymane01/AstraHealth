@@ -347,8 +347,7 @@ export function PulseCamera({
         <div>
           <p className="text-xs font-medium text-ink">Camera pulse</p>
           <p className="mt-0.5 text-[10px] leading-relaxed text-muted">
-            Forehead and cheeks, 25 seconds, processed on this device. The manual field above is
-            always available.
+            Forehead scan · 25 s · on-device.
           </p>
         </div>
         <Button variant="secondary" size="sm" className="shrink-0" onClick={start}>

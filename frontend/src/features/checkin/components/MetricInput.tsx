@@ -83,10 +83,6 @@ export function MetricInput({
         <p id={`${id}-error`} className="mt-1 text-[11px] leading-relaxed text-critical">
           {error}
         </p>
-      ) : field.hint ? (
-        <p id={`${id}-hint`} className="mt-1 text-[11px] leading-relaxed text-muted">
-          {field.hint}
-        </p>
       ) : null}
     </div>
   );

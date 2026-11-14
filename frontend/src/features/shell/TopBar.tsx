@@ -1,4 +1,4 @@
-import { Menu, Stethoscope } from "lucide-react";
+import { Menu, PanelLeftClose, PanelLeftOpen, Stethoscope } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 import { MetClock } from "@/components/ui/MetClock";
@@ -6,6 +6,7 @@ import { useAssistantStore } from "@/features/assistant/store";
 import { useOfflineStore } from "@/features/offline/store";
 import { useMission } from "@/features/mission/queries";
 import { NAV_ITEMS } from "@/features/shell/nav";
+import { useShellStore } from "@/features/shell/shell-store";
 import { useReadiness } from "@/features/readiness/queries";
 import { DEMO_MODE } from "@/lib/demo";
 import { asStatus, STATUS_META } from "@/lib/status";
@@ -16,6 +17,8 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const { data: mission, isLoading: missionLoading } = useMission();
   const { data: readiness } = useReadiness();
   const openAssistant = useAssistantStore((state) => state.openAssistant);
+  const sidebarCollapsed = useShellStore((state) => state.sidebarCollapsed);
+  const toggleSidebar = useShellStore((state) => state.toggleSidebar);
   const online = useOfflineStore((state) => state.online);
 
   const title = pathname.startsWith("/check-in/report")
@@ -46,6 +49,16 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-ink-2 transition-colors hover:bg-surface-muted hover:text-ink lg:hidden"
       >
         <Menu size={17} aria-hidden />
+      </button>
+
+      <button
+        type="button"
+        onClick={toggleSidebar}
+        aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-surface text-muted transition-colors hover:bg-surface-muted hover:text-ink lg:inline-flex"
+      >
+        {sidebarCollapsed ? <PanelLeftOpen size={15} aria-hidden /> : <PanelLeftClose size={15} aria-hidden />}
       </button>
 
       <div className="min-w-0 flex-1">

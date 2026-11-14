@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 export interface ArticleCardProps {
   title: string;
   domain: string;
-  summary: string;
   readMinutes: number;
   source: string;
   onClick?: () => void;
@@ -15,7 +14,6 @@ export interface ArticleCardProps {
 export function ArticleCard({
   title,
   domain,
-  summary,
   readMinutes,
   source,
   onClick,
@@ -39,8 +37,7 @@ export function ArticleCard({
         />
       </div>
       <h2 className="text-sm font-semibold leading-snug text-ink">{title}</h2>
-      <p className="line-clamp-2 text-[13px] leading-relaxed text-ink-2">{summary}</p>
-      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 pt-2 text-[10px] text-muted">
         <span className="inline-flex items-center gap-1">
           <Clock size={11} aria-hidden />
           {readMinutes} min read

@@ -1,15 +1,10 @@
-import {
-  CalendarDays,
-  CalendarPlus,
-  Flame,
-  ShieldCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarDays, CalendarPlus, Flame, ShieldCheck, type LucideIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/Button";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton } from "@/components/ui/Skeleton";
@@ -28,38 +23,44 @@ function profileLabel(profile: string): string {
   return profile.replace("_", " ");
 }
 
+const TONES = {
+  accent: "border-accent/20 bg-accent-soft",
+  nominal: "border-nominal/25 bg-nominal-soft",
+  watch: "border-watch/30 bg-watch-soft",
+};
+
 function StatPanel({
   label,
   value,
   detail,
   icon: Icon,
   progress,
-  className,
+  tone,
 }: {
   label: string;
   value: string;
   detail: string;
   icon: LucideIcon;
   progress?: number;
-  className?: string;
+  tone: keyof typeof TONES;
 }) {
   return (
-    <Panel className={cn("min-w-0", className)}>
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-medium text-muted">{label}</p>
-        <Icon size={13} className="text-accent" aria-hidden />
+    <div className={cn("min-w-0 rounded-2xl border p-3.5", TONES[tone])}>
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">{label}</p>
+        <Icon size={14} className="text-muted" aria-hidden />
       </div>
-      <p className="mt-1 text-2xl font-semibold tabular tracking-tight text-ink">{value}</p>
+      <p className="mt-1.5 text-2xl font-semibold tabular tracking-tight text-ink">{value}</p>
       {progress !== undefined && (
-        <div className="mt-2 h-1 overflow-hidden rounded-full bg-line">
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface/70">
           <div
             className="h-full rounded-full bg-accent transition-[width] duration-500"
             style={{ width: `${Math.max(0, Math.min(100, progress))}%` }}
           />
         </div>
       )}
-      <p className="mt-1 text-[10px] leading-relaxed text-muted">{detail}</p>
-    </Panel>
+      <p className="mt-1 truncate text-[10px] text-muted">{detail}</p>
+    </div>
   );
 }
 
@@ -130,49 +131,42 @@ export function TrainingPage() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-accent">Training</p>
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">Training</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
-            The next health action.
+            The next action.
           </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-2">
-            A weekly plan generated from your active alerts and mission profile. Log what you did;
-            the duty roster shows what is next.
-          </p>
+          <p className="mt-1 text-sm text-muted">Plan, roster, and a one-tap log.</p>
         </div>
         <span className="inline-flex items-center gap-1.5 self-start rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-muted sm:self-auto">
           <CalendarDays size={12} className="text-accent" aria-hidden />
-          {profileLabel(plan.profile)} plan
-          {!plan.profile_assigned && <span className="text-muted">· default</span>}
+          {profileLabel(plan.profile)}
         </span>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <StatPanel
-          label="Training adherence"
+          label="Adherence"
           value={`${plan.adherence}%`}
-          detail={`${plan.training_completed} of ${plan.training_target} prescribed sessions this week`}
+          detail={`${plan.training_completed}/${plan.training_target} sessions`}
           icon={ShieldCheck}
           progress={plan.adherence}
+          tone="accent"
         />
         <StatPanel
           label="Next due"
-          value={roster.next_due ? roster.next_due.time : "All clear"}
-          detail={roster.next_due ? roster.next_due.title : "Every scheduled item is complete."}
+          value={roster.next_due?.time ?? "Clear"}
+          detail={roster.next_due?.title ?? "All items complete"}
           icon={CalendarDays}
+          tone={roster.next_due ? "watch" : "nominal"}
         />
         <StatPanel
-          label="Training streak"
-          value={`${plan.streak?.current ?? 0} days`}
-          detail={
-            plan.streak
-              ? `Longest ${plan.streak.longest} · ${
-                  plan.streak.grace_available ? "grace available" : "grace used"
-                }`
-              : "Log a session to start a streak."
-          }
+          label="Streak"
+          value={`${plan.streak?.current ?? 0}d`}
+          detail={plan.streak ? `Longest ${plan.streak.longest} days` : "Start today"}
           icon={Flame}
+          tone="watch"
         />
       </div>
 
@@ -185,39 +179,28 @@ export function TrainingPage() {
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">
         <div className="min-w-0 space-y-4 lg:col-span-8">
           <Panel
-            title="Training plan"
+            title="Training"
             subtitle={
               plan.active_countermeasures > 0
-                ? `${plan.active_countermeasures} active countermeasure${
-                    plan.active_countermeasures === 1 ? "" : "s"
-                  } prioritized from alerts.`
-                : `${profileLabel(plan.profile)} · prescribed loading for this week.`
+                ? `${plan.active_countermeasures} alert-linked`
+                : "This week"
             }
           >
             {trainingItems.length === 0 ? (
-              <p className="rounded-lg bg-surface-muted px-3 py-3 text-[13px] text-muted">
-                No training items are mapped to this mission profile.
+              <p className="rounded-xl bg-surface-muted px-3 py-3 text-[12px] text-muted">
+                No training mapped to this profile.
               </p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {trainingItems.map((item) => (
                   <PlanItemCard key={item.code} item={item} onLog={onLogItem} />
                 ))}
               </div>
             )}
-            {!plan.profile_assigned && (
-              <p className="mt-3 text-[10px] leading-relaxed text-muted">
-                No mission is assigned to this account. The plan uses Mars transit defaults until a
-                crew admin links a mission.
-              </p>
-            )}
           </Panel>
 
-          <Panel
-            title="Daily countermeasures"
-            subtitle="Quick checks that protect recovery and the sleep window."
-          >
-            <div className="grid gap-3 sm:grid-cols-2">
+          <Panel title="Countermeasures" subtitle="Short recovery actions">
+            <div className="grid gap-2.5 sm:grid-cols-2">
               {countermeasureItems.map((item) => (
                 <PlanItemCard key={item.code} item={item} onLog={onLogItem} />
               ))}
@@ -227,46 +210,52 @@ export function TrainingPage() {
 
         <div className="min-w-0 space-y-4 lg:col-span-4">
           <Panel
-            title="Today's roster"
-            subtitle="Check-in, hydration, training, and sleep."
+            title="Today"
             actions={
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   exportRosterIcs(roster);
-                  toast.success("Duty roster downloaded. Open it to add the day to your calendar.");
+                  toast.success("Roster downloaded.");
                 }}
+                aria-label="Add roster to calendar"
+                title="Add to calendar"
               >
                 <CalendarPlus size={12} aria-hidden />
-                Calendar
               </Button>
             }
           >
             <DutyRoster roster={roster} onLog={openLog} onCheckin={() => navigate("/check-in")} />
           </Panel>
 
-          <Panel title="Recent sessions" subtitle="The last five logged sessions.">
+          <Panel title="Recent">
             {plan.recent_sessions.length === 0 ? (
-              <p className="rounded-lg bg-surface-muted px-3 py-2.5 text-[11px] text-muted">
-                No sessions logged yet. Start with the next due session.
+              <p className="rounded-xl bg-surface-muted px-3 py-2.5 text-[11px] text-muted">
+                No sessions yet.
               </p>
             ) : (
-              <ul className="divide-y divide-line">
-                {plan.recent_sessions.map((session) => (
-                  <li key={session.id} className="flex items-start justify-between gap-2 py-2">
-                    <div className="min-w-0">
-                      <p className="truncate text-xs font-medium text-ink">{session.item_name}</p>
-                      <p className="text-[10px] text-muted">
-                        {session.duration_min} min
-                        {session.rpe !== null ? ` · RPE ${session.rpe}` : ""} ·{" "}
-                        {formatRelativeTime(session.completed_at)}
-                      </p>
-                    </div>
-                    <span className="shrink-0 text-[10px] text-muted">{session.domain}</span>
-                  </li>
-                ))}
-              </ul>
+              <Disclosure
+                summary="Last five sessions"
+                meta={`${plan.recent_sessions.length}`}
+                summaryClassName="text-[11px] font-medium text-accent"
+              >
+                <ul className="divide-y divide-line">
+                  {plan.recent_sessions.map((session) => (
+                    <li key={session.id} className="flex items-center justify-between gap-2 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-[11px] font-medium text-ink">
+                          {session.item_name}
+                        </p>
+                        <p className="text-[9px] text-muted">
+                          {session.duration_min} min · {formatRelativeTime(session.completed_at)}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-[9px] text-muted">{session.domain}</span>
+                    </li>
+                  ))}
+                </ul>
+              </Disclosure>
             )}
           </Panel>
         </div>

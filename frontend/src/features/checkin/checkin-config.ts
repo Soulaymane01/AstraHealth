@@ -290,8 +290,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     key: "vitals",
     title: "Vitals",
     short: "Vitals",
-    description:
-      "Captured automatically from habitat and suit sensors. Review the values; override only if a sensor is unavailable.",
+    description: "Sensor-filled. Edit only if needed.",
     fields: VITALS,
     scales: [],
     article: {
@@ -305,8 +304,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     key: "sleep",
     title: "Sleep",
     short: "Sleep",
-    description:
-      "How long you slept, how much of the night was asleep, and how long it took to drop off.",
+    description: "Last night.",
     fields: SLEEP,
     scales: [],
     article: {
@@ -320,7 +318,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     key: "mood",
     title: "Mood & Stress",
     short: "Mood",
-    description: "A private read on mood, stress, and crew contact. There is no right answer.",
+    description: "Private. No right answer.",
     fields: MOOD_METRICS,
     scales: MOOD_SCALES,
     article: {
@@ -334,8 +332,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     key: "symptoms",
     title: "Symptoms",
     short: "Symptoms",
-    description:
-      "Tap where it hurts, then add severity and duration. Red flags escalate immediately.",
+    description: "Tap the body. Red flags escalate.",
     fields: [],
     scales: [],
     article: {
@@ -349,8 +346,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     key: "training",
     title: "Training & Nutrition",
     short: "Training",
-    description:
-      "Captured load is pre-filled. Add strength, hydration, and intake — the things a sensor cannot infer.",
+    description: "Load, fuel, hydration.",
     fields: TRAINING,
     scales: [],
     article: {

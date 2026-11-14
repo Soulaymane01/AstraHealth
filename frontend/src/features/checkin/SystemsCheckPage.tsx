@@ -18,8 +18,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/Button";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
-import { CreditChip } from "@/components/ui/RankBadge";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { PulseCamera } from "@/features/camera/PulseCamera";
@@ -28,7 +28,6 @@ import { useCaptureFeed } from "@/features/captures/queries";
 import { useAcknowledgeSurgeonUpdate } from "@/features/surgeon/queries";
 import {
   buildCheckinPayload,
-  countStepValues,
   emptyForm,
   hasDraftContent,
   hasStepData,
@@ -616,10 +615,7 @@ export function SystemsCheckPage() {
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
             A two-minute read on your body.
           </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-2">
-            Five steps. Skip what you cannot measure. The report explains the score, the factors
-            behind it, and the next action.
-          </p>
+          <p className="mt-1 text-sm text-muted">Five steps. Skip what you cannot measure.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted">
           <Save
@@ -654,8 +650,7 @@ export function SystemsCheckPage() {
         <CheckinProgress steps={CHECKIN_STEPS} current={step} skipped={skipped} />
       </Panel>
 
-      <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-8">
+      <div className="mx-auto mt-4 w-full max-w-5xl">
           <div ref={stepPanelRef} className="scroll-mt-24">
             <Panel
               title={activeStep.title}
@@ -677,19 +672,15 @@ export function SystemsCheckPage() {
                 <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-accent/20 bg-accent-soft/40 px-3 py-2 text-[11px] leading-relaxed text-ink-2">
                   <Radio size={13} className="shrink-0 text-accent" aria-hidden />
                   <span>
-                    {activeStep.key === "vitals"
-                      ? "Vitals captured automatically"
-                      : "Captured load is pre-filled"}{" "}
-                    from {captureSourceLabel(captureQuery.data.source)}.
+                    {activeStep.key === "vitals" ? "Sensor-filled" : "Load pre-filled"} ·{" "}
+                    {captureSourceLabel(captureQuery.data.source)}
                   </span>
                   <span className="rounded-full bg-surface px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
                     Simulated
                   </span>
                   <span className="text-muted">
                     {formatRelativeTime(captureQuery.data.captured_at)} ·{" "}
-                    {overrideCaptures
-                      ? "unlocked for editing"
-                      : "locked; use Override captures to edit"}
+                    {overrideCaptures ? "editable" : "locked"}
                   </span>
                 </div>
               )}
@@ -721,7 +712,7 @@ export function SystemsCheckPage() {
                           {group.section}
                         </p>
                       )}
-                      <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
                         {group.fields.map((field) => {
                           const value = form.metrics[field.code] ?? "";
                           const locked =
@@ -769,6 +760,26 @@ export function SystemsCheckPage() {
 
               <WhyWeAsk article={activeStep.article} />
             </motion.div>
+
+            <Disclosure
+              className="mt-4 border-t border-line pt-3"
+              summary="Add a note"
+              meta={form.notes.length > 0 ? `${form.notes.length}/2000` : "Optional"}
+              summaryClassName="text-[11px] font-medium text-accent"
+            >
+              <label htmlFor="checkin-notes" className="sr-only">
+                Notes
+              </label>
+              <textarea
+                id="checkin-notes"
+                value={form.notes}
+                onChange={(event) => updateNotes(event.target.value)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Anything the numbers do not capture?"
+                className="w-full resize-none rounded-xl border border-line bg-surface px-3 py-2 text-xs leading-relaxed text-ink placeholder:text-muted/70 focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
+              />
+            </Disclosure>
 
             {stepError && (
               <div className="mt-3 flex items-start gap-2 rounded-lg border border-watch/20 bg-watch-soft px-3 py-2 text-[11px] leading-relaxed text-watch">
@@ -826,100 +837,7 @@ export function SystemsCheckPage() {
               </div>
             </div>
             </Panel>
-          </div>
         </div>
-
-        <aside className="min-w-0 space-y-4 lg:col-span-4 lg:sticky lg:top-20 lg:self-start">
-          <Panel title="This check-in" subtitle="Saved on this device until you submit.">
-            <div className="divide-y divide-line">
-              {CHECKIN_STEPS.map((definition) => {
-                const stepSkipped = skipped.includes(definition.key);
-                const count = countStepValues(definition, form.metrics, form.symptoms);
-                return (
-                  <div
-                    key={definition.key}
-                    className="flex items-center justify-between gap-2 py-1.5"
-                  >
-                    <span
-                      className={cn(
-                        "text-xs",
-                        stepSkipped ? "text-muted line-through" : "text-ink-2",
-                      )}
-                    >
-                      {definition.title}
-                    </span>
-                    <span
-                      className={cn(
-                        "shrink-0 text-[10px]",
-                        stepSkipped ? "text-muted" : count > 0 ? "text-ink" : "text-muted",
-                      )}
-                    >
-                      {stepSkipped
-                        ? "Skipped"
-                        : definition.key === "symptoms"
-                          ? count > 0
-                            ? `${count} logged`
-                            : "None"
-                          : count > 0
-                            ? `${count} reading${count === 1 ? "" : "s"}`
-                            : "Not entered"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
-              <span className="text-xs text-ink-2">Mission points on completion</span>
-              <CreditChip amount={40} />
-            </div>
-
-            <div className="mt-4 border-t border-line pt-3">
-              <label htmlFor="checkin-notes" className="text-xs font-medium text-ink-2">
-                Notes
-              </label>
-              <textarea
-                id="checkin-notes"
-                value={form.notes}
-                onChange={(event) => updateNotes(event.target.value)}
-                rows={3}
-                maxLength={2000}
-                placeholder="Anything the numbers do not capture?"
-                className="mt-1.5 w-full resize-none rounded-lg border border-line bg-surface px-3 py-2 text-xs leading-relaxed text-ink placeholder:text-muted/70 focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
-              />
-              <div className="mt-1 flex items-start justify-between gap-2 text-[10px] text-muted">
-                <span>Skipped steps are recorded automatically.</span>
-                <span className="tabular">{form.notes.length}/2000</span>
-              </div>
-            </div>
-          </Panel>
-
-          <Panel title="What happens next">
-            <ol className="space-y-2.5 text-[11px] leading-relaxed text-ink-2">
-              <li className="flex gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] font-medium text-accent">
-                  1
-                </span>
-                <span>Readiness recomputes against your 21-day baseline.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] font-medium text-accent">
-                  2
-                </span>
-                <span>New alerts appear on the Flight Deck and in the mission tape.</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[9px] font-medium text-accent">
-                  3
-                </span>
-                <span>You get a Systems Report with the top factors and next action.</span>
-              </li>
-            </ol>
-            <p className="mt-3 rounded-lg bg-surface-muted px-3 py-2 text-[10px] leading-relaxed text-muted">
-              Every submission is one transaction. If the readiness engine fails, nothing is saved.
-            </p>
-          </Panel>
-        </aside>
       </div>
     </div>
   );

@@ -17,14 +17,19 @@
 
   --color-nominal: #036b53;
   --color-nominal-soft: #d1fae5;
+  --color-nominal-surface: #bbf7d0;
   --color-watch: #92400e;
   --color-watch-soft: #fef3c7;
+  --color-watch-surface: #fde68a;
   --color-caution: #a33b0c;
   --color-caution-soft: #ffedd5;
-  --color-critical: #b91c1c;
+  --color-caution-surface: #fed7aa;
+  --color-critical: #991b1b;
   --color-critical-soft: #fee2e2;
+  --color-critical-surface: #fecaca;
   --color-unknown: #475569;
   --color-unknown-soft: #e2e8f0;
+  --color-unknown-surface: #cbd5e1;
 
   --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;

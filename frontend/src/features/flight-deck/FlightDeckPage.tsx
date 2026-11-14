@@ -2,17 +2,24 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
+  CloudSun,
   Dumbbell,
+  HeartPulse,
   Orbit,
+  Radio,
   RefreshCw,
+  ScrollText,
+  Stethoscope,
   Sun,
   WifiOff,
+  type LucideIcon,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { AnatomyMap } from "@/components/ui/AnatomyMap";
+import { DetailSheet } from "@/components/ui/DetailSheet";
 import { Button } from "@/components/ui/Button";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { DomainRail } from "@/components/ui/DomainRail";
@@ -24,8 +31,9 @@ import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { CaptureStrip } from "@/features/captures/CaptureStrip";
+import { useCaptureFeed } from "@/features/captures/queries";
 import { SurgeonUpdatesPanel } from "@/features/surgeon/SurgeonUpdatesPanel";
-import { readClinical } from "@/features/offline/clinical-cache";
+import { useSurgeonUpdates } from "@/features/surgeon/queries";
 import { useOfflineStore } from "@/features/offline/store";
 import {
   useMission,
@@ -36,7 +44,7 @@ import {
 } from "@/features/mission/queries";
 import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/readiness/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
-import type { Alert, DomainDetail, Readiness, SpaceWeatherEvent } from "@/lib/api/types";
+import type { Alert, DomainDetail, Readiness } from "@/lib/api/types";
 import { asStatus, statusFromScore, STATUS_META, type Status } from "@/lib/status";
 import {
   cn,
@@ -69,57 +77,6 @@ function weatherStatus(severity: string): Status {
   return "watch";
 }
 
-function ContextStrip({
-  event,
-  active,
-  source,
-}: {
-  event: SpaceWeatherEvent;
-  active: boolean;
-  source?: string;
-}) {
-  const meta = STATUS_META[weatherStatus(event.severity)];
-  const live = source === "live";
-  const time = active
-    ? "Active now"
-    : event.end_at
-      ? `Ended ${formatRelativeTime(event.end_at)}`
-      : formatRelativeTime(event.start_at);
-
-  return (
-    <Disclosure
-      className="mt-3 rounded-xl border border-line bg-surface px-4 py-2.5"
-      summary={
-        <span className="flex flex-wrap items-center gap-2 text-[11px]">
-          <Sun size={13} className={cn("shrink-0", meta.text)} aria-hidden />
-          <span className={cn("font-medium", meta.text)}>
-            Space weather · {titleCase(event.severity)}
-          </span>
-          <span className="text-muted">{time}</span>
-          <span
-            className={cn(
-              "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
-              live ? "bg-accent-soft text-accent" : "bg-surface-muted text-muted",
-            )}
-          >
-            {live ? "Live NASA DONKI" : "Demo fixture"}
-          </span>
-        </span>
-      }
-      meta="Details"
-      bodyClassName="rounded-lg bg-surface-muted/60 px-3 py-2"
-    >
-      <p className="text-sm font-medium text-ink">{event.kind}</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">{event.summary}</p>
-      <p className="mt-1 text-[10px] text-muted">
-        {live
-          ? "Fetched from NASA DONKI."
-          : "Seeded demo event; set NASA_API_KEY for live DONKI context."}
-      </p>
-    </Disclosure>
-  );
-}
-
 type ReadinessFactor = Readiness["factors"][number];
 
 function factorDirection(factor: ReadinessFactor): string {
@@ -129,36 +86,63 @@ function factorDirection(factor: ReadinessFactor): string {
   return factor.z < 0 ? "Below" : "Above";
 }
 
-function KeyFactorTile({
-  factor,
-  onClick,
-}: {
-  factor: ReadinessFactor;
-  onClick: () => void;
-}) {
+function FactorStat({ factor }: { factor: ReadinessFactor }) {
   const negative = factor.contribution < 0;
+  const meta = STATUS_META[negative ? "caution" : "nominal"];
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="min-w-0 rounded-xl bg-surface-muted/65 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted"
-    >
-      <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted">
+    <div className="min-w-0 rounded-xl border border-line/70 bg-surface px-3 py-2.5">
+      <p className="truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
         {factor.label}
       </p>
       <p className="mt-1 text-xl font-semibold tabular tracking-tight text-ink">
         {displayMetricValue(factor.value)}
         {factor.unit && <span className="ml-1 text-[10px] font-normal text-muted">{factor.unit}</span>}
       </p>
-      <p
-        className={cn(
-          "mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium",
-          negative ? "text-caution" : "text-nominal",
-        )}
-      >
-        <span className={cn("h-1.5 w-1.5 rounded-full", negative ? "bg-caution" : "bg-nominal")} />
+      <p className={cn("mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium", meta.text)}>
+        <span className={cn("h-1.5 w-1.5 rounded-full", meta.dot)} />
         {factorDirection(factor)}
       </p>
+    </div>
+  );
+}
+
+function QuickTile({
+  icon: Icon,
+  label,
+  meta,
+  status = "unknown",
+  accent = false,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  meta: string;
+  status?: Status;
+  accent?: boolean;
+  onClick: () => void;
+}) {
+  const metaInfo = STATUS_META[status];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "group relative flex min-h-[104px] flex-col justify-between overflow-hidden rounded-2xl border p-3 text-left transition-transform duration-150 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30",
+        accent ? "border-accent/20 bg-accent-soft" : metaInfo.surface,
+      )}
+    >
+      <span
+        className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-full",
+          accent ? "bg-surface/80 text-accent" : "bg-surface/70 " + metaInfo.text,
+        )}
+      >
+        <Icon size={16} aria-hidden />
+      </span>
+      <span className="mt-2 block text-[11px] font-semibold leading-tight text-ink">{label}</span>
+      <span className={cn("mt-0.5 block truncate text-[9px] font-medium", accent ? "text-accent" : metaInfo.text)}>
+        {meta}
+      </span>
     </button>
   );
 }
@@ -168,17 +152,19 @@ function CompactAlert({
   onAcknowledge,
   onViewGuidance,
   onOpenCountermeasure,
+  defaultOpen = false,
 }: {
   alert: Alert;
   onAcknowledge: () => void;
   onViewGuidance?: () => void;
   onOpenCountermeasure?: () => void;
+  defaultOpen?: boolean;
 }) {
   const status = asStatus(alert.severity);
   return (
     <div data-testid="alert-row" className="rounded-xl border border-line bg-surface px-3 py-2.5">
       <Disclosure
-        defaultOpen={alert.severity === "critical"}
+        defaultOpen={defaultOpen || alert.severity === "critical"}
         summary={
           <span className="flex min-w-0 flex-wrap items-center gap-2">
             <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", STATUS_META[status].dot)} />
@@ -234,36 +220,6 @@ function CompactAlert({
           </Button>
         </div>
       </Disclosure>
-    </div>
-  );
-}
-
-function CriticalTriageBanner({
-  count,
-  title,
-  onOpen,
-}: {
-  count: number;
-  title: string;
-  onOpen: () => void;
-}) {
-  return (
-    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-critical/30 bg-critical-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-critical" aria-hidden />
-        <div>
-          <p className="text-sm font-semibold text-critical">
-            {count} critical alert{count === 1 ? "" : "s"} active
-          </p>
-          <p className="mt-0.5 text-xs leading-relaxed text-critical">
-            {title}. Follow the emergency protocol now.
-          </p>
-        </div>
-      </div>
-      <Button variant="danger" size="sm" className="shrink-0" onClick={onOpen}>
-        Open triage protocol
-        <ArrowRight size={13} aria-hidden />
-      </Button>
     </div>
   );
 }
@@ -384,6 +340,9 @@ export function FlightDeckPage() {
   const navigate = useNavigate();
   const [selectedDomain, setSelectedDomain] = useState("cardiovascular");
   const [tapeDays, setTapeDays] = useState<7 | 30>(30);
+  const [detail, setDetail] = useState<
+    "readiness" | "body" | "alerts" | "vitals" | "surgeon" | "tape" | "weather" | null
+  >(null);
 
   const missionQuery = useMission();
   const readinessQuery = useReadiness();
@@ -394,9 +353,10 @@ export function FlightDeckPage() {
   const domainQuery = useDomainDetail(selectedDomain);
   const acknowledge = useAcknowledgeAlert();
   const updateProfile = useUpdateMissionProfile();
+  const captureQuery = useCaptureFeed();
+  const surgeonUpdatesQuery = useSurgeonUpdates();
   const hasCachedDashboard =
     missionQuery.data !== undefined && readinessQuery.data !== undefined;
-  const cachedReadiness = readClinical<Readiness | null>(user?.id, "readiness");
 
   if (missionQuery.isLoading || readinessQuery.isLoading || alertsQuery.isLoading) {
     return (
@@ -579,50 +539,54 @@ export function FlightDeckPage() {
     },
   };
 
+  const capture = captureQuery.data;
+  const surgeonUpdates = surgeonUpdatesQuery.data;
+  const openInstructions = surgeonUpdates?.instructions.filter(
+    (instruction) => instruction.status === "open",
+  ) ?? [];
+  const alertStatus: Status = alerts.some((alert) => alert.severity === "critical")
+    ? "critical"
+    : alerts.some((alert) => alert.severity === "caution")
+      ? "caution"
+      : alerts.length > 0
+        ? "watch"
+        : "nominal";
+  const weather = context?.latest_event;
+  const nextAction =
+    alertsError
+      ? "Alerts are unavailable. Check the connection."
+      : (alerts[0]?.recommended_action ??
+        "Continue your current countermeasure plan.");
+  const healthSummary =
+    status === "critical"
+      ? "Needs attention now"
+      : status === "caution"
+        ? "A few systems need attention"
+        : status === "watch"
+          ? "Mostly steady"
+          : "All systems steady";
+
   const header = (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-sm text-muted">
+        <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
           {greeting()}, {name}
         </p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
-          Mission health overview
+        <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
+          Mission health
         </h1>
-        <p className="mt-1.5 truncate text-sm text-ink-2">
-          {status === "nominal" ? "Your systems are steady." : "A few systems need attention."}
-        </p>
-        <p
-          className="truncate text-sm text-ink-2"
-          title={`${mission.crew_name} · Day ${day} · ${profileLabel(mission.profile)}`}
-        >
+        <p className="mt-1 text-sm text-muted">
           {mission.crew_name} · Day {day} · {profileLabel(mission.profile)}
         </p>
-        {user?.role === "commander" && (
-          <label className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted">
-            <span>Environment</span>
-            <select
-              aria-label="Mission environment profile"
-              value={mission.profile}
-              disabled={updateProfile.isPending}
-              onChange={(event) => changeProfile(event.target.value as MissionProfile)}
-              className="rounded-md border border-line bg-surface px-2 py-1 text-[11px] text-ink disabled:opacity-60"
-            >
-              <option value="mars_transit">Mars transit</option>
-              <option value="lunar_surface">Lunar surface</option>
-              <option value="station">Space station</option>
-            </select>
-            {updateProfile.isPending && <span aria-live="polite">Updating…</span>}
-          </label>
-        )}
       </div>
-
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="primary" onClick={() => navigate("/check-in")}>
-          Start systems check
+          Systems check
           <ArrowRight size={14} aria-hidden />
         </Button>
-        <Button variant="secondary" onClick={() => navigate("/telemetry")}>
-          View telemetry
+        <Button variant="secondary" onClick={() => setDetail("vitals")}>
+          <Radio size={13} aria-hidden />
+          Capture
         </Button>
       </div>
     </div>
@@ -632,33 +596,16 @@ export function FlightDeckPage() {
     return (
       <div>
         {header}
-        {context?.latest_event && (
-          <ContextStrip
-            event={context.latest_event}
-            active={context.active}
-            source={context.source}
-          />
-        )}
-        {criticalAlerts.length > 0 && (
-          <CriticalTriageBanner
-            count={criticalAlerts.length}
-            title={criticalAlerts[0].title}
-            onOpen={() => navigate("/triage")}
-          />
-        )}
-        <CaptureStrip />
-        <Panel
-          className="mt-6"
-          title="Readiness"
-          subtitle="Your first Systems Check creates a snapshot."
-        >
-          <p className="text-sm leading-relaxed text-ink-2">
-            No readiness snapshot exists for this account yet.
-          </p>
+        <div className="mt-5 rounded-3xl border border-line bg-surface p-6 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft text-accent">
+            <HeartPulse size={24} aria-hidden />
+          </span>
+          <h2 className="mt-3 text-xl font-semibold text-ink">No readiness score yet</h2>
+          <p className="mt-1 text-sm text-muted">Complete a Systems Check to establish your baseline.</p>
           <Button variant="primary" className="mt-4" onClick={() => navigate("/check-in")}>
-            Start systems check
+            Start Systems Check
           </Button>
-        </Panel>
+        </div>
       </div>
     );
   }
@@ -675,164 +622,305 @@ export function FlightDeckPage() {
     <div>
       {header}
 
-      {context?.latest_event && (
-        <ContextStrip
-          event={context.latest_event}
-          active={context.active}
-          source={context.source}
-        />
-      )}
-
       {criticalAlerts.length > 0 && (
-        <CriticalTriageBanner
-          count={criticalAlerts.length}
-          title={criticalAlerts[0].title}
-          onOpen={() => navigate("/triage")}
-        />
+        <button
+          type="button"
+          onClick={() => setDetail("alerts")}
+          className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-critical px-4 py-3 text-left text-white shadow-[0_10px_30px_rgba(185,28,28,0.22)] transition-transform hover:-translate-y-0.5"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
+            <AlertTriangle size={18} aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.16em] text-white/75">
+              Critical · {criticalAlerts.length} alert{criticalAlerts.length === 1 ? "" : "s"}
+            </span>
+            <span className="block truncate text-sm font-semibold">
+              {criticalAlerts[0].title}
+            </span>
+          </span>
+          <ArrowRight size={17} className="shrink-0" aria-hidden />
+        </button>
       )}
 
-      <CaptureStrip />
-      <SurgeonUpdatesPanel />
+      <div className="mt-4 grid gap-4 lg:grid-cols-12">
+        <button
+          type="button"
+          onClick={() => setDetail("readiness")}
+          className="group relative min-w-0 overflow-hidden rounded-3xl border border-line bg-surface p-4 text-left shadow-[0_1px_2px_rgba(10,42,92,0.04),0_16px_40px_rgba(10,42,92,0.06)] transition-transform duration-150 hover:-translate-y-0.5 lg:col-span-8 lg:p-6"
+        >
+          <span
+            className={cn(
+              "absolute inset-x-0 top-0 h-1.5",
+              status === "critical"
+                ? "bg-critical"
+                : status === "caution"
+                  ? "bg-caution"
+                  : status === "watch"
+                    ? "bg-watch"
+                    : "bg-nominal",
+            )}
+          />
+          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+            <ReadinessRing
+              score={readiness.score}
+              status={status}
+              size={210}
+              strokeWidth={10}
+              label="Score"
+              className="shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-2xl font-semibold tracking-[-0.02em] text-ink">Readiness</h2>
+                <StatusPill status={status} />
+              </div>
+              <p className="mt-1 text-sm text-muted">{healthSummary}</p>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-12">
-        <div className="min-w-0 lg:col-span-7">
-          <Panel
-            title="Readiness"
-            subtitle={
-              !online && cachedReadiness
-                ? `Composite score across six domains · last synced ${formatRelativeTime(
-                    new Date(cachedReadiness.savedAt).toISOString(),
-                  )}`
-                : "Composite score across six domains."
-            }
-            actions={<StatusPill status={status} />}
-          >
-            <div className="flex flex-col gap-5 sm:flex-row sm:items-center lg:flex-col xl:flex-row">
-              <ReadinessRing
-                score={readiness.score}
-                status={status}
-                size={176}
-                factors={readiness.factors.length}
-                className="shrink-0 self-center"
-              />
-
-              <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-3">
+              <div className="mt-4 hidden gap-2 sm:grid sm:grid-cols-3">
                 {displayFactors.map((factor) => (
-                  <KeyFactorTile
-                    key={factor.metric}
-                    factor={factor}
-                    onClick={() => navigate(`/telemetry/metric/${factor.metric}`)}
+                  <FactorStat key={factor.metric} factor={factor} />
+                ))}
+              </div>
+
+              <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-accent">
+                Open full breakdown
+                <ArrowRight
+                  size={13}
+                  className="transition-transform group-hover:translate-x-0.5"
+                  aria-hidden
+                />
+              </span>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-start gap-2 rounded-xl bg-surface-muted/70 px-3 py-2">
+            <Sun size={13} className="mt-0.5 shrink-0 text-accent" aria-hidden />
+            <p className="line-clamp-2 text-[11px] leading-relaxed text-ink-2">
+              <span className="font-semibold text-ink">Next: </span>
+              {nextAction}
+            </p>
+          </div>
+        </button>
+
+        <div className="grid min-w-0 grid-cols-2 gap-3 lg:col-span-4">
+          <QuickTile
+            icon={HeartPulse}
+            label="Body systems"
+            meta={STATUS_META[status].label}
+            status={domainStatus("cardiovascular")}
+            onClick={() => setDetail("body")}
+          />
+          <QuickTile
+            icon={AlertTriangle}
+            label="Needs attention"
+            meta={alertsError ? "Unavailable" : `${alerts.length} active`}
+            status={alertStatus}
+            onClick={() => setDetail("alerts")}
+          />
+          <QuickTile
+            icon={Radio}
+            label="Vitals"
+            meta={capture ? `${capture.metrics.length} readings` : "No capture"}
+            status={capture ? "nominal" : "unknown"}
+            onClick={() => setDetail("vitals")}
+          />
+          <QuickTile
+            icon={Stethoscope}
+            label="Flight Surgeon"
+            meta={
+              openInstructions.length > 0
+                ? `${openInstructions.length} request${openInstructions.length === 1 ? "" : "s"}`
+                : "No open requests"
+            }
+            status={openInstructions.length > 0 ? "watch" : "nominal"}
+            onClick={() => setDetail("surgeon")}
+          />
+          <QuickTile
+            icon={ScrollText}
+            label="Mission tape"
+            meta={`${tapeDays} days`}
+            accent
+            onClick={() => setDetail("tape")}
+          />
+          <QuickTile
+            icon={CloudSun}
+            label="Space weather"
+            meta={
+              weather
+                ? `${titleCase(weather.severity)} · ${context?.active ? "active" : "past"}`
+                : "No event"
+            }
+            status={weather ? weatherStatus(weather.severity) : "unknown"}
+            onClick={() => setDetail("weather")}
+          />
+        </div>
+      </div>
+
+      <DetailSheet
+        open={detail === "readiness"}
+        onClose={() => setDetail(null)}
+        title="Readiness breakdown"
+        subtitle="Six domains, one composite score."
+        icon={HeartPulse}
+        size="lg"
+      >
+        <div className="flex flex-col items-center gap-5 sm:flex-row">
+          <ReadinessRing
+            score={readiness.score}
+            status={status}
+            size={190}
+            label="Score"
+            className="shrink-0"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm leading-relaxed text-ink-2">{healthSummary}</p>
+            <div className="mt-3 rounded-xl bg-surface-muted px-3 py-2.5">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-muted">
+                Next action
+              </p>
+              <p className="mt-1 text-[12px] leading-relaxed text-ink">{nextAction}</p>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button variant="primary" size="sm" onClick={() => navigate("/check-in")}>
+                Log check-in
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => navigate("/triage")}>
+                Triage
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-ink">Contributing factors</h3>
+            <span className="text-[10px] text-muted">{readiness.factors.length}</span>
+          </div>
+          <div className="mt-2 divide-y divide-line">
+            {readiness.factors.map((factor) => (
+              <div key={factor.metric} className="flex items-center justify-between gap-3 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-[12px] text-ink">{factor.label}</p>
+                  <p className="text-[10px] text-muted">z {factor.z}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-[12px] tabular text-ink">
+                    {displayMetricValue(factor.value)}
+                    {factor.unit && <span className="ml-1 text-[10px] text-muted">{factor.unit}</span>}
+                  </p>
+                  <p
+                    className={cn(
+                      "w-9 text-right text-[10px] tabular",
+                      factor.contribution < 0 ? "text-caution" : "text-nominal",
+                    )}
+                  >
+                    {factor.contribution > 0 ? "+" : ""}
+                    {factor.contribution}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {user?.role === "commander" && (
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-line pt-4">
+            <span className="text-[11px] text-muted">Environment</span>
+            <select
+              aria-label="Mission environment profile"
+              value={mission.profile}
+              disabled={updateProfile.isPending}
+              onChange={(event) => changeProfile(event.target.value as MissionProfile)}
+              className="rounded-lg border border-line bg-surface px-2.5 py-1.5 text-[11px] text-ink disabled:opacity-60"
+            >
+              <option value="mars_transit">Mars transit</option>
+              <option value="lunar_surface">Lunar surface</option>
+              <option value="station">Space station</option>
+            </select>
+            {updateProfile.isPending && <span className="text-[10px] text-muted">Updating…</span>}
+          </div>
+        )}
+      </DetailSheet>
+
+      <DetailSheet
+        open={detail === "body"}
+        onClose={() => setDetail(null)}
+        title="Body systems"
+        subtitle="Skin, muscle, and bone. Tap a region."
+        icon={HeartPulse}
+        size="xl"
+      >
+        <div className="grid gap-4 lg:grid-cols-7">
+          <div className="min-w-0 lg:col-span-4">
+            <AnatomyMap
+              regions={anatomyRegions}
+              selectedDomain={selectedDomain}
+              onSelectDomain={selectDomain}
+            />
+          </div>
+          <div className="min-w-0 space-y-3 lg:col-span-3">
+            <div className="rounded-2xl border border-line bg-surface p-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-ink">Systems</h3>
+                <span className="text-[10px] text-muted">6 domains</span>
+              </div>
+              <div className="mt-1 space-y-0.5">
+                {DOMAIN_ROWS.map((domain) => (
+                  <DomainRail
+                    key={domain.key}
+                    name={domain.name}
+                    score={domainScores[domain.key] ?? 0}
+                    status={domainStatus(domain.key)}
+                    delta={domainDelta(domain.key)}
+                    active={selectedDomain === domain.key}
+                    onClick={() => selectDomain(domain.key)}
                   />
                 ))}
               </div>
             </div>
-
-            <Disclosure
-              className="mt-4 border-t border-line pt-3"
-              summary="Why this score?"
-              meta={`${readiness.factors.length} factors`}
-              summaryClassName="text-[11px] font-medium text-accent"
-            >
-              <div className="divide-y divide-line">
-                {readiness.factors.map((factor) => (
-                  <div
-                    key={factor.metric}
-                    className="flex items-center justify-between gap-3 py-2"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-[11px] text-ink">{factor.label}</p>
-                      <p className="text-[10px] text-muted">z {factor.z}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <p className="text-[11px] tabular text-ink">
-                        {displayMetricValue(factor.value)}
-                        {factor.unit && (
-                          <span className="ml-1 text-[10px] text-muted">{factor.unit}</span>
-                        )}
-                      </p>
-                      <p
-                        className={cn(
-                          "w-9 text-right text-[10px] tabular",
-                          factor.contribution < 0 ? "text-caution" : "text-nominal",
-                        )}
-                      >
-                        {factor.contribution > 0 ? "+" : ""}
-                        {factor.contribution}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-2 text-[10px] leading-relaxed text-muted">
-                A negative contribution lowers the composite. A fired rule can override the status
-                independently of the score.
-              </p>
-            </Disclosure>
-
-            <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
-                  Next action
-                </p>
-                <p className="mt-0.5 text-[13px] leading-relaxed text-ink">
-                  {alertsError
-                    ? "Alerts could not be loaded. Check the connection before relying on this view."
-                    : (alerts[0]?.recommended_action ??
-                      "Continue your current countermeasure plan.")}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-wrap gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => navigate("/check-in")}
-                >
-                  Log a check-in
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => navigate("/triage")}>
-                  Triage
-                </Button>
-                {alertsError && (
-                  <Button variant="ghost" size="sm" onClick={() => void alertsQuery.refetch()}>
-                    Retry alerts
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Panel>
-        </div>
-
-        <div className="min-w-0 space-y-2 lg:col-span-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-ink">
-              Needs attention
-            </h2>
-            <span className="text-[11px] text-muted">
-              {alertsError ? "Unavailable" : `${alerts.length} active`}
-            </span>
+            <StatusLegend />
+            <DomainDetailPanel
+              detail={domainQuery.data}
+              loading={domainQuery.isLoading}
+              error={domainQuery.isError && !(!online && domainQuery.data !== undefined)}
+              onRetry={() => void domainQuery.refetch()}
+              onViewTrend={() => navigate(`/telemetry/domain/${selectedDomain}`)}
+            />
           </div>
+        </div>
+      </DetailSheet>
 
-          {alertsError ? (
-            <Panel>
-              <p className="text-sm font-medium text-ink">Alerts are unavailable.</p>
-              <p className="mt-1 text-[11px] leading-relaxed text-ink-2">
-                This is not an all-clear. Check the connection and retry before relying on the
-                dashboard.
-              </p>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="mt-3"
-                onClick={() => void alertsQuery.refetch()}
-              >
-                Retry alerts
-              </Button>
-            </Panel>
-          ) : alerts.length > 0 ? (
-            alerts.map((alert) => (
+      <DetailSheet
+        open={detail === "alerts"}
+        onClose={() => setDetail(null)}
+        title="Needs attention"
+        subtitle={alertsError ? "Alerts are unavailable" : `${alerts.length} active`}
+        icon={AlertTriangle}
+        size="lg"
+      >
+        {alertsError ? (
+          <div className="rounded-2xl border border-watch/30 bg-watch-soft p-4">
+            <p className="text-sm font-semibold text-watch">Alerts could not be loaded.</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-watch">
+              This is not an all-clear. Check the connection before relying on the dashboard.
+            </p>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="mt-3"
+              onClick={() => void alertsQuery.refetch()}
+            >
+              Retry alerts
+            </Button>
+          </div>
+        ) : alerts.length > 0 ? (
+          <div className="space-y-2">
+            {alerts.map((alert) => (
               <CompactAlert
                 key={alert.id}
                 alert={alert}
+                defaultOpen
                 onAcknowledge={() => acknowledgeAlert(alert.id)}
                 onViewGuidance={
                   alert.knowledge_slug
@@ -845,91 +933,87 @@ export function FlightDeckPage() {
                     : undefined
                 }
               />
-            ))
-          ) : (
-            <Panel>
-              <p className="text-sm leading-relaxed text-ink-2">
-                No active alerts. Keep the current routine.
-              </p>
-            </Panel>
-          )}
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <Panel
-          className="lg:col-span-7"
-          title="Body systems"
-          subtitle="Click a region to inspect its domain. Use the Systems list for keyboard selection."
-        >
-          <AnatomyMap
-            regions={anatomyRegions}
-            selectedDomain={selectedDomain}
-            onSelectDomain={selectDomain}
-          />
-          <Disclosure
-            className="mt-3 border-t border-line pt-3"
-            summary={`${anatomyRegions[selectedDomain as keyof typeof anatomyRegions]?.label ?? "Selected region"} · ${
-              STATUS_META[domainStatus(selectedDomain)].label
-            }`}
-            meta="Inspect"
-            summaryClassName="text-[11px] font-medium text-ink"
-          >
-            <StatusLegend className="mb-3" />
-            <DomainDetailPanel
-              detail={domainQuery.data}
-              loading={domainQuery.isLoading}
-              error={domainQuery.isError && !(!online && domainQuery.data !== undefined)}
-              onRetry={() => void domainQuery.refetch()}
-              onViewTrend={() => navigate(`/telemetry/domain/${selectedDomain}`)}
-            />
-          </Disclosure>
-        </Panel>
-
-        <div className="min-w-0 lg:col-span-5">
-          <Panel title="Systems" subtitle="Scores relative to your personal baseline.">
-            <div className="space-y-0.5">
-              {DOMAIN_ROWS.map((domain) => (
-                <DomainRail
-                  key={domain.key}
-                  name={domain.name}
-                  score={domainScores[domain.key] ?? 0}
-                  status={domainStatus(domain.key)}
-                  delta={domainDelta(domain.key)}
-                  active={selectedDomain === domain.key}
-                  onClick={() => selectDomain(domain.key)}
-                />
-              ))}
-            </div>
-            <p className="mt-3 border-t border-line pt-3 text-[10px] leading-relaxed text-muted">
-              Sleep and circadian rhythm are tracked as a schedule, not a body region.
-            </p>
-          </Panel>
-        </div>
-      </div>
-
-      <Panel
-        className="mt-4"
-        title="Mission tape"
-        subtitle={`Last ${tapeDays} days`}
-        actions={
-          <div className="flex items-center gap-1 rounded-full border border-line bg-surface p-0.5">
-            {([7, 30] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setTapeDays(value)}
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
-                  tapeDays === value ? "bg-accent-soft text-accent" : "text-muted hover:text-ink",
-                )}
-              >
-                {value} days
-              </button>
             ))}
           </div>
-        }
+        ) : (
+          <div className="rounded-2xl border border-nominal/30 bg-nominal-soft p-5 text-center">
+            <Check size={22} className="mx-auto text-nominal" aria-hidden />
+            <p className="mt-2 text-sm font-semibold text-ink">No active alerts</p>
+            <p className="text-[11px] text-muted">Keep the current routine.</p>
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Button variant="secondary" size="sm" onClick={() => navigate("/triage")}>
+            Open triage protocol
+          </Button>
+        </div>
+      </DetailSheet>
+
+      <DetailSheet
+        open={detail === "vitals"}
+        onClose={() => setDetail(null)}
+        title="Sensor capture"
+        subtitle="Automatic habitat and suit readings."
+        icon={Radio}
+        size="lg"
       >
+        <CaptureStrip className="mt-0" />
+        {capture && (
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {capture.metrics.map((metric) => (
+              <div key={metric.metric_code} className="rounded-xl bg-surface-muted px-3 py-2.5">
+                <p className="truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
+                  {metric.name}
+                </p>
+                <p className="mt-1 text-lg font-semibold tabular text-ink">
+                  {displayMetricValue(metric.value)}
+                  <span className="ml-1 text-[10px] font-normal text-muted">{metric.unit}</span>
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="mt-4 flex justify-end">
+          <Button variant="secondary" size="sm" onClick={() => navigate("/telemetry")}>
+            Open telemetry
+          </Button>
+        </div>
+      </DetailSheet>
+
+      <DetailSheet
+        open={detail === "surgeon"}
+        onClose={() => setDetail(null)}
+        title="Flight Surgeon"
+        subtitle="Earth-side guidance and requests."
+        icon={Stethoscope}
+        size="lg"
+      >
+        <SurgeonUpdatesPanel />
+      </DetailSheet>
+
+      <DetailSheet
+        open={detail === "tape"}
+        onClose={() => setDetail(null)}
+        title="Mission tape"
+        subtitle={`Last ${tapeDays} days`}
+        icon={ScrollText}
+        size="lg"
+      >
+        <div className="mb-3 flex items-center gap-1 rounded-full border border-line bg-surface p-0.5">
+          {([7, 30] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setTapeDays(value)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                tapeDays === value ? "bg-accent-soft text-accent" : "text-muted hover:text-ink",
+              )}
+            >
+              {value} days
+            </button>
+          ))}
+        </div>
         {tapeQuery.isLoading && !tapeQuery.data ? (
           <Skeleton className="h-24 w-full" />
         ) : tapeQuery.isError && !tapeQuery.data ? (
@@ -937,7 +1021,37 @@ export function FlightDeckPage() {
         ) : (
           <MissionTape events={tapeEvents} maxDay={tapeDays} />
         )}
-      </Panel>
+      </DetailSheet>
+
+      <DetailSheet
+        open={detail === "weather"}
+        onClose={() => setDetail(null)}
+        title="Space weather"
+        subtitle="Mission environment context."
+        icon={CloudSun}
+        size="md"
+      >
+        {weather ? (
+          <div className={cn("rounded-2xl border p-4", STATUS_META[weatherStatus(weather.severity)].surface)}>
+            <div className="flex items-center gap-2">
+              <Sun size={16} className={STATUS_META[weatherStatus(weather.severity)].text} aria-hidden />
+              <p className="text-sm font-semibold text-ink">{weather.kind}</p>
+            </div>
+            <p className="mt-2 text-[12px] leading-relaxed text-ink-2">{weather.summary}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-[10px] text-muted">
+              <span>{titleCase(weather.severity)}</span>
+              <span>·</span>
+              <span>{context?.active ? "Active now" : "Past event"}</span>
+              <span>·</span>
+              <span>{context?.source === "live" ? "Live NASA DONKI" : "Demo fixture"}</span>
+            </div>
+          </div>
+        ) : (
+          <p className="rounded-2xl bg-surface-muted p-4 text-sm text-muted">
+            No space-weather event in the current window.
+          </p>
+        )}
+      </DetailSheet>
     </div>
   );
 }

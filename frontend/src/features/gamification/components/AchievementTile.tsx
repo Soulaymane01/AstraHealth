@@ -32,7 +32,6 @@ export function AchievementTile({ achievement }: { achievement: Achievement }) {
           </p>
           {!achievement.unlocked && <Lock size={10} className="text-muted" aria-hidden />}
         </div>
-        <p className="mt-0.5 text-[10px] leading-relaxed text-muted">{achievement.description}</p>
         {achievement.unlocked && achievement.unlocked_at && (
           <p className="mt-1 text-[10px] text-nominal">
             Unlocked {formatRelativeTime(achievement.unlocked_at)}

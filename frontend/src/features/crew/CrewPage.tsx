@@ -15,7 +15,7 @@ import {
   useUpdatePrivacy,
   type ShareStatus,
 } from "@/features/crew/queries";
-import { asStatus } from "@/lib/status";
+import { asStatus, STATUS_META } from "@/lib/status";
 import { cn, initials, titleCase } from "@/lib/utils";
 
 const PRIVACY_OPTIONS: { value: ShareStatus; label: string; description: string }[] = [
@@ -72,12 +72,9 @@ export function CrewPage() {
         <div>
           <p className="text-sm font-medium text-accent">Crew</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
-            Crew readiness, on your terms.
+            Crew.
           </h1>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-2">
-            The crew can talk directly. This page only shares the readiness each person chooses and
-            keeps a consistency board for motivation. There is no in-app chat or nudge inbox.
-          </p>
+          <p className="mt-1 text-sm text-muted">Status, sharing, and consistency.</p>
         </div>
         <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] text-muted">
           <Users size={12} className="text-accent" aria-hidden />
@@ -98,7 +95,7 @@ export function CrewPage() {
               </span>
             </div>
             <p className="mt-0.5 text-[11px] text-muted">
-              {privacy?.description ?? "Choose what crewmates can see."} You control this.
+              {privacy?.description ?? "Choose what crewmates can see."}
             </p>
           </div>
         </div>
@@ -152,7 +149,7 @@ export function CrewPage() {
         <Panel
           className="self-start lg:col-span-7"
           title="Crew board"
-          subtitle="Ranked by consistency and training adherence."
+          subtitle="Consistency · 14 days"
         >
           {leaderboard.length === 0 ? (
             <div className="rounded-lg bg-surface-muted px-4 py-8 text-center">
@@ -202,61 +199,66 @@ export function CrewPage() {
               ))}
             </div>
           )}
-          <p className="mt-3 text-[10px] leading-relaxed text-muted">
-            Consistency is 70% check-in coverage and 30% training coverage over 14 days. Health
-            readings never appear on this board. No message is sent from this page.
+          <p className="mt-3 text-[10px] text-muted">
+            70% check-ins · 30% training · no health readings
           </p>
         </Panel>
 
         <div className="space-y-4 lg:col-span-5">
-          <Panel title="Crew readiness" subtitle="Only what each person chooses to share.">
+          <Panel title="Crew readiness" subtitle="Only what each person shares">
             <div className="space-y-2">
               {roster.map((member) => {
                 const status = member.readiness_status ? asStatus(member.readiness_status) : null;
+                const meta = STATUS_META[status ?? "unknown"];
                 return (
                   <div
                     key={member.id}
-                    className="rounded-lg border border-line bg-surface px-3 py-2.5"
+                    className={cn(
+                      "rounded-2xl border px-3 py-2.5",
+                      status ? meta.surface : "border-line bg-surface",
+                    )}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-muted text-[10px] font-semibold text-ink-2">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[10px] font-semibold text-ink-2">
                         {initials(member.full_name)}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <p className="truncate text-xs font-medium text-ink">
+                          <p className="truncate text-xs font-semibold text-ink">
                             {member.full_name}
                           </p>
                           {member.is_self && (
-                            <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[9px] text-muted">
+                            <span className="rounded-full bg-surface/70 px-1.5 py-0.5 text-[9px] text-ink-2">
                               You
                             </span>
                           )}
                         </div>
-                        <p className="text-[10px] text-muted">{titleCase(member.role)}</p>
+                        <p className="text-[10px] text-ink-2">{titleCase(member.role)}</p>
                       </div>
                       {status ? (
                         <StatusBadge status={status} />
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] text-muted">
-                          <Lock size={10} aria-hidden />
+                        <span className="inline-flex items-center gap-1 rounded-full bg-surface/70 px-2 py-0.5 text-[9px] text-muted">
+                          <Lock size={9} aria-hidden />
                           Private
                         </span>
                       )}
                     </div>
-                    <div className="mt-1.5 flex items-center justify-between gap-2 text-[10px] text-muted">
-                      <span>
+                    <div className="mt-2 flex items-end justify-between gap-2">
+                      <p className="text-2xl font-semibold leading-none tabular text-ink">
                         {member.readiness_score !== null
-                          ? `Readiness ${member.readiness_score.toFixed(1)}`
-                          : member.share_status === "status_only"
-                            ? "Score not shared"
-                            : member.share_status === "private"
-                              ? "Readiness private"
-                              : "No snapshot yet"}
-                      </span>
-                      <span>
-                        {member.checkin_days} check-ins · {member.training_days} training days
-                      </span>
+                          ? member.readiness_score.toFixed(0)
+                          : "—"}
+                      </p>
+                      <p className="text-right text-[9px] leading-tight text-ink-2">
+                        {member.readiness_score === null
+                          ? member.share_status === "status_only"
+                            ? "Score hidden"
+                            : "Private"
+                          : "Readiness"}
+                        <br />
+                        {member.checkin_days} check-ins · {member.training_days} training
+                      </p>
                     </div>
                   </div>
                 );

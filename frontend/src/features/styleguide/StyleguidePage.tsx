@@ -44,7 +44,7 @@ const PALETTE = [
   { name: "Nominal", value: "#036B53" },
   { name: "Watch", value: "#92400E" },
   { name: "Caution", value: "#A33B0C" },
-  { name: "Critical", value: "#B91C1C" },
+  { name: "Critical", value: "#991B1B" },
   { name: "Unknown", value: "#475569" },
 ];
 
@@ -664,21 +664,18 @@ export function StyleguidePage() {
                 <ArticleCard
                   title="Why HRV falls before you feel tired"
                   domain="Cardiovascular"
-                  summary="Heart-rate variability is an early indicator of autonomic strain. In spaceflight it is also confounded by fluid shifts, sleep disruption, and workload."
                   readMinutes={4}
                   source="NASA HRP evidence base"
                 />
                 <ArticleCard
                   title="Sleep loss in a 24-hour light cycle"
                   domain="Sleep & circadian"
-                  summary="Without Earth's light cues, circadian rhythm drifts. The countermeasure is scheduled light exposure, not willpower."
                   readMinutes={5}
                   source="NASA HRP evidence base"
                 />
                 <ArticleCard
                   title="Bone loss and the loading budget"
                   domain="Musculoskeletal"
-                  summary="Mechanical loading is the signal bone needs. Resistance exercise is prescribed as a minimum effective dose."
                   readMinutes={6}
                   source="NASA HRP evidence base"
                 />

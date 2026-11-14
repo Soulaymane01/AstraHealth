@@ -64,29 +64,37 @@ check("mission tape", Boolean(body?.includes("Mission tape")));
 check("space weather banner", Boolean(body?.includes("Space weather")));
 check("demo data badge", Boolean(body?.includes("Demo")));
 
-await page.locator('[data-testid="alert-row"] button[aria-expanded]').first().click();
-await page.waitForTimeout(400);
+await page.getByRole("button", { name: /Needs attention/ }).click();
+await page.waitForTimeout(500);
 body = await page.textContent("body");
 check(
   "alert disclosure",
   Boolean(body?.includes("Recommended") && body?.includes("Countermeasure")),
 );
+await page.getByRole("button", { name: "Close details" }).click();
+await page.waitForTimeout(200);
 
-await page.getByRole("button", { name: /Inspect/ }).first().click();
-await page.waitForTimeout(500);
+await page.getByRole("button", { name: /Body systems/ }).click();
+await page.waitForTimeout(900);
 body = await page.textContent("body");
 check("domain detail", Boolean(body?.includes("Domain score")));
+await page.getByRole("button", { name: "Close details" }).click();
+await page.waitForTimeout(200);
 
+await page.getByRole("button", { name: /Mission tape/ }).click();
+await page.waitForTimeout(400);
 await page.getByRole("button", { name: "7 days" }).click();
 await page.waitForTimeout(600);
 body = await page.textContent("body");
 check("tape 7-day view", Boolean(body?.includes("Last 7 days")));
+await page.getByRole("button", { name: "Close details" }).click();
+await page.waitForTimeout(200);
 
 // Telemetry index
 await page.click("a[href='/telemetry']");
 await page.waitForTimeout(1000);
 body = await page.textContent("body");
-check("telemetry catalog", Boolean(body?.includes("Every metric, in context.")));
+check("telemetry catalog", Boolean(body?.includes("Your body, by domain.")));
 check(
   "telemetry domains",
   Boolean(body?.includes("Cardiovascular") && body?.includes("Sleep & circadian")),
@@ -94,7 +102,7 @@ check(
 await page.screenshot({ path: path.join(out, "telemetry.png"), fullPage: true });
 
 // Domain summary
-await page.getByRole("link", { name: "Open domain" }).first().click();
+await page.getByRole("link", { name: /Cardiovascular/ }).first().click();
 await page.waitForTimeout(1000);
 body = await page.textContent("body");
 check(
@@ -149,7 +157,7 @@ await page.waitForTimeout(800);
 body = await page.textContent("body");
 check(
   "library index",
-  Boolean(body?.includes("The evidence behind the numbers.") && body?.includes("9 articles")),
+  Boolean(body?.includes("Evidence.") && body?.includes("9 articles")),
 );
 check("library sources", Boolean(body?.includes("NASA Human Research Program")));
 await page.getByRole("button", { name: "Cardiovascular", exact: true }).click();
@@ -229,17 +237,14 @@ await page.waitForTimeout(1000);
 body = await page.textContent("body");
 check("crew board", Boolean(body?.includes("Crew board") && body?.includes("Consistency")));
 check("crew privacy", Boolean(body?.includes("Sharing") && body?.includes("Status only")));
-check(
-  "crew no messaging",
-  Boolean(body?.includes("no in-app chat") && body?.includes("No message is sent")),
-);
+check("crew privacy note", Boolean(body?.includes("no health readings")));
 await page.screenshot({ path: path.join(out, "crew.png"), fullPage: true });
 
 // Mission log
 await page.goto(`${base}/log`, { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
 body = await page.textContent("body");
-check("mission log", Boolean(body?.includes("Mission rank") && body?.includes("Point history")));
+check("mission log", Boolean(body?.includes("Mission rank") && body?.includes("Streaks")));
 check(
   "mission log feed",
   Boolean(body?.includes("Activity") && body?.includes("Achievements")),
@@ -287,13 +292,12 @@ await page.waitForTimeout(1100);
 body = await page.textContent("body");
 check(
   "training plan",
-  Boolean(body?.includes("Training plan") && body?.includes("Daily countermeasures")),
+  Boolean(body?.includes("Training") && body?.includes("Countermeasures")),
 );
-check("training roster", Boolean(body?.includes("Today's roster") && body?.includes("Next due")));
+check("training roster", Boolean(body?.includes("Today") && body?.includes("Next due")));
 await page.screenshot({ path: path.join(out, "training.png"), fullPage: true });
 
-const trainingPanel = page.locator("section").filter({ hasText: "Training plan" }).first();
-await trainingPanel.getByRole("button", { name: "Log" }).first().click();
+await page.getByRole("button", { name: /^Log / }).first().click();
 await page.waitForTimeout(350);
 body = await page.textContent("body");
 check(
@@ -312,7 +316,7 @@ await page.waitForTimeout(1000);
 body = await page.textContent("body");
 check(
   "training countermeasure",
-  Boolean(body?.includes("Log Sleep wind-down") && body?.includes("Countermeasure for")),
+  Boolean(body?.includes("Log Sleep wind-down") && body?.includes("Countermeasures")),
 );
 await page.screenshot({ path: path.join(out, "training-countermeasure.png"), fullPage: true });
 
@@ -388,7 +392,7 @@ await page.screenshot({ path: path.join(out, "checkin-camera.png"), fullPage: tr
 
 // Captured vitals are locked until the global override is used.
 await page
-  .getByText("Vitals captured automatically")
+  .getByText("Sensor-filled")
   .waitFor({ timeout: 2000 })
   .catch(() => {});
 const overrideButton = page.getByRole("button", { name: "Override captures" });
@@ -476,7 +480,7 @@ if (
   await page.waitForTimeout(300);
 }
 await page
-  .getByText("Vitals captured automatically")
+  .getByText("Sensor-filled")
   .waitFor({ timeout: 2000 })
   .catch(() => {});
 const offlineOverride = page.getByRole("button", { name: "Override captures" });
@@ -485,6 +489,7 @@ if (await offlineOverride.isVisible().catch(() => false)) {
   await page.waitForTimeout(200);
 }
 await page.fill("#metric-heart_rate", "70");
+await page.getByRole("button", { name: /Add a note/ }).click();
 await page.fill("#checkin-notes", offlineMarker);
 await page.context().setOffline(true);
 await page.waitForTimeout(400);

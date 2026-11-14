@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Navigate, Outlet, ScrollRestoration, useLocation } from "react-router-dom";
 
 import { useAuthStore } from "@/features/auth/auth-store";
@@ -7,6 +8,7 @@ import { FlightSurgeonDrawer } from "@/features/assistant/FlightSurgeonDrawer";
 import { OfflineBanner } from "@/features/offline/OfflineBanner";
 import { MobileNav } from "@/features/shell/MobileNav";
 import { Sidebar } from "@/features/shell/Sidebar";
+import { useShellStore } from "@/features/shell/shell-store";
 import { TopBar } from "@/features/shell/TopBar";
 
 function titleForPath(pathname: string): string {
@@ -32,6 +34,7 @@ export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const user = useAuthStore((state) => state.user);
+  const sidebarCollapsed = useShellStore((state) => state.sidebarCollapsed);
 
   useEffect(() => {
     document.title = `${titleForPath(location.pathname)} · AstraHealth`;
@@ -53,12 +56,17 @@ export function AppLayout() {
       <Sidebar />
       <MobileNav open={mobileOpen} onClose={() => setMobileOpen(false)} />
 
-      <div className="lg:pl-60">
+      <div
+        className={cn(
+          "transition-[padding] duration-300",
+          sidebarCollapsed ? "lg:pl-[76px]" : "lg:pl-60",
+        )}
+      >
         <TopBar onOpenNav={() => setMobileOpen(true)} />
         <OfflineBanner />
         <main
           id="main"
-          className="mx-auto w-full max-w-6xl px-4 py-6 lg:px-8 lg:py-8"
+          className="mx-auto w-full max-w-7xl px-4 py-6 lg:px-8 lg:py-8"
         >
           <Outlet />
         </main>

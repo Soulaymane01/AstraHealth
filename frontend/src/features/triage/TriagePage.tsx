@@ -120,13 +120,13 @@ export function TriagePage() {
       </div>
 
       {critical.length > 0 ? (
-        <div className="mt-4 flex items-start gap-3 rounded-xl border border-critical/30 bg-critical-soft px-4 py-3">
-          <AlertTriangle size={18} className="mt-0.5 shrink-0 text-critical" aria-hidden />
+        <div className="mt-4 flex items-start gap-3 rounded-2xl bg-critical px-4 py-3 text-white shadow-[0_10px_28px_rgba(153,27,27,0.22)]">
+          <AlertTriangle size={18} className="mt-0.5 shrink-0" aria-hidden />
           <div>
-            <p className="text-sm font-semibold text-critical">
+            <p className="text-sm font-semibold">
               {critical.length} critical alert{critical.length === 1 ? "" : "s"} active
             </p>
-            <p className="mt-0.5 text-xs leading-relaxed text-critical">
+            <p className="mt-0.5 text-xs leading-relaxed text-white/85">
               Do not wait for a trend. Follow the immediate actions and contact the flight
               surgeon.
             </p>
@@ -147,7 +147,7 @@ export function TriagePage() {
             <ol className="space-y-3">
               {IMMEDIATE_ACTIONS.map((action, index) => (
                 <li key={action} className="flex gap-3">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-critical-soft text-[11px] font-semibold text-critical">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-critical text-[11px] font-semibold text-white">
                     {index + 1}
                   </span>
                   <p className="text-[13px] leading-relaxed text-ink-2">{action}</p>
