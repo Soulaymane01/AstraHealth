@@ -56,7 +56,7 @@ export function AnatomyMap({
 
   const selected = regions[selectedDomain];
   const selectedMeta = selected ? STATUS_META[selected.status] : null;
-  const selectedColor = selectedMeta?.hex ?? "#0F766E";
+  const selectedColor = selectedMeta?.hex ?? "#0B3D91";
   const selectedMuscles = muscles.filter(
     (muscle) => domainFor(muscle.id) === selectedDomain,
   );

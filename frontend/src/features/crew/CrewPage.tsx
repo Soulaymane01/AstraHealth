@@ -2,6 +2,7 @@ import { Check, Lock, ShieldCheck, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { QuizCard } from "@/components/ui/QuizCard";
@@ -84,58 +85,72 @@ export function CrewPage() {
         </span>
       </div>
 
-      <Panel
-        className="mt-6"
-        title="Sharing"
-        subtitle={privacy?.description ?? "Choose what crewmates can see."}
-        actions={
-          <span className="inline-flex items-center gap-1 text-[10px] text-muted">
-            <ShieldCheck size={11} aria-hidden />
-            You control this
+      <div className="mt-4 rounded-xl border border-line bg-surface px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-accent">
+            <ShieldCheck size={15} aria-hidden />
           </span>
-        }
-      >
-        <div
-          className="grid gap-2 sm:grid-cols-3"
-          role="group"
-          aria-label="Readiness sharing preference"
-        >
-          {PRIVACY_OPTIONS.map((option) => {
-            const active = shareStatus === option.value;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={active}
-                disabled={updatePrivacy.isPending}
-                onClick={() => changePrivacy(option.value)}
-                className={cn(
-                  "rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60",
-                  active
-                    ? "border-accent/30 bg-accent-soft"
-                    : "border-line bg-surface hover:border-line-strong",
-                )}
-              >
-                <span className="flex items-center gap-1.5 text-xs font-medium text-ink">
-                  {active && <Check size={11} className="text-accent" aria-hidden />}
-                  {option.label}
-                </span>
-                <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">
-                  {option.description}
-                </span>
-              </button>
-            );
-          })}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-ink">Sharing</p>
+              <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted">
+                {privacy?.label ?? "Private"}
+              </span>
+            </div>
+            <p className="mt-0.5 text-[11px] text-muted">
+              {privacy?.description ?? "Choose what crewmates can see."} You control this.
+            </p>
+          </div>
         </div>
-        <p className="mt-2 text-[10px] leading-relaxed text-muted">
-          Status only shares the label — Watch, Caution, Critical — but never the score. Private
-          hides both from crewmates. You always see your own data.
-        </p>
-      </Panel>
+
+        <Disclosure
+          className="mt-2 border-t border-line pt-2"
+          summary="Change sharing"
+          meta={privacy?.label}
+          summaryClassName="text-[10px] font-medium text-accent"
+        >
+          <div
+            className="grid gap-2 sm:grid-cols-3"
+            role="group"
+            aria-label="Readiness sharing preference"
+          >
+            {PRIVACY_OPTIONS.map((option) => {
+              const active = shareStatus === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={active}
+                  disabled={updatePrivacy.isPending}
+                  onClick={() => changePrivacy(option.value)}
+                  className={cn(
+                    "rounded-lg border px-3 py-2.5 text-left transition-colors disabled:opacity-60",
+                    active
+                      ? "border-accent/30 bg-accent-soft"
+                      : "border-line bg-surface hover:border-line-strong",
+                  )}
+                >
+                  <span className="flex items-center gap-1.5 text-xs font-medium text-ink">
+                    {active && <Check size={11} className="text-accent" aria-hidden />}
+                    {option.label}
+                  </span>
+                  <span className="mt-0.5 block text-[10px] leading-relaxed text-muted">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-[10px] leading-relaxed text-muted">
+            Status only shares the label — Watch, Caution, Critical — but never the score. Private
+            hides both from crewmates. You always see your own data.
+          </p>
+        </Disclosure>
+      </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-12">
         <Panel
-          className="lg:col-span-7"
+          className="self-start lg:col-span-7"
           title="Crew board"
           subtitle="Ranked by consistency and training adherence."
         >

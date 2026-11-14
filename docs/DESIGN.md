@@ -14,7 +14,7 @@ The design system lives in code:
 ## 1. Principles
 
 1. **One clear answer first.** Readiness and the current state are visible before any detail.
-2. **Calm by default.** Off-white surfaces, one accent, no glows, no scan effects, no ambient motion.
+2. **Calm by default.** Pale NASA-blue surfaces, one deep-blue accent, no glows, no scan effects, no ambient motion. Detail is revealed on demand rather than shown all at once.
 3. **Status is never color alone.** Every status carries a color, an icon or dot, and a word.
 4. **Explain the score.** Factors and fired rules are one click away. No black-box health judgment.
 5. **Guidance, not diagnosis.** Copy escalates red flags and never prescribes treatment.
@@ -27,22 +27,22 @@ The design system lives in code:
 
 | Token | Value | Use |
 |---|---|---|
-| `--color-canvas` | `#F4F6F8` | App background |
-| `--color-surface` | `#FFFFFF` | Cards, panels, inputs |
-| `--color-surface-muted` | `#F0F3F6` | Inset wells, secondary blocks |
-| `--color-line` | `#E2E8EF` | Borders and dividers |
-| `--color-line-strong` | `#CBD5E1` | Emphasized borders |
-| `--color-ink` | `#0F1B2D` | Primary text |
-| `--color-ink-2` | `#526175` | Secondary text |
-| `--color-muted` | `#5F6F82` | Metadata and captions |
-| `--color-accent` | `#0F766E` | Primary actions, progress, links |
-| `--color-accent-strong` | `#0B5F59` | Accent hover |
-| `--color-accent-soft` | `#E6F4F2` | Accent tint, selected rows |
-| `--color-nominal` | `#15803D` | Nominal status |
-| `--color-watch` | `#B45309` | Watch status |
-| `--color-caution` | `#C2410C` | Caution status |
-| `--color-critical` | `#B91C1C` | Critical status |
-| `--color-unknown` | `#55657A` | No-data status |
+| `--color-canvas` | `#EAF2FB` | App background |
+| `--color-surface` | `#F7FBFF` | Cards, panels, inputs |
+| `--color-surface-muted` | `#DCE9F7` | Inset wells, secondary blocks |
+| `--color-line` | `#BCD3EC` | Borders and dividers |
+| `--color-line-strong` | `#8FB3DB` | Emphasized borders |
+| `--color-ink` | `#0A2A5C` | Primary text |
+| `--color-ink-2` | `#254A85` | Secondary text |
+| `--color-muted` | `#3F6395` | Metadata and captions |
+| `--color-accent` | `#0B3D91` | Primary actions, progress, links |
+| `--color-accent-strong` | `#082F70` | Accent hover |
+| `--color-accent-soft` | `#D5E3F8` | Accent tint, selected rows |
+| `--color-nominal` | `#036B53` | Nominal status text and marks |
+| `--color-watch` | `#92400E` | Watch status text and marks |
+| `--color-caution` | `#A33B0C` | Caution status text and marks |
+| `--color-critical` | `#B91C1C` | Critical status text and marks |
+| `--color-unknown` | `#475569` | No-data status |
 
 Status tints (`*-soft`) are used only as pill or badge backgrounds. The palette is intentionally narrow: one accent for interaction, four semantic colors for health state.
 
@@ -77,7 +77,7 @@ Rules:
 
 A status appears as a dot or icon, a word, and a color. In dense rows, the dot may replace the icon only when the row also has a text label or accessible name.
 
-The readiness ring uses the teal accent for Nominal, Watch, and Caution, and turns red only for Critical. This keeps the screen calm while still making an emergency unmistakable.
+The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, and turns red only for Critical. This keeps the screen calm while still making an emergency unmistakable. Text and chart marks use slightly darker status hues so every label clears WCAG AA on both canvas and tinted surfaces.
 
 ---
 
@@ -93,6 +93,7 @@ The readiness ring uses the teal accent for Nominal, Watch, and Caution, and tur
 | `ReadinessRing` | `ReadinessRing.tsx` | Composite score |
 | `MetricCard` | `MetricCard.tsx` | Single metric with trend |
 | `DomainRail` | `DomainRail.tsx` | Domain row with score and progress bar |
+| `Disclosure` | `Disclosure.tsx` | Inline expand/collapse for secondary detail, with `aria-expanded` |
 | `AnomalyCard` | `AnomalyCard.tsx` | Alert with rationale and action |
 | `MissionTape` | `MissionTape.tsx` | Event timeline |
 | `StepIndicator` | `StepIndicator.tsx` | Compact progress primitive |
@@ -167,7 +168,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 ### 6.3 Systems Check wizard
 
 - Five steps: Vitals, Sleep, Mood & Stress, Symptoms, Training & Nutrition. The left column holds the active step; the right column holds the running summary, notes, credit preview, and "What happens next".
-- Progress uses five small rings. Complete steps are nominal green with a check, the active step is accent teal, skipped steps are a muted dash, and a labelled progress bar sits underneath.
+- Progress uses five small rings. Complete steps are nominal green with a check, the active step is deep blue, skipped steps are a muted dash, and a labelled progress bar sits underneath.
 - Fields use large-touch inputs with a 24 px tabular value, unit, optional tag, and inline error. Scales are 1–5 with low/high anchors and an explicit Clear action.
 - Every step has a "Why we ask" disclosure. The copy is condensed from the corresponding knowledge article and names the NASA HRP source.
 - The symptoms step pairs a front/back body map with a keyboard-accessible region list. Selecting a region filters the symptom options; severity is a 1–10 row and duration is a chip set. Logged symptoms can be removed individually.
@@ -247,7 +248,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 ### 6.10 Offline, PWA, and recovery
 
 - The production build registers a Workbox service worker. The app shell, route chunks, CSS, fonts, and icons are precached; API responses are deliberately not cached.
-- The manifest uses the teal brand mark at 192 and 512 px and an apple-touch icon. The theme color is the light canvas, not the old dark console color.
+- The manifest uses the blue brand mark at 192 and 512 px and an apple-touch icon. The theme color is the light canvas, not the old dark console color.
 - Each authenticated route is its own chunk. The Flight Deck loading state renders the real header immediately and reserves the readiness, body, and systems geometry, so data arrival does not move the page.
 - Check-ins use React Query `networkMode: "always"` so the mutation runs even when the browser is offline. The mutation writes the payload to the `checkinQueue` IndexedDB store with the user id, timestamp, attempts, and the original idempotency key.
 - The queue is per user. A different account on the same device sees an empty queue and cannot sync another user's check-ins.

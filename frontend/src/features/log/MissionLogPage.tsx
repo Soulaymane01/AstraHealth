@@ -1,5 +1,6 @@
 import {
   ArrowRight,
+  ChevronDown,
   ClipboardCheck,
   Dumbbell,
   Gift,
@@ -8,6 +9,7 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -15,7 +17,6 @@ import { CreditChip, RankBadge } from "@/components/ui/RankBadge";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
-import { StatusBadge } from "@/components/ui/Status";
 import { AchievementTile } from "@/features/gamification/components/AchievementTile";
 import { StreakTile } from "@/features/gamification/components/StreakTile";
 import { rewardIcon } from "@/features/gamification/icons";
@@ -53,6 +54,62 @@ function eventMeta(event: LogEvent) {
   return EVENT_META[event.type];
 }
 
+function ActivityRow({ event }: { event: LogEvent }) {
+  const [open, setOpen] = useState(false);
+  const meta = eventMeta(event);
+  const Icon = meta.icon;
+  const status = event.type === "alert" && event.status ? asStatus(event.status) : null;
+
+  return (
+    <li className="border-b border-line last:border-0">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="flex w-full items-center gap-2.5 py-2 text-left transition-colors hover:bg-surface-muted/40"
+      >
+        <span
+          className={cn(
+            "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+            meta.className,
+          )}
+        >
+          <Icon size={12} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="truncate text-[12px] font-medium text-ink">{event.title}</span>
+            {status && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 text-[9px] font-medium uppercase tracking-wide",
+                  STATUS_META[status].text,
+                )}
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", STATUS_META[status].dot)} />
+                {STATUS_META[status].label}
+              </span>
+            )}
+          </span>
+        </span>
+        <span className="shrink-0 text-[10px] text-muted">
+          {formatRelativeTime(event.at)}
+        </span>
+        <ChevronDown
+          size={13}
+          className={cn("shrink-0 text-muted transition-transform", open && "rotate-180")}
+          aria-hidden
+        />
+      </button>
+      {open && (
+        <p className="pb-2.5 pl-[34px] pr-6 text-[11px] leading-relaxed text-ink-2">
+          {event.detail}
+        </p>
+      )}
+    </li>
+  );
+}
+
 export function MissionLogPage() {
   const summaryQuery = useGamificationSummary();
   const creditsQuery = useCredits(8);
@@ -60,6 +117,7 @@ export function MissionLogPage() {
   const rewardsQuery = useRewards();
   const logQuery = useMissionLog(40);
   const redeem = useRedeemReward();
+  const [showAllEvents, setShowAllEvents] = useState(false);
 
   if (summaryQuery.isLoading) {
     return <PageSkeleton />;
@@ -219,40 +277,27 @@ export function MissionLogPage() {
               </Link>
             </div>
           ) : (
-            <ol className="relative space-y-4 border-l border-line pl-7">
-              {events.map((event) => {
-                const meta = eventMeta(event);
-                const Icon = meta.icon;
-                return (
-                  <li key={event.id} className="relative">
-                    <span
-                      className={cn(
-                        "absolute -left-[37px] top-0 flex h-6 w-6 items-center justify-center rounded-full ring-4 ring-surface",
-                        meta.className,
-                      )}
-                    >
-                      <Icon size={12} aria-hidden />
-                    </span>
-                    <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium leading-snug text-ink">{event.title}</p>
-                        <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">
-                          {event.detail}
-                        </p>
-                        {event.type === "alert" && event.status && (
-                          <div className="mt-1">
-                            <StatusBadge status={asStatus(event.status)} />
-                          </div>
-                        )}
-                      </div>
-                      <span className="shrink-0 text-[10px] text-muted">
-                        {formatRelativeTime(event.at)}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <>
+              <ol className="divide-y divide-line">
+                {(showAllEvents ? events : events.slice(0, 18)).map((event) => (
+                  <ActivityRow key={event.id} event={event} />
+                ))}
+              </ol>
+              {events.length > 18 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllEvents((current) => !current)}
+                  className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent-strong"
+                >
+                  {showAllEvents ? "Show fewer events" : `Show all ${events.length} events`}
+                  <ChevronDown
+                    size={12}
+                    className={cn("transition-transform", showAllEvents && "rotate-180")}
+                    aria-hidden
+                  />
+                </button>
+              )}
+            </>
           )}
         </Panel>
 

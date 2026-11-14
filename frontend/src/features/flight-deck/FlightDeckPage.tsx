@@ -1,11 +1,20 @@
-import { AlertTriangle, ArrowRight, Orbit, RefreshCw, Sun, WifiOff } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Check,
+  Dumbbell,
+  Orbit,
+  RefreshCw,
+  Sun,
+  WifiOff,
+} from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { AnatomyMap } from "@/components/ui/AnatomyMap";
-import { AnomalyCard } from "@/components/ui/AnomalyCard";
 import { Button } from "@/components/ui/Button";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { DomainRail } from "@/components/ui/DomainRail";
 import { MissionTape, type TapeEventType } from "@/components/ui/MissionTape";
 import { Panel } from "@/components/ui/Panel";
@@ -27,7 +36,7 @@ import {
 } from "@/features/mission/queries";
 import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/readiness/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
-import type { DomainDetail, Readiness, SpaceWeatherEvent } from "@/lib/api/types";
+import type { Alert, DomainDetail, Readiness, SpaceWeatherEvent } from "@/lib/api/types";
 import { asStatus, statusFromScore, STATUS_META, type Status } from "@/lib/status";
 import {
   cn,
@@ -60,7 +69,7 @@ function weatherStatus(severity: string): Status {
   return "watch";
 }
 
-function ContextBanner({
+function ContextStrip({
   event,
   active,
   source,
@@ -78,36 +87,153 @@ function ContextBanner({
       : formatRelativeTime(event.start_at);
 
   return (
-    <div className={cn("flex items-start gap-3 rounded-xl border px-4 py-3", meta.bg, meta.border)}>
-      <Sun size={16} className={cn("mt-0.5 shrink-0", meta.text)} aria-hidden />
-      <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={cn("text-[11px] font-medium", meta.text)}>
+    <Disclosure
+      className="mt-3 rounded-xl border border-line bg-surface px-4 py-2.5"
+      summary={
+        <span className="flex flex-wrap items-center gap-2 text-[11px]">
+          <Sun size={13} className={cn("shrink-0", meta.text)} aria-hidden />
+          <span className={cn("font-medium", meta.text)}>
             Space weather · {titleCase(event.severity)}
           </span>
-          <span className="text-[11px] text-muted">{time}</span>
+          <span className="text-muted">{time}</span>
           <span
             className={cn(
               "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
               live ? "bg-accent-soft text-accent" : "bg-surface-muted text-muted",
             )}
-            title={
-              live
-                ? "Fetched from NASA DONKI"
-                : "Seeded demo event; set NASA_API_KEY for live DONKI context"
-            }
           >
             {live ? "Live NASA DONKI" : "Demo fixture"}
           </span>
+        </span>
+      }
+      meta="Details"
+      bodyClassName="rounded-lg bg-surface-muted/60 px-3 py-2"
+    >
+      <p className="text-sm font-medium text-ink">{event.kind}</p>
+      <p className="mt-0.5 text-[11px] leading-relaxed text-ink-2">{event.summary}</p>
+      <p className="mt-1 text-[10px] text-muted">
+        {live
+          ? "Fetched from NASA DONKI."
+          : "Seeded demo event; set NASA_API_KEY for live DONKI context."}
+      </p>
+    </Disclosure>
+  );
+}
+
+type ReadinessFactor = Readiness["factors"][number];
+
+function factorDirection(factor: ReadinessFactor): string {
+  if (factor.metric === "sleep_duration_h") return "Short";
+  if (factor.metric === "hydration_l") return "Low";
+  if (factor.metric === "sleep_efficiency_pct") return "Below";
+  return factor.z < 0 ? "Below" : "Above";
+}
+
+function KeyFactorTile({
+  factor,
+  onClick,
+}: {
+  factor: ReadinessFactor;
+  onClick: () => void;
+}) {
+  const negative = factor.contribution < 0;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="min-w-0 rounded-xl bg-surface-muted/65 px-3 py-2.5 text-left transition-colors hover:bg-surface-muted"
+    >
+      <p className="truncate text-[10px] font-medium uppercase tracking-wide text-muted">
+        {factor.label}
+      </p>
+      <p className="mt-1 text-xl font-semibold tabular tracking-tight text-ink">
+        {displayMetricValue(factor.value)}
+        {factor.unit && <span className="ml-1 text-[10px] font-normal text-muted">{factor.unit}</span>}
+      </p>
+      <p
+        className={cn(
+          "mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium",
+          negative ? "text-caution" : "text-nominal",
+        )}
+      >
+        <span className={cn("h-1.5 w-1.5 rounded-full", negative ? "bg-caution" : "bg-nominal")} />
+        {factorDirection(factor)}
+      </p>
+    </button>
+  );
+}
+
+function CompactAlert({
+  alert,
+  onAcknowledge,
+  onViewGuidance,
+  onOpenCountermeasure,
+}: {
+  alert: Alert;
+  onAcknowledge: () => void;
+  onViewGuidance?: () => void;
+  onOpenCountermeasure?: () => void;
+}) {
+  const status = asStatus(alert.severity);
+  return (
+    <div data-testid="alert-row" className="rounded-xl border border-line bg-surface px-3 py-2.5">
+      <Disclosure
+        defaultOpen={alert.severity === "critical"}
+        summary={
+          <span className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", STATUS_META[status].dot)} />
+            <span className="truncate text-[12px] font-medium text-ink">{alert.title}</span>
+            <span className="ml-auto shrink-0 text-[10px] text-muted">
+              {formatRelativeTime(alert.created_at)}
+            </span>
+          </span>
+        }
+        summaryClassName="items-start"
+        bodyClassName="space-y-2"
+      >
+        <p className="text-[11px] leading-relaxed text-ink-2">{alert.rationale}</p>
+        {alert.recommended_action && (
+          <div className="rounded-lg bg-surface-muted px-2.5 py-2">
+            <p className="text-[9px] font-medium uppercase tracking-wide text-muted">Recommended</p>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-ink">
+              {alert.recommended_action}
+            </p>
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {alert.countermeasure && (
+            <button
+              type="button"
+              onClick={onOpenCountermeasure}
+              className="inline-flex items-center gap-1 rounded-lg border border-accent/20 bg-accent-soft/60 px-2 py-1 text-[10px] font-medium text-accent hover:bg-accent-soft"
+            >
+              <Dumbbell size={11} aria-hidden />
+              <span className="text-[9px] uppercase tracking-wide text-muted">Countermeasure</span>
+              {alert.countermeasure.name}
+            </button>
+          )}
+          {onViewGuidance && (
+            <button
+              type="button"
+              onClick={onViewGuidance}
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-accent hover:text-accent-strong"
+            >
+              Guidance
+              <ArrowRight size={11} aria-hidden />
+            </button>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="ml-auto"
+            onClick={onAcknowledge}
+            disabled={alert.status !== "active"}
+          >
+            <Check size={11} aria-hidden />
+            {alert.status === "active" ? "Acknowledge" : "Acknowledged"}
+          </Button>
         </div>
-        <p className="mt-0.5 text-sm font-medium text-ink">{event.kind}</p>
-        <p
-          className="mt-0.5 line-clamp-1 text-xs leading-relaxed text-ink-2 sm:line-clamp-none"
-          title={event.summary}
-        >
-          {event.summary}
-        </p>
-      </div>
+      </Disclosure>
     </div>
   );
 }
@@ -381,6 +507,16 @@ export function FlightDeckPage() {
   const day = Math.max(1, Math.floor(mission.met_seconds / 86400));
   const domainScores = readiness?.domain_scores ?? {};
   const previousDomainScores = historyQuery.data?.[1]?.domain_scores;
+  const keyFactorCodes = ["hrv_rmssd", "sleep_efficiency_pct", "hydration_l"];
+  const preferredFactors = keyFactorCodes
+    .map((code) => readiness?.factors.find((factor) => factor.metric === code))
+    .filter((factor): factor is ReadinessFactor => Boolean(factor));
+  const displayFactors = [
+    ...preferredFactors,
+    ...(readiness?.factors.filter(
+      (factor) => !preferredFactors.some((preferred) => preferred.metric === factor.metric),
+    ) ?? []),
+  ].slice(0, 3);
 
   const domainStatus = (key: string): Status => {
     const score = domainScores[key];
@@ -497,13 +633,11 @@ export function FlightDeckPage() {
       <div>
         {header}
         {context?.latest_event && (
-          <div className="mt-4">
-            <ContextBanner
-              event={context.latest_event}
-              active={context.active}
-              source={context.source}
-            />
-          </div>
+          <ContextStrip
+            event={context.latest_event}
+            active={context.active}
+            source={context.source}
+          />
         )}
         {criticalAlerts.length > 0 && (
           <CriticalTriageBanner
@@ -542,13 +676,11 @@ export function FlightDeckPage() {
       {header}
 
       {context?.latest_event && (
-        <div className="mt-4">
-          <ContextBanner
-            event={context.latest_event}
-            active={context.active}
-            source={context.source}
-          />
-        </div>
+        <ContextStrip
+          event={context.latest_event}
+          active={context.active}
+          source={context.source}
+        />
       )}
 
       {criticalAlerts.length > 0 && (
@@ -562,8 +694,8 @@ export function FlightDeckPage() {
       <CaptureStrip />
       <SurgeonUpdatesPanel />
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-12">
-        <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:col-span-5">
+      <div className="mt-5 grid gap-4 lg:grid-cols-12">
+        <div className="min-w-0 lg:col-span-7">
           <Panel
             title="Readiness"
             subtitle={
@@ -575,7 +707,7 @@ export function FlightDeckPage() {
             }
             actions={<StatusPill status={status} />}
           >
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-center lg:flex-col xl:flex-row">
               <ReadinessRing
                 score={readiness.score}
                 status={status}
@@ -584,90 +716,98 @@ export function FlightDeckPage() {
                 className="shrink-0 self-center"
               />
 
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-medium text-muted">Top factors</p>
-                <div className="mt-1 divide-y divide-line">
-                  {readiness.factors.slice(0, 4).map((factor) => (
-                    <div
-                      key={factor.metric}
-                      className="flex items-center justify-between gap-3 py-2.5"
-                    >
-                      <p className="truncate text-sm text-ink">{factor.label}</p>
-                      <div className="flex items-center gap-3">
-                        <p className="text-sm tabular text-ink">
-                          {displayMetricValue(factor.value)}
-                          {factor.unit && (
-                            <span className="ml-1 text-[11px] font-normal text-muted">
-                              {factor.unit}
-                            </span>
-                          )}
-                        </p>
-                        <p
-                          className={cn(
-                            "w-10 text-right text-[11px] tabular",
-                            factor.contribution < 0 ? "text-caution" : "text-nominal",
-                          )}
-                        >
-                          {factor.contribution > 0 ? "+" : ""}
-                          {factor.contribution}
-                        </p>
-                      </div>
+              <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-3">
+                {displayFactors.map((factor) => (
+                  <KeyFactorTile
+                    key={factor.metric}
+                    factor={factor}
+                    onClick={() => navigate(`/telemetry/metric/${factor.metric}`)}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <Disclosure
+              className="mt-4 border-t border-line pt-3"
+              summary="Why this score?"
+              meta={`${readiness.factors.length} factors`}
+              summaryClassName="text-[11px] font-medium text-accent"
+            >
+              <div className="divide-y divide-line">
+                {readiness.factors.map((factor) => (
+                  <div
+                    key={factor.metric}
+                    className="flex items-center justify-between gap-3 py-2"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] text-ink">{factor.label}</p>
+                      <p className="text-[10px] text-muted">z {factor.z}</p>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-3">
+                      <p className="text-[11px] tabular text-ink">
+                        {displayMetricValue(factor.value)}
+                        {factor.unit && (
+                          <span className="ml-1 text-[10px] text-muted">{factor.unit}</span>
+                        )}
+                      </p>
+                      <p
+                        className={cn(
+                          "w-9 text-right text-[10px] tabular",
+                          factor.contribution < 0 ? "text-caution" : "text-nominal",
+                        )}
+                      >
+                        {factor.contribution > 0 ? "+" : ""}
+                        {factor.contribution}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] leading-relaxed text-muted">
+                A negative contribution lowers the composite. A fired rule can override the status
+                independently of the score.
+              </p>
+            </Disclosure>
+
+            <div className="mt-3 flex flex-col gap-2 border-t border-line pt-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-muted">
+                  Next action
+                </p>
+                <p className="mt-0.5 text-[13px] leading-relaxed text-ink">
+                  {alertsError
+                    ? "Alerts could not be loaded. Check the connection before relying on this view."
+                    : (alerts[0]?.recommended_action ??
+                      "Continue your current countermeasure plan.")}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate("/check-in")}
+                >
+                  Log a check-in
+                </Button>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/triage")}>
+                  Triage
+                </Button>
+                {alertsError && (
+                  <Button variant="ghost" size="sm" onClick={() => void alertsQuery.refetch()}>
+                    Retry alerts
+                  </Button>
+                )}
               </div>
             </div>
           </Panel>
-
-          <Panel
-            title="Next action"
-            actions={<span className="text-xs text-muted">From the most severe alert</span>}
-          >
-            <p className="text-sm leading-relaxed text-ink">
-              {alertsError
-                ? "Alerts could not be loaded. Check the connection before relying on this view."
-                : (alerts[0]?.recommended_action ??
-                  "Continue your current countermeasure plan.")}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <Button variant="secondary" size="sm" onClick={() => navigate("/check-in")}>
-                Log a check-in
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate("/triage")}>
-                Triage protocol
-              </Button>
-              {alertsError && (
-                <Button variant="ghost" size="sm" onClick={() => void alertsQuery.refetch()}>
-                  Retry alerts
-                </Button>
-              )}
-            </div>
-          </Panel>
-
-          <Panel title="Systems" subtitle="Scores relative to your personal baseline.">
-            <div className="space-y-0.5">
-              {DOMAIN_ROWS.map((domain) => (
-                <DomainRail
-                  key={domain.key}
-                  name={domain.name}
-                  score={domainScores[domain.key] ?? 0}
-                  status={domainStatus(domain.key)}
-                  delta={domainDelta(domain.key)}
-                  active={selectedDomain === domain.key}
-                  onClick={() => selectDomain(domain.key)}
-                />
-              ))}
-            </div>
-            <p className="mt-3 border-t border-line pt-3 text-[11px] leading-relaxed text-muted">
-              Sleep and circadian rhythm are tracked as a schedule, not a body region.
-            </p>
-          </Panel>
         </div>
 
-        <div className="order-3 min-w-0 space-y-3 lg:col-span-7">
+        <div className="min-w-0 space-y-2 lg:col-span-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold tracking-[-0.01em] text-ink">Needs attention</h2>
-            <span className="text-xs text-muted">
+            <h2 className="text-sm font-semibold tracking-[-0.01em] text-ink">
+              Needs attention
+            </h2>
+            <span className="text-[11px] text-muted">
               {alertsError ? "Unavailable" : `${alerts.length} active`}
             </span>
           </div>
@@ -675,7 +815,7 @@ export function FlightDeckPage() {
           {alertsError ? (
             <Panel>
               <p className="text-sm font-medium text-ink">Alerts are unavailable.</p>
-              <p className="mt-1 text-xs leading-relaxed text-ink-2">
+              <p className="mt-1 text-[11px] leading-relaxed text-ink-2">
                 This is not an all-clear. Check the connection and retry before relying on the
                 dashboard.
               </p>
@@ -690,14 +830,9 @@ export function FlightDeckPage() {
             </Panel>
           ) : alerts.length > 0 ? (
             alerts.map((alert) => (
-              <AnomalyCard
+              <CompactAlert
                 key={alert.id}
-                status={asStatus(alert.severity)}
-                title={alert.title}
-                rationale={alert.rationale}
-                action={alert.recommended_action}
-                timestamp={formatRelativeTime(alert.created_at)}
-                countermeasure={alert.countermeasure}
+                alert={alert}
                 onAcknowledge={() => acknowledgeAlert(alert.id)}
                 onViewGuidance={
                   alert.knowledge_slug
@@ -719,62 +854,55 @@ export function FlightDeckPage() {
             </Panel>
           )}
         </div>
+      </div>
 
+      <div className="mt-4 grid gap-4 lg:grid-cols-12">
         <Panel
-          className="order-2 min-w-0 lg:order-1 lg:col-span-7"
+          className="lg:col-span-7"
           title="Body systems"
-          subtitle="Click or tap a muscle group. Use the Systems list for keyboard selection."
+          subtitle="Click a region to inspect its domain. Use the Systems list for keyboard selection."
         >
           <AnatomyMap
             regions={anatomyRegions}
             selectedDomain={selectedDomain}
             onSelectDomain={selectDomain}
           />
-          <StatusLegend className="mt-3 border-t border-line pt-3" />
-          <DomainDetailPanel
-            detail={domainQuery.data}
-            loading={domainQuery.isLoading}
-            error={domainQuery.isError && !(!online && domainQuery.data !== undefined)}
-            onRetry={() => void domainQuery.refetch()}
-            onViewTrend={() => navigate(`/telemetry/domain/${selectedDomain}`)}
-          />
+          <Disclosure
+            className="mt-3 border-t border-line pt-3"
+            summary={`${anatomyRegions[selectedDomain as keyof typeof anatomyRegions]?.label ?? "Selected region"} · ${
+              STATUS_META[domainStatus(selectedDomain)].label
+            }`}
+            meta="Inspect"
+            summaryClassName="text-[11px] font-medium text-ink"
+          >
+            <StatusLegend className="mb-3" />
+            <DomainDetailPanel
+              detail={domainQuery.data}
+              loading={domainQuery.isLoading}
+              error={domainQuery.isError && !(!online && domainQuery.data !== undefined)}
+              onRetry={() => void domainQuery.refetch()}
+              onViewTrend={() => navigate(`/telemetry/domain/${selectedDomain}`)}
+            />
+          </Disclosure>
         </Panel>
 
-        <div className="order-4 min-w-0 space-y-4 lg:col-span-5">
-          <Panel
-            title="Why this score?"
-            subtitle="100 minus the weighted contribution of each metric."
-          >
-            <div className="divide-y divide-line">
-              {readiness.factors.map((factor) => (
-                <div key={factor.metric} className="flex items-center justify-between gap-3 py-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-[11px] text-ink">{factor.label}</p>
-                    <p className="text-[10px] text-muted">z {factor.z}</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <p className="text-[11px] tabular text-ink">
-                      {displayMetricValue(factor.value)}
-                      {factor.unit && (
-                        <span className="ml-1 text-[10px] text-muted">{factor.unit}</span>
-                      )}
-                    </p>
-                    <p
-                      className={cn(
-                        "w-9 text-right text-[10px] tabular",
-                        factor.contribution < 0 ? "text-caution" : "text-nominal",
-                      )}
-                    >
-                      {factor.contribution > 0 ? "+" : ""}
-                      {factor.contribution}
-                    </p>
-                  </div>
-                </div>
+        <div className="min-w-0 lg:col-span-5">
+          <Panel title="Systems" subtitle="Scores relative to your personal baseline.">
+            <div className="space-y-0.5">
+              {DOMAIN_ROWS.map((domain) => (
+                <DomainRail
+                  key={domain.key}
+                  name={domain.name}
+                  score={domainScores[domain.key] ?? 0}
+                  status={domainStatus(domain.key)}
+                  delta={domainDelta(domain.key)}
+                  active={selectedDomain === domain.key}
+                  onClick={() => selectDomain(domain.key)}
+                />
               ))}
             </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-muted">
-              A negative contribution lowers the composite. A fired rule can override the status
-              independently of the score.
+            <p className="mt-3 border-t border-line pt-3 text-[10px] leading-relaxed text-muted">
+              Sleep and circadian rhythm are tracked as a schedule, not a body region.
             </p>
           </Panel>
         </div>

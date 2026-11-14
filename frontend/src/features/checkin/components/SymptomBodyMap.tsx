@@ -76,7 +76,7 @@ export function SymptomBodyMap({
                 key={muscle.id}
                 d={muscle.path}
                 data-region={region}
-                fill={selected || hovered || reported ? "#0F766E" : "#C9D8E5"}
+                fill={selected || hovered || reported ? "#0B3D91" : "#C9DCF1"}
                 fillOpacity={fillOpacity}
                 stroke="#FFFFFF"
                 strokeWidth={0.45}
@@ -95,7 +95,7 @@ export function SymptomBodyMap({
               rx={16.5}
               ry={45}
               fill="none"
-              stroke="#0F766E"
+              stroke="#0B3D91"
               strokeWidth={0.6}
               strokeDasharray="1.4 2.2"
               opacity={0.75}

@@ -54,17 +54,28 @@ let body = await page.textContent("body");
 check("greeting", /Good (morning|afternoon|evening)/.test(body ?? ""));
 check("readiness ring", Boolean(body?.includes("Readiness")));
 check("active alerts", Boolean(body?.includes("Needs attention")));
-check("countermeasure cards", Boolean(body?.includes("Countermeasure")));
 check("MET clock", Boolean(body?.includes("MET")));
 check(
   "primary navigation",
   Boolean(body?.includes("Systems Check") && body?.includes("Telemetry")),
 );
 check("body systems", Boolean(body?.includes("Body systems")));
-check("domain detail", Boolean(body?.includes("Domain score")));
 check("mission tape", Boolean(body?.includes("Mission tape")));
 check("space weather banner", Boolean(body?.includes("Space weather")));
 check("demo data badge", Boolean(body?.includes("Demo")));
+
+await page.locator('[data-testid="alert-row"] button[aria-expanded]').first().click();
+await page.waitForTimeout(400);
+body = await page.textContent("body");
+check(
+  "alert disclosure",
+  Boolean(body?.includes("Recommended") && body?.includes("Countermeasure")),
+);
+
+await page.getByRole("button", { name: /Inspect/ }).first().click();
+await page.waitForTimeout(500);
+body = await page.textContent("body");
+check("domain detail", Boolean(body?.includes("Domain score")));
 
 await page.getByRole("button", { name: "7 days" }).click();
 await page.waitForTimeout(600);

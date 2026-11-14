@@ -43,9 +43,9 @@ function eventColor(event: TapeEvent): string {
   if (event.type === "alert") {
     return STATUS_META[asStatus(event.status ?? "unknown")].hex;
   }
-  if (event.type === "weather") return "#B45309";
-  if (event.type === "training") return "#15803D";
-  return "#0F766E";
+  if (event.type === "weather") return "#92400E";
+  if (event.type === "training") return "#036B53";
+  return "#0B3D91";
 }
 
 function inWindow(event: TapeEvent, from: number, to: number): boolean {
@@ -56,7 +56,7 @@ function inWindow(event: TapeEvent, from: number, to: number): boolean {
 export function MetricChart({ series, band, events }: MetricChartProps) {
   const reduce = useReducedMotion();
   const status = asStatus(series.status);
-  const lineColor = status === "unknown" ? "#0F766E" : STATUS_META[status].hex;
+  const lineColor = status === "unknown" ? "#0B3D91" : STATUS_META[status].hex;
 
   const data = series.points
     .map((point) => ({
@@ -103,9 +103,9 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
             <ReferenceArea
               y1={series.baseline.lower}
               y2={series.baseline.upper}
-              fill="#0F766E"
+              fill="#0B3D91"
               fillOpacity={0.08}
-              stroke="#0F766E"
+              stroke="#0B3D91"
               strokeOpacity={0.25}
               strokeDasharray="3 3"
               ifOverflow="extendDomain"
@@ -116,9 +116,9 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
               <ReferenceArea
                 y1={referenceLower}
                 y2={referenceUpper}
-                fill="#64748B"
+                fill="#475569"
                 fillOpacity={0.08}
-                stroke="#64748B"
+                stroke="#475569"
                 strokeOpacity={0.25}
                 strokeDasharray="3 3"
                 ifOverflow="extendDomain"
@@ -131,7 +131,7 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
             <ReferenceLine
               key={event.id}
               x={new Date(event.at).getTime()}
-              stroke="#0F766E"
+              stroke="#0B3D91"
               strokeOpacity={0.14}
               strokeDasharray="3 5"
             />
@@ -140,7 +140,7 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
             <ReferenceLine
               key={event.id}
               x={new Date(event.at).getTime()}
-              stroke="#15803D"
+              stroke="#036B53"
               strokeOpacity={0.12}
               strokeDasharray="2 6"
             />
@@ -158,7 +158,7 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
             <ReferenceLine
               key={event.id}
               x={new Date(event.at).getTime()}
-              stroke="#B45309"
+              stroke="#92400E"
               strokeOpacity={0.4}
               strokeDasharray="4 4"
             />
@@ -166,7 +166,7 @@ export function MetricChart({ series, band, events }: MetricChartProps) {
           {band === "baseline" && series.baseline && (
             <ReferenceLine
               y={series.baseline.center}
-              stroke="#0F766E"
+              stroke="#0B3D91"
               strokeOpacity={0.35}
               strokeDasharray="4 4"
             />

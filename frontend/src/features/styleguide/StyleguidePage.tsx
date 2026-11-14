@@ -35,21 +35,21 @@ import { cn } from "@/lib/utils";
 const MISSION_START = Date.now() - (42 * 86400 + 13 * 3600 + 7 * 60) * 1000;
 
 const PALETTE = [
-  { name: "Canvas", value: "#F4F6F8" },
-  { name: "Surface", value: "#FFFFFF" },
-  { name: "Surface muted", value: "#F0F3F6" },
-  { name: "Line", value: "#E2E8EF" },
-  { name: "Line strong", value: "#CBD5E1" },
-  { name: "Ink", value: "#0F1B2D" },
-  { name: "Ink 2", value: "#526175" },
-  { name: "Muted", value: "#5F6F82" },
-  { name: "Accent", value: "#0F766E" },
-  { name: "Accent soft", value: "#E6F4F2" },
-  { name: "Nominal", value: "#15803D" },
-  { name: "Watch", value: "#B45309" },
-  { name: "Caution", value: "#C2410C" },
+  { name: "Canvas", value: "#EAF2FB" },
+  { name: "Surface", value: "#F7FBFF" },
+  { name: "Surface muted", value: "#DCE9F7" },
+  { name: "Line", value: "#BCD3EC" },
+  { name: "Line strong", value: "#8FB3DB" },
+  { name: "Ink", value: "#0A2A5C" },
+  { name: "Ink 2", value: "#254A85" },
+  { name: "Muted", value: "#3F6395" },
+  { name: "Accent", value: "#0B3D91" },
+  { name: "Accent soft", value: "#D5E3F8" },
+  { name: "Nominal", value: "#036B53" },
+  { name: "Watch", value: "#92400E" },
+  { name: "Caution", value: "#A33B0C" },
   { name: "Critical", value: "#B91C1C" },
-  { name: "Unknown", value: "#55657A" },
+  { name: "Unknown", value: "#475569" },
 ];
 
 const DOMAINS = [

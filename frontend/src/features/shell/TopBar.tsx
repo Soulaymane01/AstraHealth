@@ -1,23 +1,20 @@
-import { Clock, Menu, Radio, Stethoscope, Users } from "lucide-react";
+import { Menu, Stethoscope } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
 import { MetClock } from "@/components/ui/MetClock";
 import { useAssistantStore } from "@/features/assistant/store";
 import { useOfflineStore } from "@/features/offline/store";
 import { useMission } from "@/features/mission/queries";
-import { useTrainingReminders } from "@/features/training/queries";
 import { NAV_ITEMS } from "@/features/shell/nav";
 import { useReadiness } from "@/features/readiness/queries";
 import { DEMO_MODE } from "@/lib/demo";
 import { asStatus, STATUS_META } from "@/lib/status";
-import { cn, formatCommsDelay } from "@/lib/utils";
+import { cn, formatCommsDelay, titleCase } from "@/lib/utils";
 
 export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const { pathname } = useLocation();
   const { data: mission, isLoading: missionLoading } = useMission();
   const { data: readiness } = useReadiness();
-  const { data: reminders } = useTrainingReminders();
-  const nextDue = reminders?.next_due ?? null;
   const openAssistant = useAssistantStore((state) => state.openAssistant);
   const online = useOfflineStore((state) => state.online);
 
@@ -30,7 +27,7 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         )?.label ?? "AstraHealth");
 
   const subtitle = mission
-    ? `${mission.crew_name} · ${mission.name}${DEMO_MODE ? " · Simulated" : ""}`
+    ? `${mission.name} · ${titleCase(mission.profile)} · ${mission.crew_count} crew · ${formatCommsDelay(mission.comms_delay_min)}${DEMO_MODE ? " · Simulated" : ""}`
     : missionLoading
       ? "Loading mission…"
       : online
@@ -82,33 +79,7 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
           </span>
         )}
 
-        {nextDue && (
-          <span
-            className="hidden items-center gap-1.5 text-xs text-muted xl:inline-flex"
-            title={`Next: ${nextDue.title} at ${nextDue.time}`}
-          >
-            <Clock size={12} aria-hidden />
-            <span className="text-[10px]">Next</span>
-            <span className="tabular">{nextDue.time}</span>
-            <span className="max-w-28 truncate">{nextDue.title}</span>
-          </span>
-        )}
-
         {mission && <MetClock startAt={mission.start_at} className="hidden sm:inline-flex" />}
-
-        {mission && (
-          <span className="hidden items-center gap-1.5 text-xs text-muted md:inline-flex">
-            <Users size={13} aria-hidden />
-            {mission.crew_count}
-          </span>
-        )}
-
-        {mission && (
-          <span className="hidden items-center gap-1.5 text-xs text-muted xl:inline-flex">
-            <Radio size={13} aria-hidden />
-            {formatCommsDelay(mission.comms_delay_min)}
-          </span>
-        )}
       </div>
     </header>
   );

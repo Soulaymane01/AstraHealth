@@ -25,7 +25,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
   nominal: {
     label: "Nominal",
     description: "Within your baseline",
-    hex: "#15803D",
+    hex: "#036B53",
     text: "text-nominal",
     bg: "bg-nominal-soft",
     border: "border-nominal/20",
@@ -35,7 +35,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
   watch: {
     label: "Watch",
     description: "Slightly outside baseline",
-    hex: "#B45309",
+    hex: "#92400E",
     text: "text-watch",
     bg: "bg-watch-soft",
     border: "border-watch/20",
@@ -45,7 +45,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
   caution: {
     label: "Caution",
     description: "Action recommended",
-    hex: "#C2410C",
+    hex: "#A33B0C",
     text: "text-caution",
     bg: "bg-caution-soft",
     border: "border-caution/20",
@@ -65,7 +65,7 @@ export const STATUS_META: Record<Status, StatusMeta> = {
   unknown: {
     label: "No data",
     description: "Not enough measurements",
-    hex: "#55657A",
+    hex: "#475569",
     text: "text-unknown",
     bg: "bg-unknown-soft",
     border: "border-unknown/20",

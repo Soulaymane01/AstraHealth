@@ -5,10 +5,10 @@ import { asStatus, STATUS_META } from "@/lib/status";
 import { clamp } from "@/lib/utils";
 
 const EVENT_COLORS: Record<string, string> = {
-  checkin: "#0F766E",
-  alert: "#C2410C",
-  training: "#15803D",
-  weather: "#B45309",
+  checkin: "#0B3D91",
+  alert: "#A33B0C",
+  training: "#036B53",
+  weather: "#92400E",
 };
 
 const EVENT_LABELS: Record<string, string> = {
@@ -22,7 +22,7 @@ function eventColor(event: TapeEvent): string {
   if (event.type === "alert") {
     return STATUS_META[asStatus(event.status ?? "unknown")].hex;
   }
-  return EVENT_COLORS[event.type] ?? "#55657A";
+  return EVENT_COLORS[event.type] ?? "#475569";
 }
 
 function eventLabel(event: TapeEvent): string {
@@ -88,7 +88,7 @@ export function EventRail({ events, fromAt, toAt }: EventRailProps) {
           <span key={type} className="inline-flex items-center gap-1">
             <span
               className="h-1.5 w-1.5 rounded-full"
-              style={{ backgroundColor: EVENT_COLORS[type] ?? "#55657A" }}
+              style={{ backgroundColor: EVENT_COLORS[type] ?? "#475569" }}
             />
             {EVENT_LABELS[type] ?? type}
           </span>
