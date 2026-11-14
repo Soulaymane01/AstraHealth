@@ -140,7 +140,15 @@ def create_checkin(
         db.flush()
         checkin_id = checkin.id
 
-        valid_sources = {"manual", "device", "camera_rppg", "derived"}
+        valid_sources = {
+            "manual",
+            "device",
+            "camera_rppg",
+            "derived",
+            "iss_capture",
+            "lunar_capture",
+            "mars_capture",
+        }
         for entry in payload.entries:
             source = entry.meta.get("source", "manual")
             if source not in valid_sources:

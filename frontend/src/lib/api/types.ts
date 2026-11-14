@@ -3,6 +3,8 @@ import type { components } from "./schema";
 export type UserRead = components["schemas"]["UserRead"];
 export type TokenResponse = components["schemas"]["TokenResponse"];
 export type Mission = components["schemas"]["MissionRead"];
+export type CaptureFeed = components["schemas"]["CaptureFeedRead"];
+export type CaptureMetric = components["schemas"]["CaptureMetricRead"];
 export type Readiness = components["schemas"]["ReadinessSnapshotRead"];
 export type ReadinessFactor = components["schemas"]["ReadinessFactor"];
 export type DomainDetail = components["schemas"]["DomainDetailRead"];

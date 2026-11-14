@@ -45,7 +45,8 @@
 ## What it does
 
 - **Flight Deck** — a 70+ region anatomical body map with front/back views, readiness ring, six domain rows, an exception list, and a mission tape.
-- **Systems Check** — a five-step wizard for vitals, sleep, mood, symptoms, training, and nutrition. Drafts survive a reload, skipped steps are explicit, and every submission ends in an instant Systems Report.
+- **Automatic captures** — simulated ISS habitat, lunar surface, and Mars transit sensors stream heart rate, HRV, blood pressure, temperature, SpO₂, body mass, and exercise/bone load into Telemetry, and pre-fill the Systems Check. Sleep, mood, stress, symptoms, strength, hydration, and nutrition stay astronaut-entered.
+- **Systems Check** — a five-step wizard whose vitals and load arrive from the capture feed; the astronaut adds sleep, mood, symptoms, strength, hydration, and nutrition. Drafts survive a reload, skipped steps are explicit, and every submission ends in an instant Systems Report.
 - **Telemetry** — 7, 30, or 90-day trends for every metric, with a personal baseline band, a spaceflight reference range, event overlays, domain summaries, and CSV export.
 - **Explainable readiness** — deterministic z-score engine plus seven hard rules. Every score shows its contributing factors.
 - **Emergency triage** — a one-tap protocol with ordered immediate actions, active alerts, the next comms window, and a copyable flight-surgeon handoff.
@@ -196,6 +197,7 @@ React 19 PWA (browser)
 
 FastAPI
   ├─ JWT auth, privacy, rate limits
+  ├─ simulated habitat/suit captures → measurements + provenance
   ├─ readiness engine + hard rules + alert lifecycle
   ├─ atomic check-in transaction
   └─ 9 HRP articles, quizzes, training, rewards
@@ -223,7 +225,7 @@ docs/         Plan, API, design, sources, demo script
 
 ## Data honesty
 
-AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered and camera-derived measurements, clearly labeled simulated crew telemetry, and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context comes from NASA DONKI when a key is configured, with a labeled seeded fixture as the fallback.
+AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered measurements, camera-derived heart rate, and clearly labeled simulated habitat/suit sensor captures, alongside simulated crew telemetry and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context comes from NASA DONKI when a key is configured, with a labeled seeded fixture as the fallback.
 
 AstraHealth provides guidance, not diagnosis. Red-flag findings always route to a flight surgeon.
 

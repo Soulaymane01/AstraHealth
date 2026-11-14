@@ -6,6 +6,7 @@ from app.schemas.assistant import (
     AssistantSuggestionRead,
 )
 from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
+from app.schemas.capture import CaptureFeedRead, CaptureMetricRead
 from app.schemas.checkin import (
     CheckinCreate,
     CheckinEntryCreate,
@@ -90,6 +91,8 @@ __all__ = [
     "AchievementRead",
     "AlertRead",
     "BaselineBandRead",
+    "CaptureFeedRead",
+    "CaptureMetricRead",
     "CheckinCreate",
     "CheckinEntryCreate",
     "CheckinEntryRead",

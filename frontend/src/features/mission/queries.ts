@@ -43,6 +43,7 @@ export function useUpdateMissionProfile() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.mission });
       void queryClient.invalidateQueries({ queryKey: queryKeys.readiness });
       void queryClient.invalidateQueries({ queryKey: queryKeys.alerts });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.captures });
       void queryClient.invalidateQueries({ queryKey: ["training"] });
     },
   });

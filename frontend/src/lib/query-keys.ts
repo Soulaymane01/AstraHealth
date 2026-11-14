@@ -1,4 +1,6 @@
 export const queryKeys = {
+  captures: ["captures"] as const,
+  captureFeed: ["captures", "feed"] as const,
   mission: ["mission"] as const,
   missionContext: ["mission", "context"] as const,
   missionTape: (days: number) => ["mission", "tape", days] as const,

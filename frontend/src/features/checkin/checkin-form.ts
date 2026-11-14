@@ -16,8 +16,10 @@ export const symptomDraftSchema = z.object({
 
 export type SymptomDraft = z.infer<typeof symptomDraftSchema>;
 
+export type CaptureSource = "iss_capture" | "lunar_capture" | "mars_capture";
+
 export interface MetricMeta {
-  source: "camera_rppg";
+  source: "camera_rppg" | CaptureSource;
   confidence: number;
   [key: string]: unknown;
 }

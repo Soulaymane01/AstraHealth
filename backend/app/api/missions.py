@@ -30,6 +30,7 @@ from app.schemas import (
     SpaceWeatherEventRead,
     TapeEventRead,
 )
+from app.services.captures import simulate_capture
 from app.services.nasa import get_mission_context
 from app.services.readiness import compute_and_persist_readiness
 
@@ -115,6 +116,15 @@ def update_mission_profile(
     mission.profile = payload.profile
     db.add(mission)
     db.commit()
+
+    # Capture from the new environment's sensors immediately so the UI does not
+    # show Mars readings while the mission is on the lunar surface.
+    try:
+        simulate_capture(db, user, force=True)
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Sensor capture failed after a mission profile change")
 
     # Recompute the score with the new profile weights so the ring and domain
     # rows reflect the selected environment immediately.

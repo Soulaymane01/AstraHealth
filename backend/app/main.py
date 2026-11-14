@@ -7,6 +7,7 @@ from app.api import (
     alerts,
     assistant,
     auth,
+    captures,
     checkins,
     crew,
     domains,
@@ -27,6 +28,7 @@ TAGS_METADATA = [
     {"name": "auth", "description": "Registration, login, and token refresh."},
     {"name": "crew", "description": "Crew roster, privacy filtering, and the consistency board."},
     {"name": "metrics", "description": "Metric definitions, measurements, and trends."},
+    {"name": "captures", "description": "Simulated habitat and suit sensor captures."},
     {"name": "checkins", "description": "Guided Systems Check sessions and reports."},
     {"name": "readiness", "description": "Readiness scoring, factors, and alerts."},
     {"name": "training", "description": "Countermeasures, training plans, and streaks."},
@@ -61,6 +63,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(metrics.router)
+app.include_router(captures.router)
 app.include_router(domains.router)
 app.include_router(measurements.router)
 app.include_router(checkins.router)

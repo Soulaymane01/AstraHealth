@@ -334,6 +334,32 @@ def test_offline_checkin_keeps_the_time_it_was_taken(
     assert streak.last_date == taken_at.date()
 
 
+def test_checkin_preserves_automatic_capture_source(
+    client: TestClient, auth_headers: dict[str, str], metric_definitions: None
+) -> None:
+    created = client.post(
+        "/checkins",
+        json={
+            "entries": [
+                {
+                    "metric_code": "heart_rate",
+                    "value": 72,
+                    "meta": {"source": "mars_capture", "confidence": 0.93},
+                }
+            ]
+        },
+        headers=auth_headers,
+    )
+    assert created.status_code == 201
+
+    measurements = client.get(
+        "/measurements", params={"metric": "heart_rate"}, headers=auth_headers
+    )
+    latest = measurements.json()[-1]
+    assert latest["source"] == "mars_capture"
+    assert latest["confidence"] == 0.93
+
+
 def test_checkin_preserves_camera_source_and_confidence(
     client: TestClient, auth_headers: dict[str, str], metric_definitions: None
 ) -> None:

@@ -23,7 +23,15 @@ class MeasurementCreate(BaseModel):
     metric_code: str = Field(min_length=1, max_length=60)
     value: float = Field(allow_inf_nan=False)
     measured_at: datetime | None = None
-    source: Literal["manual", "device", "camera_rppg", "derived"] = "manual"
+    source: Literal[
+        "manual",
+        "device",
+        "camera_rppg",
+        "derived",
+        "iss_capture",
+        "lunar_capture",
+        "mars_capture",
+    ] = "manual"
     confidence: float | None = Field(default=None, ge=0, le=1)
     notes: str | None = Field(default=None, max_length=2000)
 

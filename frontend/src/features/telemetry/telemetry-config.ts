@@ -76,6 +76,9 @@ export function sourceLabel(source: string): string {
   if (source === "device") return "Device";
   if (source === "camera_rppg") return "Camera";
   if (source === "derived") return "Derived";
+  if (source === "iss_capture") return "ISS capture";
+  if (source === "lunar_capture") return "Lunar capture";
+  if (source === "mars_capture") return "Mars capture";
   return source;
 }
 

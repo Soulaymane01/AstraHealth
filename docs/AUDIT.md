@@ -72,6 +72,18 @@ The P0 engineering/demo items below were fixed after this audit. Deployment, vid
 
 **Verification:** typecheck/build pass; 77 backend tests; profile switch, triage, `.ics` download, offline cache, and print controls manually verified.
 
+### Post-audit feature: automatic sensor captures
+
+Added after the audit to match the “astronaut does not type vitals” requirement:
+
+- `GET /captures` lazily creates a simulated capture every five minutes; `POST /captures/simulate` forces one.
+- Captures use `iss_capture`, `lunar_capture`, or `mars_capture` according to the mission profile and cover heart rate, HRV, blood pressure, orthostatic rise, SpO₂, temperature, body mass, and exercise/bone load.
+- Sleep, mood, stress, social contact, symptoms, strength, hydration, nutrition, vitamin D, and glucose remain manual.
+- The Flight Deck shows an **Automatic sensor capture** strip with source, age, values, a **Simulated** label, and **Capture now**. The Systems Check pre-fills vitals and load from the latest capture while preserving manual overrides; the metadata keeps the capture source.
+- Mission-profile changes force a capture from the new environment and recompute readiness.
+
+**Verification:** 83 backend tests; smoke, typecheck, build, mobile layout, and axe pass.
+
 ---
 
 ## 1. Verdict

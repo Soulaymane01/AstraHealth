@@ -5,6 +5,7 @@
 AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time, per-astronaut health API. The product uses:
 
 - User-entered measurements and camera-derived heart rate.
+- Simulated habitat/suit sensor captures labeled **Simulated** in the Flight Deck capture strip; sleep, mood, stress, symptoms, strength, hydration, and nutrition remain user-entered.
 - Simulated crew telemetry, labeled as simulated in the UI and in this document.
 - Public NASA human-research material for reference ranges, countermeasures, and citations.
 - NASA DONKI space-weather notifications when `NASA_API_KEY` is configured, with a labeled seeded fixture as the fallback.

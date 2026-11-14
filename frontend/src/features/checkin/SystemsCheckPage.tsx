@@ -6,6 +6,7 @@ import {
   Check,
   CloudUpload,
   HardDriveDownload,
+  Radio,
   Save,
   WifiOff,
 } from "lucide-react";
@@ -19,6 +20,8 @@ import { CreditChip } from "@/components/ui/RankBadge";
 import { Spinner } from "@/components/ui/Spinner";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { PulseCamera } from "@/features/camera/PulseCamera";
+import { captureSourceLabel, isCaptureSource } from "@/features/captures/labels";
+import { useCaptureFeed } from "@/features/captures/queries";
 import {
   buildCheckinPayload,
   countStepValues,
@@ -29,6 +32,7 @@ import {
   validateNotes,
   validateStep,
   type CheckinFormState,
+  type MetricMeta,
   type SymptomDraft,
 } from "@/features/checkin/checkin-form";
 import { CHECKIN_STEPS, type MetricField, type StepKey } from "@/features/checkin/checkin-config";
@@ -83,6 +87,7 @@ export function SystemsCheckPage() {
   const syncing = useOfflineStore((state) => state.syncing);
   const syncQueued = useOfflineStore((state) => state.sync);
   const lastSyncedAt = useOfflineStore((state) => state.lastSyncedAt);
+  const captureQuery = useCaptureFeed();
 
   const [phase, setPhase] = useState<PagePhase>("loading");
   const [resumeDraft, setResumeDraft] = useState<CheckinDraft | null>(null);
@@ -101,6 +106,7 @@ export function SystemsCheckPage() {
 
   const stepPanelRef = useRef<HTMLDivElement>(null);
   const firstStepRender = useRef(true);
+  const captureAppliedRef = useRef<string | null>(null);
   const activeStep = CHECKIN_STEPS[step] ?? CHECKIN_STEPS[0];
   const activeSkipped = skipped.includes(activeStep.key);
   const isLastStep = step === CHECKIN_STEPS.length - 1;
@@ -124,6 +130,36 @@ export function SystemsCheckPage() {
     heading?.setAttribute("tabindex", "-1");
     heading?.focus({ preventScroll: true });
   }, [step, phase, reduce]);
+
+  useEffect(() => {
+    const feed = captureQuery.data;
+    if (!feed || !feed.captured_at || feed.metrics.length === 0) return;
+    if (captureAppliedRef.current === feed.captured_at) return;
+    captureAppliedRef.current = feed.captured_at;
+
+    setForm((current) => {
+      const metrics = { ...current.metrics };
+      const metricsMeta = { ...current.metricsMeta };
+      let changed = false;
+
+      for (const metric of feed.metrics) {
+        const existing = (metrics[metric.metric_code] ?? "").trim();
+        const existingMeta = metricsMeta[metric.metric_code];
+        // Never overwrite a manual or camera reading. A newer capture may
+        // refresh an earlier capture.
+        if (existing !== "" && !isCaptureSource(existingMeta?.source)) continue;
+        metrics[metric.metric_code] = String(metric.value);
+        metricsMeta[metric.metric_code] = {
+          source: metric.source as MetricMeta["source"],
+          confidence: 0.93,
+        };
+        changed = true;
+      }
+
+      return changed ? { ...current, metrics, metricsMeta } : current;
+    });
+    setDirty(true);
+  }, [captureQuery.data]);
 
   useEffect(() => {
     if (!user) return;
@@ -582,6 +618,24 @@ export function SystemsCheckPage() {
               </span>
             }
           >
+            {(activeStep.key === "vitals" || activeStep.key === "training") &&
+              captureQuery.data?.captured_at && (
+                <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-accent/20 bg-accent-soft/40 px-3 py-2 text-[11px] leading-relaxed text-ink-2">
+                  <Radio size={13} className="shrink-0 text-accent" aria-hidden />
+                  <span>
+                    {activeStep.key === "vitals"
+                      ? "Vitals captured automatically"
+                      : "Captured load is pre-filled"}{" "}
+                    from {captureSourceLabel(captureQuery.data.source)}.
+                  </span>
+                  <span className="rounded-full bg-surface px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
+                    Simulated
+                  </span>
+                  <span className="text-muted">
+                    {formatRelativeTime(captureQuery.data.captured_at)} · override only if needed.
+                  </span>
+                </div>
+              )}
             {activeSkipped && (
               <div className="mb-3 flex items-start gap-2 rounded-lg border border-line bg-surface-muted px-3 py-2 text-[11px] leading-relaxed text-muted">
                 <HardDriveDownload size={13} className="mt-0.5 shrink-0" aria-hidden />

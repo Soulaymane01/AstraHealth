@@ -125,6 +125,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/captures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Capture Feed */
+        get: operations["read_capture_feed_captures_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/captures/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate Sensor Capture */
+        post: operations["simulate_sensor_capture_captures_simulate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/domains/{domain}": {
         parameters: {
             query?: never;
@@ -900,6 +934,44 @@ export interface components {
              */
             end: string;
         };
+        /** CaptureFeedRead */
+        CaptureFeedRead: {
+            /** Source */
+            source: string | null;
+            /** Source Label */
+            source_label: string;
+            /** Captured At */
+            captured_at: string | null;
+            /**
+             * Next Capture At
+             * Format: date-time
+             */
+            next_capture_at: string;
+            /** Captured */
+            captured: boolean;
+            /** Simulated */
+            simulated: boolean;
+            /** Metrics */
+            metrics: components["schemas"]["CaptureMetricRead"][];
+        };
+        /** CaptureMetricRead */
+        CaptureMetricRead: {
+            /** Metric Code */
+            metric_code: string;
+            /** Name */
+            name: string;
+            /** Value */
+            value: number;
+            /** Unit */
+            unit: string;
+            /** Source */
+            source: string;
+            /**
+             * Measured At
+             * Format: date-time
+             */
+            measured_at: string;
+        };
         /** CheckinCreate */
         CheckinCreate: {
             /** Entries */
@@ -1283,7 +1355,7 @@ export interface components {
              * @default manual
              * @enum {string}
              */
-            source: "manual" | "device" | "camera_rppg" | "derived";
+            source: "manual" | "device" | "camera_rppg" | "derived" | "iss_capture" | "lunar_capture" | "mars_capture";
             /** Confidence */
             confidence?: number | null;
             /** Notes */
@@ -2292,6 +2364,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_capture_feed_captures_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureFeedRead"];
+                };
+            };
+        };
+    };
+    simulate_sensor_capture_captures_simulate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureFeedRead"];
                 };
             };
         };

@@ -14,11 +14,11 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screen: `shell.png`.*
 
 2. **Anomaly — 0:20**
-   The exception list shows **HRV is below your baseline** and **Sleep is fragmented**, both at Caution. The factors explain the score: sleep efficiency around 76%, sleep duration around 5.3 h, HRV around 38.8 ms, and stress around 3–4/5. Click the chest on the anatomical body map for cardiovascular detail, or the **Sleep & circadian** row for sleep efficiency. Open **Why this score?** to show the full contribution list.
+   The exception list shows **HRV is below your baseline** and **Sleep is fragmented**, both at Caution. The factors explain the score: sleep efficiency around 76%, sleep duration around 5.3 h, HRV around 38.8 ms, and stress around 3–4/5. Click the chest on the anatomical body map for cardiovascular detail, or the **Sleep & circadian** row for sleep efficiency. Open **Why this score?** to show the full contribution list. Point at the **Automatic sensor capture** strip: ten readings from the Mars transit sensors, labeled **Simulated**, with **no astronaut entry**.
    *Expected screen: `domain.png`.*
 
 3. **Act — 0:40**
-   Start the Systems Check. Enter a resting heart rate and core temperature; open **Why we ask** to show the HRP rationale. Continue through sleep, mood, and the symptom step. Use **No symptoms today** or tap a body region. On the last step, add a training and hydration value, then complete the check-in. The footer states that the draft is saved on the device and that the submission is one transaction.
+   Start the Systems Check. The vitals are **already pre-filled** from the capture feed; point at the **Vitals captured automatically** banner and open **Why we ask** to show the HRP rationale. Override only if you want to demonstrate a manual fallback. Continue through sleep, mood, and the symptom step, entering sleep and mood manually. Use **No symptoms today** or tap a body region. On the last step, the captured load is pre-filled; add a hydration value, then complete the check-in. The footer states that the draft is saved on the device and that the submission is one transaction.
    The Systems Report opens on **Recommended next action**, then shows the readiness delta, status transition, top factors with standard-deviation context, the 40 FC award, and active alerts. If you skip every step except one, the report shows the explicit **insufficient data** state instead of inventing a score.
    *Expected screens: `checkin.png`, `report.png`.*
 
@@ -50,6 +50,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 ## What to point out to judges
 
 - The score is explainable: factors and rules are visible, not a black box.
+- Vitals and load are automatic: the capture strip shows simulated habitat/suit readings with provenance, and the Systems Check pre-fills them. Sleep, mood, and symptoms remain the astronaut’s own input.
 - The check-in is honest about missing data: skipped steps are recorded, and the report says when a baseline is insufficient instead of inventing a score.
 - The telemetry charts never invent a reading. The personal baseline and spaceflight reference are visually distinct, the event rail explains context, and an empty range says what to do next.
 - The social layer is safe: the leaderboard contains no health values, privacy is enforced in the roster, the crew quiz only accepts consenting subjects, and the app does not duplicate direct crew communication with an in-app chat.

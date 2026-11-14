@@ -40,6 +40,7 @@ from app.models import (
     User,
     UserAchievement,
 )
+from app.services.captures import CAPTURE_METRICS, CAPTURE_SOURCES
 from app.services.readiness import compute_and_persist_readiness
 
 DEMO_PASSWORD = "astra-demo"
@@ -195,9 +196,20 @@ def reset_database(session: Session) -> None:
 
 
 def seed_metric_definitions(session: Session) -> None:
+    capture_codes = set(CAPTURE_METRICS)
     for item in METRIC_DEFINITIONS:
-        if session.get(MetricDefinition, item["code"]) is None:
-            session.add(MetricDefinition(**item))
+        data = dict(item)
+        if data["code"] in capture_codes:
+            data["source_types"] = list(
+                dict.fromkeys([*data.get("source_types", []), *CAPTURE_SOURCES])
+            )
+        existing = session.get(MetricDefinition, data["code"])
+        if existing is None:
+            session.add(MetricDefinition(**data))
+        elif data["code"] in capture_codes:
+            # Keep an existing demo database in sync after the capture feature
+            # is added, without requiring a destructive reset.
+            existing.source_types = data["source_types"]
     session.flush()
 
 

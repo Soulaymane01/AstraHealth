@@ -6,7 +6,7 @@ The source of truth is the FastAPI OpenAPI schema. While the API is running:
 - ReDoc — http://localhost:8000/redoc
 - Raw schema — http://localhost:8000/openapi.json
 
-**Final status (Phase 11):** implemented endpoints are `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/rewards`, `/rewards/{code}/redeem`, `/redemptions`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
+**Final status (Phase 11):** implemented endpoints are `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/captures`, `/captures/simulate`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/profile`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/rewards`, `/rewards/{code}/redeem`, `/redemptions`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
 
 The frontend client is generated from the schema:
 
@@ -78,6 +78,15 @@ Regenerate after every contract change. Hand-written request/response types are 
 | POST | `/measurements` | Record one or more measurements |
 | GET | `/measurements?metric=&from=&to=` | Series for charts |
 | GET | `/domains/{domain}?days=7\|30\|90` | Domain score and per-metric summaries |
+
+### Sensor captures
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/captures` | Latest simulated capture; creates one if the 5-minute cadence has elapsed, then recomputes readiness |
+| POST | `/captures/simulate` | Force a new capture for the current user and recompute readiness |
+
+Captures use `source=iss_capture`, `lunar_capture`, or `mars_capture` depending on the mission profile. They cover heart rate, HRV, blood pressure, orthostatic rise, SpO₂, core temperature, body mass, and exercise/bone load. Sleep, mood, stress, social contact, symptoms, strength, hydration, nutrition, vitamin D, glucose, and notes remain manual. The response includes `simulated: true`, `source_label`, `captured_at`, `next_capture_at`, and the metric batch.
 
 ### Systems Check
 
@@ -161,7 +170,7 @@ Hard rules are evaluated from the latest readings even when no personal baseline
 
 ### Check-in measurement metadata
 
-`POST /checkins` accepts an optional `meta` object per entry. The camera path sends `{ "source": "camera_rppg", "confidence": 0.0–1.0 }`; manual edits clear that metadata and store `source=manual`. Unknown sources fall back to `manual`, and confidence outside 0–1 is dropped.
+`POST /checkins` accepts an optional `meta` object per entry. The camera path sends `{ "source": "camera_rppg", "confidence": 0.0–1.0 }`; auto-filled vitals send `iss_capture`, `lunar_capture`, or `mars_capture`; manual edits clear that metadata and store `source=manual`. Unknown sources fall back to `manual`, and confidence outside 0–1 is dropped.
 
 ---
 

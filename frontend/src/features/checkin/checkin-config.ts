@@ -291,14 +291,14 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     title: "Vitals",
     short: "Vitals",
     description:
-      "The numbers you can measure right now. Leave blank anything you cannot take today.",
+      "Captured automatically from habitat and suit sensors. Review the values; override only if a sensor is unavailable.",
     fields: VITALS,
     scales: [],
     article: {
       slug: "hrv-basics",
       title: "Why HRV falls before you feel tired",
       source: "NASA Human Research Program",
-      body: "Heart rate, blood pressure, temperature, and oxygen saturation are the fastest way to spot strain. We compare them with your own 21-day baseline, not a population average, because microgravity changes what normal looks like. A single reading is context; a trend over several days is the signal.",
+      body: "Heart rate, blood pressure, temperature, and oxygen saturation are captured by habitat and suit sensors. We compare them with your own 21-day baseline, not a population average, because microgravity changes what normal looks like. A single reading is context; a trend over several days is the signal.",
     },
   },
   {
@@ -350,7 +350,7 @@ export const CHECKIN_STEPS: StepDefinition[] = [
     title: "Training & Nutrition",
     short: "Training",
     description:
-      "What you actually did and what you actually took in — not what the plan asked for.",
+      "Captured load is pre-filled. Add strength, hydration, and intake — the things a sensor cannot infer.",
     fields: TRAINING,
     scales: [],
     article: {
