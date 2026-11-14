@@ -17,11 +17,11 @@ export function CreditChip({
         "inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-2.5 py-1 text-xs font-medium text-accent",
         className,
       )}
-      title={`${formatNumber(amount)} Flight Credits`}
+      title={`${formatNumber(amount)} mission points`}
     >
       <Orbit size={11} aria-hidden />
       <span className="tabular">{formatNumber(amount)}</span>
-      {showLabel && <span className="text-[10px] text-accent">FC</span>}
+      {showLabel && <span className="text-[10px] text-accent">MP</span>}
     </span>
   );
 }

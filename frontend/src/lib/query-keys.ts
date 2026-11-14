@@ -15,8 +15,6 @@ export const queryKeys = {
   gamification: ["gamification"] as const,
   credits: ["credits"] as const,
   achievements: ["achievements"] as const,
-  rewards: ["rewards"] as const,
-  redemptions: ["redemptions"] as const,
   crew: ["crew"] as const,
   crewLeaderboard: ["crew", "leaderboard"] as const,
   quizzes: ["quizzes"] as const,

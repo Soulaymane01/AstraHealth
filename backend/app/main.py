@@ -33,7 +33,7 @@ TAGS_METADATA = [
     {"name": "checkins", "description": "Guided Systems Check sessions and reports."},
     {"name": "readiness", "description": "Readiness scoring, factors, and alerts."},
     {"name": "training", "description": "Countermeasures, training plans, and streaks."},
-    {"name": "gamification", "description": "Credits, ranks, achievements, and rewards."},
+    {"name": "gamification", "description": "Mission points, ranks, achievements, and streaks."},
     {"name": "quizzes", "description": "Know Yourself and Know Your Crew quizzes."},
     {"name": "knowledge", "description": "HRP-sourced health education."},
     {"name": "mission", "description": "Mission profile and space-weather context."},

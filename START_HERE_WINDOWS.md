@@ -215,7 +215,7 @@ Open **`docs/DEMO.md`** for a three-minute script. The short version:
 2. **Systems Check** - complete a check-in and read the Systems Report.
 3. **Telemetry** - open HRV (RMSSD), switch the range, export CSV.
 4. **Training** - log a countermeasure with RPE.
-5. **Mission Log** - credits, rank, streak, allowance redemption.
+5. **Mission Log** - mission points, rank, streaks, achievements.
 6. **Crew** - privacy and the consistency board.
 7. **Library** - cited HRP articles.
 8. **Flight Surgeon** - ask "Why is my HRV low?" and show the citations.

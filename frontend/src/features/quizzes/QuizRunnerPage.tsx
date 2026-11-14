@@ -46,10 +46,10 @@ function ResultView({
           </div>
           <div className="text-left sm:text-right">
             <p className="text-sm font-medium text-accent">
-              {result.credits_awarded > 0 ? `+${result.credits_awarded} FC` : "No credits"}
+              {result.credits_awarded > 0 ? `+${result.credits_awarded} MP` : "No points"}
             </p>
             <p className="text-[10px] text-muted">
-              {result.credits_awarded > 0 ? "first completion" : "retake — no credits"}
+              {result.credits_awarded > 0 ? "first completion" : "retake — no points"}
             </p>
           </div>
         </div>

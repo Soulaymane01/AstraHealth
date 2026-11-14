@@ -870,7 +870,7 @@ export function SystemsCheckPage() {
             </div>
 
             <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
-              <span className="text-xs text-ink-2">Credits on completion</span>
+              <span className="text-xs text-ink-2">Mission points on completion</span>
               <CreditChip amount={40} />
             </div>
 

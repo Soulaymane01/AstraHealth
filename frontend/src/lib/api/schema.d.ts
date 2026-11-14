@@ -535,57 +535,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/rewards": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Rewards */
-        get: operations["read_rewards_rewards_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/rewards/{code}/redeem": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Redeem */
-        post: operations["redeem_rewards__code__redeem_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/redemptions": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Read Redemptions */
-        get: operations["read_redemptions_redemptions_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/streaks": {
         parameters: {
             query?: never;
@@ -1464,8 +1413,6 @@ export interface components {
             achievements_unlocked: number;
             /** Achievements Total */
             achievements_total: number;
-            /** Rewards Redeemed */
-            rewards_redeemed: number;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -1518,7 +1465,7 @@ export interface components {
              * Type
              * @enum {string}
              */
-            type: "checkin" | "alert" | "training" | "achievement" | "redemption";
+            type: "checkin" | "alert" | "training" | "achievement";
             /** Title */
             title: string;
             /** Detail */
@@ -1947,31 +1894,6 @@ export interface components {
             /** Fired Rules */
             fired_rules: string[];
         };
-        /** RedemptionRead */
-        RedemptionRead: {
-            /** Id */
-            id: number;
-            /** Reward Code */
-            reward_code: string;
-            /** Reward Name */
-            reward_name: string;
-            /** Cost */
-            cost: number;
-            /** Status */
-            status: string;
-            /**
-             * Redeemed At
-             * Format: date-time
-             */
-            redeemed_at: string;
-        };
-        /** RedemptionResultRead */
-        RedemptionResultRead: {
-            redemption: components["schemas"]["RedemptionRead"];
-            /** Balance */
-            balance: number;
-            rank: components["schemas"]["RankRead"];
-        };
         /** ReferenceBandRead */
         ReferenceBandRead: {
             /** Lower */
@@ -1995,32 +1917,6 @@ export interface components {
             password: string;
             /** Full Name */
             full_name: string;
-        };
-        /** RewardRead */
-        RewardRead: {
-            /** Code */
-            code: string;
-            /** Name */
-            name: string;
-            /** Description */
-            description: string;
-            /** Cost */
-            cost: number;
-            /** Icon */
-            icon: string;
-            /** Category */
-            category: string;
-            /** Active */
-            active: boolean;
-            /**
-             * State
-             * @enum {string}
-             */
-            state: "available" | "locked" | "redeemed";
-            /** Shortfall */
-            shortfall: number;
-            /** Redeemed At */
-            redeemed_at?: string | null;
         };
         /** SpaceWeatherEventRead */
         SpaceWeatherEventRead: {
@@ -3519,77 +3415,6 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AchievementRead"][];
-                };
-            };
-        };
-    };
-    read_rewards_rewards_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RewardRead"][];
-                };
-            };
-        };
-    };
-    redeem_rewards__code__redeem_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                code: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RedemptionResultRead"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    read_redemptions_redemptions_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RedemptionRead"][];
                 };
             };
         };

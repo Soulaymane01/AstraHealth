@@ -2,7 +2,6 @@ import {
   Award,
   ClipboardCheck,
   Dumbbell,
-  Gift,
   Sun,
   TriangleAlert,
   type LucideIcon,
@@ -12,8 +11,7 @@ import { StatusDot } from "@/components/ui/Status";
 import type { Status } from "@/lib/status";
 import { cn } from "@/lib/utils";
 
-export type TapeEventType =
-  "checkin" | "alert" | "training" | "achievement" | "redemption" | "weather";
+export type TapeEventType = "checkin" | "alert" | "training" | "achievement" | "weather";
 
 export interface TapeEvent {
   id: string;
@@ -43,11 +41,6 @@ const EVENT_META: Record<TapeEventType, { icon: LucideIcon; className: string; l
     icon: Award,
     className: "text-watch border-watch/20 bg-watch-soft",
     label: "Commendation",
-  },
-  redemption: {
-    icon: Gift,
-    className: "text-accent border-accent/20 bg-accent-soft",
-    label: "Allowance",
   },
   weather: {
     icon: Sun,

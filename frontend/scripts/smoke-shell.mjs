@@ -239,14 +239,10 @@ await page.screenshot({ path: path.join(out, "crew.png"), fullPage: true });
 await page.goto(`${base}/log`, { waitUntil: "networkidle" });
 await page.waitForTimeout(1200);
 body = await page.textContent("body");
-check("mission log", Boolean(body?.includes("Mission rank") && body?.includes("Credit ledger")));
+check("mission log", Boolean(body?.includes("Mission rank") && body?.includes("Point history")));
 check(
   "mission log feed",
-  Boolean(
-    body?.includes("Activity") &&
-    body?.includes("Mission allowances") &&
-    body?.includes("Achievements"),
-  ),
+  Boolean(body?.includes("Activity") && body?.includes("Achievements")),
 );
 await page.screenshot({ path: path.join(out, "log.png"), fullPage: true });
 

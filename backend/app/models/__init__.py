@@ -2,8 +2,6 @@ from app.models.content import KnowledgeArticle, Quiz, QuizAttempt, TrainingItem
 from app.models.gamification import (
     Achievement,
     CreditEvent,
-    Redemption,
-    Reward,
     Streak,
     UserAchievement,
 )
@@ -35,8 +33,6 @@ __all__ = [
     "Quiz",
     "QuizAttempt",
     "ReadinessSnapshot",
-    "Redemption",
-    "Reward",
     "SpaceWeatherEvent",
     "Streak",
     "SurgeonAssessment",

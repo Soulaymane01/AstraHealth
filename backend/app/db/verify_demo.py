@@ -14,7 +14,6 @@ from app.models import (
     Mission,
     Quiz,
     ReadinessSnapshot,
-    Reward,
     SpaceWeatherEvent,
     SurgeonAssessment,
     SurgeonInstruction,
@@ -152,14 +151,12 @@ def main() -> int:
             "knowledge": session.scalar(select(func.count(KnowledgeArticle.slug))),
             "training items": session.scalar(select(func.count(TrainingItem.code))),
             "achievements": session.scalar(select(func.count(Achievement.code))),
-            "rewards": session.scalar(select(func.count(Reward.code))),
             "quizzes": session.scalar(select(func.count(Quiz.slug))),
         }
         expected = {
             "knowledge": 9,
             "training items": 8,
             "achievements": 5,
-            "rewards": 4,
             "quizzes": 2,
         }
         checks.append(

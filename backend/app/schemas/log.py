@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 class LogEventRead(BaseModel):
     id: str
-    type: Literal["checkin", "alert", "training", "achievement", "redemption"]
+    type: Literal["checkin", "alert", "training", "achievement"]
     title: str
     detail: str
     at: datetime

@@ -282,22 +282,22 @@ export function CheckinReportPage() {
         </div>
 
         <div className="space-y-4 lg:col-span-5">
-          <Panel title="Credits" subtitle="Awarded exactly once per check-in.">
+          <Panel title="Mission points" subtitle="Awarded exactly once per check-in.">
             {report.credits > 0 ? (
               <>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-2xl font-semibold tabular text-ink">+{report.credits}</p>
-                    <p className="text-[11px] text-muted">Flight Credits</p>
+                    <p className="text-[11px] text-muted">Mission points</p>
                   </div>
                   <CreditChip amount={report.credits} showLabel className="text-sm" />
                 </div>
                 <p className="mt-2 text-[10px] text-muted">
-                  Credits appear in your ledger when the check-in commits.
+                  Points appear in your history when the check-in commits.
                 </p>
               </>
             ) : (
-              <p className="text-[13px] text-muted">No credits recorded for this check-in.</p>
+              <p className="text-[13px] text-muted">No points recorded for this check-in.</p>
             )}
           </Panel>
 

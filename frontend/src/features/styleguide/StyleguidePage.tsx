@@ -1,13 +1,10 @@
 import {
   ArrowRight,
   CheckCircle2,
-  Coffee,
   Droplets,
   Dumbbell,
   Moon,
   Orbit,
-  PhoneCall,
-  UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
@@ -25,7 +22,6 @@ import { Panel } from "@/components/ui/Panel";
 import { QuizCard } from "@/components/ui/QuizCard";
 import { RankBadge } from "@/components/ui/RankBadge";
 import { ReadinessRing } from "@/components/ui/ReadinessRing";
-import { RewardCard } from "@/components/ui/RewardCard";
 import { ScaleInput } from "@/components/ui/ScaleInput";
 import { StepIndicator } from "@/components/ui/StepIndicator";
 import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
@@ -196,7 +192,6 @@ export function StyleguidePage() {
   const [activeDomain, setActiveDomain] = useState("cardiovascular");
   const [acknowledged, setAcknowledged] = useState<Record<string, boolean>>({});
   const [mood, setMood] = useState(3);
-  const [rewardRedeemed, setRewardRedeemed] = useState(false);
 
   return (
     <div className="min-h-screen">
@@ -436,7 +431,7 @@ export function StyleguidePage() {
                     <div>
                       <p className="text-[11px] text-muted">Telemetry · Geist Mono</p>
                       <p className="mt-1 font-mono text-lg tabular text-ink">
-                        78 · 38 ms · 37.8 °C · 1,240 FC
+                        78 · 38 ms · 37.8 °C · 1,240 MP
                       </p>
                     </div>
                     <div>
@@ -637,66 +632,25 @@ export function StyleguidePage() {
             description="Ranks reward consistency, never a health reading. The crew sees what each person chooses to share."
           >
             <div className="grid gap-4 lg:grid-cols-3">
-              <div className="space-y-4">
-                <RankBadge
-                  rank="Flight Engineer"
-                  credits={1240}
-                  nextRank="Commander"
-                  progress={0.62}
-                />
-                <QuizCard
-                  title="Sleep, circadian rhythm, and the 24-hour day"
-                  mode="self"
-                  questions={5}
-                  bestScore={90}
-                  status="completed"
-                />
-                <QuizCard
-                  title="How has your crewmate seemed this week?"
-                  mode="crew"
-                  questions={5}
-                  status="new"
-                />
-              </div>
-
-              <Panel
-                title="Mission allowances"
-                subtitle="Chosen before departure. Redeemable with Flight Credits."
-                className="lg:col-span-2"
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <RewardCard
-                    name="Family call"
-                    description="An extra 20-minute call outside the standard comms window."
-                    cost={120}
-                    icon={PhoneCall}
-                    state={rewardRedeemed ? "redeemed" : "available"}
-                    onRedeem={() => setRewardRedeemed(true)}
-                  />
-                  <RewardCard
-                    name="Choose the menu"
-                    description="Pick the next week's dinner rotation for the crew."
-                    cost={80}
-                    icon={UtensilsCrossed}
-                    state="locked"
-                    shortfall={40}
-                  />
-                  <RewardCard
-                    name="Rest day"
-                    description="One day off from the prescribed exercise protocol."
-                    cost={200}
-                    icon={Moon}
-                    state="redeemed"
-                  />
-                  <RewardCard
-                    name="Extra coffee"
-                    description="A second personal coffee ration for the week."
-                    cost={40}
-                    icon={Coffee}
-                    state="available"
-                  />
-                </div>
-              </Panel>
+              <RankBadge
+                rank="Flight Engineer"
+                credits={1240}
+                nextRank="Commander"
+                progress={0.62}
+              />
+              <QuizCard
+                title="Sleep, circadian rhythm, and the 24-hour day"
+                mode="self"
+                questions={5}
+                bestScore={90}
+                status="completed"
+              />
+              <QuizCard
+                title="How has your crewmate seemed this week?"
+                mode="crew"
+                questions={5}
+                status="new"
+              />
             </div>
           </Section>
 

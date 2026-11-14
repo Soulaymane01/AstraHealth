@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
@@ -8,21 +8,13 @@ from app.schemas import (
     AchievementRead,
     CreditLedgerRead,
     GamificationSummaryRead,
-    RedemptionRead,
-    RedemptionResultRead,
-    RewardRead,
     StreakRead,
 )
 from app.services.gamification import (
-    AlreadyRedeemedError,
-    InsufficientCreditsError,
     gamification_summary,
     get_streak,
     list_achievements,
     list_credits,
-    list_redemptions,
-    list_rewards,
-    redeem_reward,
     streak_read,
 )
 
@@ -53,52 +45,6 @@ def read_achievements(
     db: Session = Depends(get_db),
 ) -> list[AchievementRead]:
     return list_achievements(db, user)
-
-
-@router.get("/rewards", response_model=list[RewardRead])
-def read_rewards(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> list[RewardRead]:
-    return list_rewards(db, user)
-
-
-@router.post("/rewards/{code}/redeem", response_model=RedemptionResultRead)
-def redeem(
-    code: str,
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> RedemptionResultRead:
-    try:
-        result = redeem_reward(db, user, code)
-    except LookupError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Reward not found"
-        ) from exc
-    except AlreadyRedeemedError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="This allowance has already been redeemed.",
-        ) from exc
-    except InsufficientCreditsError as exc:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"You need {exc.shortfall} more Flight Credits.",
-        ) from exc
-
-    db.commit()
-    return result
-
-
-@router.get("/redemptions", response_model=list[RedemptionRead])
-def read_redemptions(
-    user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> list[RedemptionRead]:
-    return list_redemptions(db, user)
 
 
 @router.get("/streaks", response_model=list[StreakRead])

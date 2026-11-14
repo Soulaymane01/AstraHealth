@@ -6,7 +6,7 @@ The source of truth is the FastAPI OpenAPI schema. While the API is running:
 - ReDoc — http://localhost:8000/redoc
 - Raw schema — http://localhost:8000/openapi.json
 
-**Final status (Phase 11):** implemented endpoints are `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/captures`, `/captures/simulate`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/profile`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/rewards`, `/rewards/{code}/redeem`, `/redemptions`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
+**Final status (Phase 11):** implemented endpoints are `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/captures`, `/captures/simulate`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/profile`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
 
 The frontend client is generated from the schema:
 
@@ -95,8 +95,8 @@ When the prediction crosses a threshold, the backend creates one deduplicated AI
 | GET | `/mission` | Mission profile, environment, and MET origin |
 | PATCH | `/mission/profile` | Set `mars_transit`, `lunar_surface`, or `station`; recomputes readiness with the profile weights |
 | GET | `/mission/context` | Latest space-weather event and active flag, with `source` (`live` or `fixture`) and `fetched_at`; live DONKI is cached for 30 minutes |
-| GET | `/mission/tape?days=7\|30` | Check-ins, alerts, training, commendations, allowances, and weather |
-| GET | `/mission/log` | Personal feed of check-ins, alerts, training, achievements, and redemptions |
+| GET | `/mission/tape?days=7\|30` | Check-ins, alerts, training, commendations, and weather |
+| GET | `/mission/log` | Personal feed of check-ins, alerts, training, and achievements |
 
 ### Metrics and measurements
 
@@ -151,12 +151,9 @@ Captures use `source=iss_capture`, `lunar_capture`, or `mars_capture` depending 
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/gamification/summary` | Balance, lifetime credits, rank, streaks, and counts |
-| GET | `/credits` | Ledger entries, lifetime credited, spent, and balance |
+| GET | `/gamification/summary` | Point balance, lifetime points, rank, streaks, and counts |
+| GET | `/credits` | Point history, lifetime points, and balance |
 | GET | `/achievements` | Commendations and unlock state |
-| GET | `/rewards` | Mission allowances with `available`, `locked`, or `redeemed` state |
-| POST | `/rewards/{code}/redeem` | Redeem an allowance and write the negative ledger entry |
-| GET | `/redemptions` | Redemption history |
 | GET | `/streaks` | Check-in and training streaks with grace state |
 
 ### Quizzes

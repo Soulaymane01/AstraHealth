@@ -23,9 +23,6 @@ from app.schemas.gamification import (
     CreditLedgerRead,
     GamificationSummaryRead,
     RankRead,
-    RedemptionRead,
-    RedemptionResultRead,
-    RewardRead,
     StreakRead,
 )
 from app.schemas.knowledge import KnowledgeArticleRead, KnowledgeArticleSummaryRead
@@ -144,12 +141,9 @@ __all__ = [
     "RankRead",
     "ReadinessFactor",
     "ReadinessSnapshotRead",
-    "RedemptionRead",
-    "RedemptionResultRead",
     "ReferenceBandRead",
     "RefreshRequest",
     "RegisterRequest",
-    "RewardRead",
     "SpaceWeatherEventRead",
     "StreakRead",
     "SurgeonAssessmentCreate",

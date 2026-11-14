@@ -53,11 +53,11 @@
 - **Mission environments** — switch between Mars transit, lunar surface, and space station; profile weights, comms delay, and the training plan update immediately.
 - **Handoff and routine exports** — print or save the Systems Report as PDF, export it as JSON, and add today’s Duty Roster to a calendar as `.ics`.
 - **Training and Duty Roster** — a weekly plan generated from active alerts and the mission profile, countermeasure links from every alert, session logging with RPE, adherence and streaks, a daily roster, and a next-due indicator in the nav and top bar.
-- **Motivation** — a credit ledger, Mission Rank, commendations, a one-time allowance catalog, streaks with a single grace day, and a Mission Log that records the whole loop. Never tied to health values.
+- **Motivation** — mission points, Mission Rank, commendations, streaks with a single grace day, and a Mission Log that records the whole loop. Never tied to health values.
 - **Crew** — consent-based status sharing, a privacy-filtered readiness roster, and a consistency board with no health values. Direct crew communication stays outside the health tool.
 - **Flight Surgeon console** — a separate Earth-side dashboard for the medical officer: all crew readiness and alerts, the full capture and manual record, metric trends, clinical assessments/diagnoses, alert acknowledgement, and instructions or check-in requests sent back to the crew. Shared assessments and requests appear on the astronaut’s Flight Deck.
 - **Early warning and Clinical Copilot** — a transparent 48–72-hour risk view per crew member (HRV, sleep, temperature, oxygen, hydration, mood, and more) with evidence and monitoring suggestions, plus a decision-support copilot that summarizes the record, explains the risk, and suggests questions. When a signal crosses a threshold, the system also creates one deduplicated **focused follow-up request** for the astronaut (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), with target readings and a due time. The copilot refuses diagnosis, prescriptions, and doses; the flight surgeon makes the clinical decision.
-- **Quizzes** — Know Yourself and the consent-gated Know Your Crew, with scoring, source explanations, and a first-completion credit award.
+- **Quizzes** — Know Yourself and the consent-gated Know Your Crew, with scoring, source explanations, and a first-completion points award.
 - **Knowledge and AI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
 - **Offline-first PWA** — a Workbox service worker precaches the shell and route chunks, and the last readiness/alerts/mission snapshot is cached per user for offline viewing with a “last synced” label. Check-ins submitted without a link are written to IndexedDB, shown in an explicit offline banner with the next comms window, and synced exactly once on reconnect using the check-in idempotency key. Failed items can be reviewed and discarded.
@@ -111,7 +111,7 @@ make reset-demo
 make demo-verify
 ```
 
-`make demo-verify` checks the four crew accounts, privacy settings, commander readiness around 80 / Watch, the two expected alerts, mission day 42, space-weather context, and the content catalog (9 articles, 8 training items, 5 achievements, 4 rewards, 2 quizzes).
+`make demo-verify` checks the four crew accounts, privacy settings, commander readiness around 80 / Watch, the two expected alerts, mission day 42, space-weather context, and the content catalog (9 articles, 8 training items, 5 achievements, 2 quizzes).
 
 ### Optional integrations
 
@@ -204,7 +204,7 @@ FastAPI
   ├─ Earth-side console → crew record, assessments, instructions
   ├─ readiness engine + hard rules + alert lifecycle
   ├─ atomic check-in transaction
-  └─ 9 HRP articles, quizzes, training, rewards
+  └─ 9 HRP articles, quizzes, training, achievements
 
 PostgreSQL 16
   └─ 25 tables, seeded mission, crew, telemetry, content, surgeon records

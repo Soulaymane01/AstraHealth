@@ -10,7 +10,7 @@ from app.db.base import Base, TimestampMixin
 
 if TYPE_CHECKING:
     from app.models.content import QuizAttempt, TrainingSession
-    from app.models.gamification import CreditEvent, Redemption, Streak, UserAchievement
+    from app.models.gamification import CreditEvent, Streak, UserAchievement
     from app.models.health import Alert, Checkin, Measurement, ReadinessSnapshot
 
 
@@ -80,9 +80,6 @@ class User(TimestampMixin, Base):
     )
     credit_events: Mapped[list[CreditEvent]] = relationship(
         "CreditEvent", back_populates="user", cascade="all, delete-orphan"
-    )
-    redemptions: Mapped[list[Redemption]] = relationship(
-        "Redemption", back_populates="user", cascade="all, delete-orphan"
     )
     streaks: Mapped[list[Streak]] = relationship(
         "Streak", back_populates="user", cascade="all, delete-orphan"

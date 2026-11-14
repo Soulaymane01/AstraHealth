@@ -64,7 +64,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 - The offline path is honest, not a spinner: the queue is visible, per user, retryable, and exactly-once through the idempotency key.
 - The delivery is hardened: auth rate limits, token-only CORS, a precached PWA shell with no API response caching, route-level splitting, and retry actions on every data view. Lighthouse reports 100 accessibility on both presets and performance 100 desktop / 99–100 mobile for the Flight Deck.
 - The design is astronaut-specific: gloved-hand targets, no hover-only information, color plus icon plus word.
-- The gamification is safe: rewards for consistency, never for a good reading.
+- The gamification is safe: mission points for consistency, never for a good reading.
 - The architecture is offline-first, because the mission is.
 
 ---

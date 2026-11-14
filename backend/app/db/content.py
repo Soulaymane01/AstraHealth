@@ -1,7 +1,7 @@
 """Seed content for the AstraHealth demo.
 
 This file holds the metric catalog, knowledge articles, quizzes, training
-catalog, achievements, and rewards. The content is a mix of operational
+catalog and achievements. The content is a mix of operational
 guidance and educational material. It is not a medical protocol.
 """
 
@@ -398,45 +398,6 @@ ACHIEVEMENTS = [
         "description": "A caution alert returned to nominal after a countermeasure.",
         "icon": "activity",
         "criteria": {"recovered_alerts": 1},
-    },
-]
-
-REWARDS = [
-    {
-        "code": "family-call",
-        "name": "Family call",
-        "description": "An extra 20-minute call outside the standard comms window.",
-        "cost": 120,
-        "icon": "phone",
-        "category": "connection",
-        "active": True,
-    },
-    {
-        "code": "choose-menu",
-        "name": "Choose the menu",
-        "description": "Pick the next week's dinner rotation for the crew.",
-        "cost": 80,
-        "icon": "utensils",
-        "category": "comfort",
-        "active": True,
-    },
-    {
-        "code": "rest-day",
-        "name": "Rest day",
-        "description": "One day off from the prescribed exercise protocol.",
-        "cost": 200,
-        "icon": "moon",
-        "category": "recovery",
-        "active": True,
-    },
-    {
-        "code": "extra-coffee",
-        "name": "Extra coffee",
-        "description": "A second personal coffee ration for the week.",
-        "cost": 40,
-        "icon": "coffee",
-        "category": "comfort",
-        "active": True,
     },
 ]
 

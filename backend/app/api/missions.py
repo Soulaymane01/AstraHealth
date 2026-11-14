@@ -14,8 +14,6 @@ from app.models import (
     Checkin,
     Crew,
     Mission,
-    Redemption,
-    Reward,
     SpaceWeatherEvent,
     TrainingItem,
     TrainingSession,
@@ -266,28 +264,6 @@ def read_mission_tape(
             )
         )
 
-    redemption_rows = db.execute(
-        select(Redemption, Reward)
-        .join(Reward, Redemption.reward_code == Reward.code)
-        .where(
-            Redemption.user_id == user.id,
-            Redemption.redeemed_at >= start,
-            Redemption.redeemed_at <= now,
-        )
-        .order_by(Redemption.redeemed_at)
-    ).all()
-    for redemption, reward in redemption_rows:
-        at = _as_utc(redemption.redeemed_at)
-        events.append(
-            TapeEventRead(
-                id=f"redemption-{redemption.id}",
-                type="redemption",
-                label=f"Redeemed: {reward.name}",
-                at=at,
-                day=_day_index(at, start, days),
-            )
-        )
-
     for weather in db.scalars(
         select(SpaceWeatherEvent)
         .where(
@@ -385,23 +361,6 @@ def read_mission_log(
                 detail=achievement.description,
                 at=_as_utc(unlock.unlocked_at),
                 status="unlocked",
-            )
-        )
-
-    for redemption, reward in db.execute(
-        select(Redemption, Reward)
-        .join(Reward, Redemption.reward_code == Reward.code)
-        .where(Redemption.user_id == user.id)
-        .order_by(Redemption.redeemed_at.desc())
-    ).all():
-        events.append(
-            LogEventRead(
-                id=f"redemption-{redemption.id}",
-                type="redemption",
-                title=f"Redeemed {reward.name}",
-                detail=f"−{reward.cost} Flight Credits",
-                at=_as_utc(redemption.redeemed_at),
-                status="redeemed",
             )
         )
 

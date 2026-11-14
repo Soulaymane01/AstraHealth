@@ -72,35 +72,6 @@ class CreditEvent(TimestampMixin, Base):
     user: Mapped[User] = relationship("User", back_populates="credit_events")
 
 
-class Reward(Base):
-    __tablename__ = "rewards"
-
-    code: Mapped[str] = mapped_column(String(60), primary_key=True)
-    name: Mapped[str] = mapped_column(String(120), nullable=False)
-    description: Mapped[str] = mapped_column(Text, nullable=False)
-    cost: Mapped[int] = mapped_column(Integer, nullable=False)
-    icon: Mapped[str] = mapped_column(String(40), nullable=False)
-    category: Mapped[str] = mapped_column(String(40), nullable=False, default="allowance")
-    active: Mapped[bool] = mapped_column(nullable=False, default=True)
-
-    redemptions: Mapped[list[Redemption]] = relationship("Redemption", back_populates="reward")
-
-
-class Redemption(TimestampMixin, Base):
-    __tablename__ = "redemptions"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(
-        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
-    )
-    reward_code: Mapped[str] = mapped_column(ForeignKey("rewards.code"), nullable=False, index=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="redeemed")
-    redeemed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-
-    user: Mapped[User] = relationship("User", back_populates="redemptions")
-    reward: Mapped[Reward] = relationship("Reward", back_populates="redemptions")
-
-
 class Streak(TimestampMixin, Base):
     __tablename__ = "streaks"
     __table_args__ = (UniqueConstraint("user_id", "kind", name="uq_streaks_user_kind"),)

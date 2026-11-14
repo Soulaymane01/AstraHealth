@@ -13,8 +13,6 @@ from app.models import (
     CheckinEntry,
     CreditEvent,
     QuizAttempt,
-    Redemption,
-    Reward,
     Streak,
     User,
     UserAchievement,
@@ -25,9 +23,6 @@ from app.schemas.gamification import (
     CreditLedgerRead,
     GamificationSummaryRead,
     RankRead,
-    RedemptionRead,
-    RedemptionResultRead,
-    RewardRead,
     StreakRead,
 )
 
@@ -53,16 +48,6 @@ ACHIEVEMENT_CRITERIA = {
     "quiz_score": "quiz_score",
     "recovered_alerts": "recovered_alerts",
 }
-
-
-class AlreadyRedeemedError(Exception):
-    pass
-
-
-class InsufficientCreditsError(Exception):
-    def __init__(self, shortfall: int):
-        self.shortfall = shortfall
-        super().__init__(f"Insufficient credits: {shortfall} short")
 
 
 @dataclass
@@ -364,122 +349,6 @@ def list_credits(
     )
 
 
-def list_rewards(db: Session, user: User) -> list[RewardRead]:
-    _, _, balance = credit_totals(db, user.id)
-    rewards = list(db.scalars(select(Reward).order_by(Reward.cost)).all())
-    redemptions = {
-        item.reward_code: item
-        for item in db.scalars(
-            select(Redemption).where(Redemption.user_id == user.id)
-        ).all()
-    }
-
-    result: list[RewardRead] = []
-    for reward in rewards:
-        redemption = redemptions.get(reward.code)
-        if redemption is not None:
-            state = "redeemed"
-            shortfall = 0
-        elif balance >= reward.cost:
-            state = "available"
-            shortfall = 0
-        else:
-            state = "locked"
-            shortfall = reward.cost - balance
-        result.append(
-            RewardRead(
-                code=reward.code,
-                name=reward.name,
-                description=reward.description,
-                cost=reward.cost,
-                icon=reward.icon,
-                category=reward.category,
-                active=reward.active,
-                state=state,
-                shortfall=shortfall,
-                redeemed_at=redemption.redeemed_at if redemption is not None else None,
-            )
-        )
-    return result
-
-
-def redeem_reward(
-    db: Session,
-    user: User,
-    code: str,
-    now: datetime | None = None,
-) -> RedemptionResultRead:
-    now = now or datetime.now(UTC)
-    reward = db.get(Reward, code)
-    if reward is None or not reward.active:
-        raise LookupError("Reward not found")
-
-    existing = db.scalar(
-        select(Redemption).where(
-            Redemption.user_id == user.id,
-            Redemption.reward_code == reward.code,
-            Redemption.status == "redeemed",
-        )
-    )
-    if existing is not None:
-        raise AlreadyRedeemedError
-
-    _, _, balance = credit_totals(db, user.id)
-    if balance < reward.cost:
-        raise InsufficientCreditsError(reward.cost - balance)
-
-    redemption = Redemption(
-        user_id=user.id,
-        reward_code=reward.code,
-        status="redeemed",
-        redeemed_at=now,
-    )
-    db.add(redemption)
-    db.flush()
-    award_credits(
-        db,
-        user.id,
-        -reward.cost,
-        f"Redeemed: {reward.name}",
-        ref_type="redemption",
-        ref_id=str(redemption.id),
-        created_at=now,
-    )
-    lifetime, _, new_balance = credit_totals(db, user.id)
-    return RedemptionResultRead(
-        redemption=RedemptionRead(
-            id=redemption.id,
-            reward_code=reward.code,
-            reward_name=reward.name,
-            cost=reward.cost,
-            status=redemption.status,
-            redeemed_at=redemption.redeemed_at,
-        ),
-        balance=new_balance,
-        rank=rank_for_credits(lifetime, new_balance),
-    )
-
-
-def list_redemptions(db: Session, user: User) -> list[RedemptionRead]:
-    rows = db.execute(
-        select(Redemption, Reward)
-        .join(Reward, Redemption.reward_code == Reward.code)
-        .where(Redemption.user_id == user.id)
-        .order_by(Redemption.redeemed_at.desc())
-    ).all()
-    return [
-        RedemptionRead(
-            id=redemption.id,
-            reward_code=reward.code,
-            reward_name=reward.name,
-            cost=reward.cost,
-            status=redemption.status,
-            redeemed_at=redemption.redeemed_at,
-        )
-        for redemption, reward in rows
-    ]
-
-
 def gamification_summary(db: Session, user: User) -> GamificationSummaryRead:
     lifetime, _, balance = credit_totals(db, user.id)
     checkin_streak = get_streak(db, user.id, "checkin")
@@ -493,15 +362,6 @@ def gamification_summary(db: Session, user: User) -> GamificationSummaryRead:
         )
         or 0
     )
-    rewards_redeemed = (
-        db.scalar(
-            select(func.count(Redemption.id)).where(
-                Redemption.user_id == user.id,
-                Redemption.status == "redeemed",
-            )
-        )
-        or 0
-    )
     return GamificationSummaryRead(
         balance=balance,
         lifetime_credited=lifetime,
@@ -510,5 +370,4 @@ def gamification_summary(db: Session, user: User) -> GamificationSummaryRead:
         training_streak=streak_read(training_streak) if training_streak else None,
         achievements_unlocked=achievements_unlocked,
         achievements_total=achievements_total,
-        rewards_redeemed=rewards_redeemed,
     )

@@ -29,7 +29,7 @@ export function LogSessionForm({ item, onClose }: { item: TrainingPlanItem; onCl
       },
       {
         onSuccess: (result) => {
-          toast.success(`Session logged. +${result.credits_awarded} FC.`);
+          toast.success(`Session logged. +${result.credits_awarded} MP.`);
           if (result.new_achievements.length > 0) {
             toast.success(
               `Achievement unlocked: ${result.new_achievements
@@ -114,7 +114,7 @@ export function LogSessionForm({ item, onClose }: { item: TrainingPlanItem; onCl
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3 border-t border-line pt-3">
-        <span className="text-[10px] text-muted">+30 Flight Credits on save</span>
+        <span className="text-[10px] text-muted">+30 mission points on save</span>
         <Button
           variant="primary"
           size="sm"

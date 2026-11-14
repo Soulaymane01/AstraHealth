@@ -6,7 +6,6 @@ from sqlalchemy.orm import Session
 from app.models import (
     Alert,
     Checkin,
-    Redemption,
     TrainingSession,
     User,
     UserAchievement,
@@ -59,14 +58,6 @@ def test_mission_log_combines_all_event_types(
             unlocked_at=now - timedelta(hours=2),
         )
     )
-    db_session.add(
-        Redemption(
-            user_id=test_user.id,
-            reward_code="rest-day",
-            status="redeemed",
-            redeemed_at=now - timedelta(hours=1),
-        )
-    )
     db_session.commit()
 
     response = client.get("/mission/log", headers=auth_headers)
@@ -77,10 +68,8 @@ def test_mission_log_combines_all_event_types(
         "alert",
         "training",
         "achievement",
-        "redemption",
     }
     assert events == sorted(events, key=lambda event: event["at"], reverse=True)
-    assert any(event["type"] == "redemption" and "−200" in event["detail"] for event in events)
 
     limited = client.get("/mission/log", params={"limit": 2}, headers=auth_headers)
     assert limited.status_code == 200

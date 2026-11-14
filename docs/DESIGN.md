@@ -116,7 +116,6 @@ The readiness ring uses the deep-blue accent for Nominal, Watch, and Caution, an
 | `DutyRoster` | `features/training/components/DutyRoster.tsx` | Daily check-in, hydration, training, and sleep timeline |
 | `ArticleCard` | `ArticleCard.tsx` | Knowledge preview |
 | `RankBadge` | `RankBadge.tsx` | Rank, credits, progress |
-| `RewardCard` | `RewardCard.tsx` | Mission allowance |
 | `QuizCard` | `QuizCard.tsx` | Quiz entry point |
 | `CopilotDrawer` | `CopilotDrawer.tsx` | Cited assistant surface |
 | `MarkdownBody` | `MarkdownBody.tsx` | Article headings, lists, and inline emphasis |
@@ -201,10 +200,10 @@ The design intentionally uses fewer panels than a traditional mission-control da
 
 ### 6.6 Crew and motivation
 
-- The Mission Log is the motivation hub: a `RankBadge`, streaks, a credit ledger, the activity feed, the one-time allowance catalog, and the achievement grid.
-- Rank uses lifetime credited credits, not spendable balance, so a redemption never demotes the astronaut. The rank card shows the next rank and the percentage progress.
+- The Mission Log is the motivation hub: a `RankBadge`, streaks, mission-point history, the activity feed, and the achievement grid.
+- Rank uses lifetime mission points, so consistency advances the astronaut. The rank card shows the next rank and the percentage progress.
 - The activity feed is a vertical timeline of check-ins, alerts, training sessions, achievements, and redemptions, newest first. Alerts keep their semantic status pill; the rest use quiet icon circles.
-- The allowance catalog uses existing `RewardCard` states: available, locked with the exact shortfall, or redeemed. The redemption result updates the ledger, rank, and feed without a full reload.
+- Mission points are awarded for consistency only: check-ins, training adherence, quizzes, and streak milestones. They advance rank but never reflect a health reading.
 - Achievements are compact tiles with an icon, name, description, and unlock date. Locked tiles use a dashed border and a lock icon, never a red or warning surface.
 - A new achievement appears as a celebration panel on the check-in report and quiz result. There is no confetti or flash; the accent-soft surface and the unlock line carry the moment.
 - The Crew page has a privacy control, a consistency board, and a privacy-filtered readiness roster. There is no in-app chat or nudge inbox; direct crew communication stays in the habitat.
@@ -291,7 +290,7 @@ Rules:
 - Animate only opacity, transform, and stroke dash values.
 - No ambient loops, pulsing dots, scan sweeps, or breathing effects.
 - Every animation is disabled or reduced under `prefers-reduced-motion`.
-- No bounce anywhere except a future reward celebration, if added.
+- No bounce anywhere.
 
 ---
 

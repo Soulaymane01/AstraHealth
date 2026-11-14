@@ -14,7 +14,6 @@ from app.db.content import (
     KNOWLEDGE_ARTICLES,
     METRIC_DEFINITIONS,
     QUIZZES,
-    REWARDS,
     TRAINING_ITEMS,
 )
 from app.db.session import SessionLocal
@@ -30,8 +29,6 @@ from app.models import (
     Mission,
     Quiz,
     QuizAttempt,
-    Redemption,
-    Reward,
     SpaceWeatherEvent,
     Streak,
     SurgeonAssessment,
@@ -499,8 +496,6 @@ def _seed_content(session: Session) -> None:
         session.add(TrainingItem(**item))
     for achievement in ACHIEVEMENTS:
         session.add(Achievement(**achievement))
-    for reward in REWARDS:
-        session.add(Reward(**reward))
     session.flush()
 
 
@@ -547,24 +542,6 @@ def _seed_credits(session: Session, users: dict[str, User], now: datetime) -> No
                 )
             )
 
-    redemption = Redemption(
-        user_id=users["commander"].id,
-        reward_code="rest-day",
-        status="redeemed",
-        redeemed_at=now - timedelta(days=10),
-    )
-    session.add(redemption)
-    session.flush()
-    session.add(
-        CreditEvent(
-            user_id=users["commander"].id,
-            amount=-200,
-            reason="Redeemed: Rest day",
-            ref_type="redemption",
-            ref_id=str(redemption.id),
-            created_at=now - timedelta(days=10),
-        )
-    )
 
 
 def _seed_weather(session: Session, now: datetime) -> None:
@@ -830,7 +807,6 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     print(f"  quizzes: {len(QUIZZES)}")
     print(f"  training items: {len(TRAINING_ITEMS)}")
     print(f"  achievements: {len(ACHIEVEMENTS)}")
-    print(f"  rewards: {len(REWARDS)}")
     print(
         "  demo accounts: "
         + ", ".join([*(spec["email"] for spec in USER_SPECS), SURGEON_SPEC["email"]])

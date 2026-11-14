@@ -3,7 +3,6 @@ import {
   ChevronDown,
   ClipboardCheck,
   Dumbbell,
-  Gift,
   ScrollText,
   Trophy,
   TriangleAlert,
@@ -11,24 +10,19 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { toast } from "sonner";
 
-import { CreditChip, RankBadge } from "@/components/ui/RankBadge";
+import { RankBadge } from "@/components/ui/RankBadge";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { AchievementTile } from "@/features/gamification/components/AchievementTile";
 import { StreakTile } from "@/features/gamification/components/StreakTile";
-import { rewardIcon } from "@/features/gamification/icons";
 import {
   useAchievements,
   useCredits,
   useGamificationSummary,
-  useRedeemReward,
-  useRewards,
 } from "@/features/gamification/queries";
 import { useMissionLog } from "@/features/mission/queries";
-import { RewardCard } from "@/components/ui/RewardCard";
 import type { LogEvent } from "@/lib/api/types";
 import { asStatus, STATUS_META } from "@/lib/status";
 import { cn, formatNumber, formatRelativeTime } from "@/lib/utils";
@@ -39,7 +33,6 @@ const EVENT_META: Record<LogEvent["type"], { icon: LucideIcon; className: string
     alert: { icon: TriangleAlert, className: "bg-watch-soft text-watch", label: "Alert" },
     training: { icon: Dumbbell, className: "bg-nominal-soft text-nominal", label: "Training" },
     achievement: { icon: Trophy, className: "bg-watch-soft text-watch", label: "Achievement" },
-    redemption: { icon: Gift, className: "bg-accent-soft text-accent", label: "Allowance" },
   };
 
 function eventMeta(event: LogEvent) {
@@ -114,9 +107,7 @@ export function MissionLogPage() {
   const summaryQuery = useGamificationSummary();
   const creditsQuery = useCredits(8);
   const achievementsQuery = useAchievements();
-  const rewardsQuery = useRewards();
   const logQuery = useMissionLog(40);
-  const redeem = useRedeemReward();
   const [showAllEvents, setShowAllEvents] = useState(false);
 
   if (summaryQuery.isLoading) {
@@ -137,20 +128,8 @@ export function MissionLogPage() {
   const summary = summaryQuery.data;
   const ledger = creditsQuery.data;
   const achievements = achievementsQuery.data ?? [];
-  const rewards = rewardsQuery.data ?? [];
   const events = logQuery.data ?? [];
   const unlocked = achievements.filter((item) => item.unlocked).length;
-
-  const onRedeem = (code: string, name: string) => {
-    redeem.mutate(code, {
-      onSuccess: (result) => {
-        toast.success(`${name} redeemed. ${formatNumber(result.balance)} FC remaining.`);
-      },
-      onError: (error) => {
-        toast.error(error instanceof Error ? error.message : "Unable to redeem this allowance.");
-      },
-    });
-  };
 
   return (
     <div>
@@ -161,11 +140,10 @@ export function MissionLogPage() {
             Your mission so far.
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-2">
-            Check-ins, alerts, training, achievements, and mission allowances in one place. Rank and
-            credits reward consistency, never a health reading.
+            Check-ins, alerts, training, achievements, and streaks in one place. Rank and mission
+            points track consistency, never a health reading.
           </p>
         </div>
-        <CreditChip amount={summary.balance} showLabel className="self-start sm:self-auto" />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
@@ -199,9 +177,8 @@ export function MissionLogPage() {
 
         <Panel
           className="lg:col-span-4"
-          title="Credit ledger"
-          subtitle="Lifetime rank and spendable balance."
-          actions={<CreditChip amount={summary.balance} />}
+          title="Point history"
+          subtitle="Mission points that advance your rank."
         >
           {creditsQuery.isLoading ? (
             <div className="space-y-2">
@@ -212,14 +189,10 @@ export function MissionLogPage() {
           ) : ledger ? (
             <>
               <div className="flex items-center justify-between text-[11px]">
-                <span className="text-muted">Lifetime credited</span>
+                <span className="text-muted">Lifetime points</span>
                 <span className="tabular text-ink">
-                  {formatNumber(ledger.lifetime_credited)} FC
+                  {formatNumber(ledger.lifetime_credited)} MP
                 </span>
-              </div>
-              <div className="mt-1 flex items-center justify-between text-[11px]">
-                <span className="text-muted">Spent on allowances</span>
-                <span className="tabular text-ink">{formatNumber(ledger.total_spent)} FC</span>
               </div>
               <ul className="mt-2 divide-y divide-line">
                 {ledger.entries.slice(0, 5).map((entry) => (
@@ -237,7 +210,7 @@ export function MissionLogPage() {
                       )}
                     >
                       {entry.amount > 0 ? "+" : ""}
-                      {formatNumber(entry.amount)} FC
+                      {formatNumber(entry.amount)} MP
                     </span>
                   </li>
                 ))}
@@ -249,98 +222,56 @@ export function MissionLogPage() {
         </Panel>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-12">
-        <Panel
-          className="lg:col-span-7"
-          title="Activity"
-          subtitle="The last 40 events in your mission."
-        >
-          {logQuery.isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }, (_, index) => (
-                <Skeleton key={index} className="h-14 w-full" />
+      <Panel
+        className="mt-4"
+        title="Activity"
+        subtitle="The last 40 events in your mission."
+      >
+        {logQuery.isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }, (_, index) => (
+              <Skeleton key={index} className="h-14 w-full" />
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <div className="rounded-lg bg-surface-muted px-4 py-8 text-center">
+            <ScrollText size={18} className="mx-auto text-muted" aria-hidden />
+            <p className="mt-2 text-sm font-medium text-ink">Nothing logged yet.</p>
+            <p className="mt-1 text-xs text-muted">
+              Complete a check-in or log a training session to start the record.
+            </p>
+            <Link
+              to="/check-in"
+              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent"
+            >
+              Start a check-in
+              <ArrowRight size={12} aria-hidden />
+            </Link>
+          </div>
+        ) : (
+          <>
+            <ol className="divide-y divide-line">
+              {(showAllEvents ? events : events.slice(0, 18)).map((event) => (
+                <ActivityRow key={event.id} event={event} />
               ))}
-            </div>
-          ) : events.length === 0 ? (
-            <div className="rounded-lg bg-surface-muted px-4 py-8 text-center">
-              <ScrollText size={18} className="mx-auto text-muted" aria-hidden />
-              <p className="mt-2 text-sm font-medium text-ink">Nothing logged yet.</p>
-              <p className="mt-1 text-xs text-muted">
-                Complete a check-in or log a training session to start the record.
-              </p>
-              <Link
-                to="/check-in"
-                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent"
+            </ol>
+            {events.length > 18 && (
+              <button
+                type="button"
+                onClick={() => setShowAllEvents((current) => !current)}
+                className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent-strong"
               >
-                Start a check-in
-                <ArrowRight size={12} aria-hidden />
-              </Link>
-            </div>
-          ) : (
-            <>
-              <ol className="divide-y divide-line">
-                {(showAllEvents ? events : events.slice(0, 18)).map((event) => (
-                  <ActivityRow key={event.id} event={event} />
-                ))}
-              </ol>
-              {events.length > 18 && (
-                <button
-                  type="button"
-                  onClick={() => setShowAllEvents((current) => !current)}
-                  className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent-strong"
-                >
-                  {showAllEvents ? "Show fewer events" : `Show all ${events.length} events`}
-                  <ChevronDown
-                    size={12}
-                    className={cn("transition-transform", showAllEvents && "rotate-180")}
-                    aria-hidden
-                  />
-                </button>
-              )}
-            </>
-          )}
-        </Panel>
-
-        <Panel
-          className="lg:col-span-5"
-          title="Mission allowances"
-          subtitle="Chosen before departure. Redeem with Flight Credits."
-        >
-          {rewardsQuery.isLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-28 w-full" />
-              <Skeleton className="h-28 w-full" />
-            </div>
-          ) : rewards.length === 0 ? (
-            <p className="text-[11px] text-muted">No allowances are available yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {rewards.map((reward) => {
-                const Icon = rewardIcon(reward.icon);
-                return (
-                  <RewardCard
-                    key={reward.code}
-                    name={reward.name}
-                    description={reward.description}
-                    cost={reward.cost}
-                    icon={Icon}
-                    state={reward.state}
-                    shortfall={reward.shortfall}
-                    onRedeem={
-                      reward.state === "available"
-                        ? () => onRedeem(reward.code, reward.name)
-                        : undefined
-                    }
-                  />
-                );
-              })}
-            </div>
-          )}
-          <p className="mt-3 text-[10px] leading-relaxed text-muted">
-            Allowances are one-time. Redemption is recorded in the ledger and the activity feed.
-          </p>
-        </Panel>
-      </div>
+                {showAllEvents ? "Show fewer events" : `Show all ${events.length} events`}
+                <ChevronDown
+                  size={12}
+                  className={cn("transition-transform", showAllEvents && "rotate-180")}
+                  aria-hidden
+                />
+              </button>
+            )}
+          </>
+        )}
+      </Panel>
 
       <Panel
         className="mt-4"

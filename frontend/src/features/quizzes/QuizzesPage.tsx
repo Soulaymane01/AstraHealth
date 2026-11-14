@@ -64,11 +64,11 @@ export function QuizzesPage() {
       <Panel
         className="mt-4"
         title="How scoring works"
-        subtitle="First completion earns 50 Flight Credits."
+        subtitle="First completion earns 50 mission points."
       >
         <p className="text-[13px] leading-relaxed text-ink-2">
           Each quiz has five questions. A score of 90% or better unlocks the{" "}
-          <strong>Quiz ace</strong> achievement. Retakes are welcome but do not award credits again.
+          <strong>Quiz ace</strong> achievement. Retakes are welcome but do not award points again.
           The crew quiz records the selected crewmate; it never exposes their health readings.
         </p>
       </Panel>

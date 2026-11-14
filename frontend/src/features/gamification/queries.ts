@@ -1,13 +1,7 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/api/client";
-import type {
-  Achievement,
-  CreditLedger,
-  GamificationSummary,
-  RedemptionResult,
-  Reward,
-} from "@/lib/api/types";
+import type { Achievement, CreditLedger, GamificationSummary } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
 
 export function useGamificationSummary() {
@@ -38,45 +32,6 @@ export function useAchievements() {
     queryFn: async (): Promise<Achievement[]> => {
       const { data } = await api.GET("/achievements");
       return data ?? [];
-    },
-  });
-}
-
-export function useRewards() {
-  return useQuery({
-    queryKey: queryKeys.rewards,
-    queryFn: async (): Promise<Reward[]> => {
-      const { data } = await api.GET("/rewards");
-      return data ?? [];
-    },
-  });
-}
-
-export function useRedeemReward() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (code: string): Promise<RedemptionResult> => {
-      const { data, response } = await api.POST("/rewards/{code}/redeem", {
-        params: { path: { code } },
-      });
-      if (response.status === 409) {
-        throw new Error("This allowance has already been redeemed.");
-      }
-      if (response.status === 400) {
-        throw new Error("You do not have enough Flight Credits for this allowance.");
-      }
-      if (!data) throw new Error("Unable to redeem this allowance.");
-      return data;
-    },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.rewards }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.credits }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.gamification }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.redemptions }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.missionLog }),
-      ]);
     },
   });
 }

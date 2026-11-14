@@ -67,15 +67,13 @@ def metric_definitions(db_session: Session) -> None:
 
 @pytest.fixture()
 def content_seed(db_session: Session) -> None:
-    from app.db.content import ACHIEVEMENTS, KNOWLEDGE_ARTICLES, QUIZZES, REWARDS, TRAINING_ITEMS
-    from app.models import Achievement, KnowledgeArticle, Quiz, Reward, TrainingItem
+    from app.db.content import ACHIEVEMENTS, KNOWLEDGE_ARTICLES, QUIZZES, TRAINING_ITEMS
+    from app.models import Achievement, KnowledgeArticle, Quiz, TrainingItem
 
     for item in ACHIEVEMENTS:
         db_session.add(Achievement(**item))
     for item in QUIZZES:
         db_session.add(Quiz(**item))
-    for item in REWARDS:
-        db_session.add(Reward(**item))
     for item in TRAINING_ITEMS:
         db_session.add(TrainingItem(**item))
     for article in KNOWLEDGE_ARTICLES:
