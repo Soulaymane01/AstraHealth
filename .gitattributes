@@ -1,0 +1,3 @@
+# Keep internal planning files out of shareable source archives.
+/prompt.md export-ignore
+/announcement.txt export-ignore

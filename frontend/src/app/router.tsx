@@ -1,0 +1,122 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+
+import { RequireAuth } from "@/features/auth/RequireAuth";
+import { NotFoundPage } from "@/features/shared/NotFoundPage";
+import { FullPageLoader } from "@/features/shared/FullPageLoader";
+import { AppLayout } from "@/features/shell/AppLayout";
+import { DEMO_MODE } from "@/lib/demo";
+
+export const router = createBrowserRouter([
+  {
+    path: "/login",
+    HydrateFallback: FullPageLoader,
+    lazy: async () => ({ Component: (await import("@/features/auth/LoginPage")).LoginPage }),
+  },
+  {
+    path: "/register",
+    HydrateFallback: FullPageLoader,
+    lazy: async () => ({
+      Component: (await import("@/features/auth/RegisterPage")).RegisterPage,
+    }),
+  },
+  {
+    path: "/styleguide",
+    HydrateFallback: FullPageLoader,
+    lazy: async () =>
+      DEMO_MODE
+        ? { Component: () => <Navigate to="/" replace /> }
+        : {
+            Component: (await import("@/features/styleguide/StyleguidePage")).StyleguidePage,
+          },
+  },
+  {
+    element: <RequireAuth />,
+    HydrateFallback: FullPageLoader,
+    children: [
+      {
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            lazy: async () => ({
+              Component: (await import("@/features/flight-deck/FlightDeckPage")).FlightDeckPage,
+            }),
+          },
+          {
+            path: "check-in",
+            lazy: async () => ({
+              Component: (await import("@/features/checkin/SystemsCheckPage")).SystemsCheckPage,
+            }),
+          },
+          {
+            path: "check-in/report/:checkinId",
+            lazy: async () => ({
+              Component: (await import("@/features/checkin/CheckinReportPage")).CheckinReportPage,
+            }),
+          },
+          {
+            path: "telemetry",
+            lazy: async () => ({
+              Component: (await import("@/features/telemetry/TelemetryPage")).TelemetryPage,
+            }),
+          },
+          {
+            path: "telemetry/domain/:domain",
+            lazy: async () => ({
+              Component: (await import("@/features/telemetry/DomainSummaryPage")).DomainSummaryPage,
+            }),
+          },
+          {
+            path: "telemetry/metric/:code",
+            lazy: async () => ({
+              Component: (await import("@/features/telemetry/MetricDetailPage")).MetricDetailPage,
+            }),
+          },
+          {
+            path: "training",
+            lazy: async () => ({
+              Component: (await import("@/features/training/TrainingPage")).TrainingPage,
+            }),
+          },
+          {
+            path: "crew",
+            lazy: async () => ({
+              Component: (await import("@/features/crew/CrewPage")).CrewPage,
+            }),
+          },
+          {
+            path: "quizzes",
+            lazy: async () => ({
+              Component: (await import("@/features/quizzes/QuizzesPage")).QuizzesPage,
+            }),
+          },
+          {
+            path: "quizzes/:slug",
+            lazy: async () => ({
+              Component: (await import("@/features/quizzes/QuizRunnerPage")).QuizRunnerPage,
+            }),
+          },
+          {
+            path: "log",
+            lazy: async () => ({
+              Component: (await import("@/features/log/MissionLogPage")).MissionLogPage,
+            }),
+          },
+          {
+            path: "library",
+            lazy: async () => ({
+              Component: (await import("@/features/library/LibraryPage")).LibraryPage,
+            }),
+          },
+          {
+            path: "library/:slug",
+            lazy: async () => ({
+              Component: (await import("@/features/library/ArticlePage")).ArticlePage,
+            }),
+          },
+        ],
+      },
+    ],
+  },
+  { path: "*", element: <NotFoundPage /> },
+]);

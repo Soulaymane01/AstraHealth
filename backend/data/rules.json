@@ -1,0 +1,128 @@
+[
+  {
+    "id": "R1",
+    "name": "Febrile episode with tachycardia",
+    "severity": "critical",
+    "title": "Febrile episode with tachycardia",
+    "rationale": "Core temperature is at or above 38 °C with a resting heart rate above 100 bpm. The combination warrants immediate review.",
+    "recommended_action": "Stop activity. Contact the flight surgeon on the next comms window and begin the infection countermeasure checklist.",
+    "citation": "red-flags",
+    "condition": {
+      "all": [
+        { "metric": "body_temp_c", "op": "gte", "value": 38.0 },
+        { "metric": "heart_rate", "op": "gt", "value": 100 }
+      ]
+    }
+  },
+  {
+    "id": "R2",
+    "name": "Blood pressure outside the safe range",
+    "severity": "critical",
+    "title": "Blood pressure outside the safe range",
+    "rationale": "Systolic pressure is at or above 140 mmHg, or at or below 90 mmHg with symptoms. Either pattern needs review.",
+    "recommended_action": "Rest, re-measure after five minutes, and contact the flight surgeon if the reading persists or symptoms worsen.",
+    "citation": "fluid-shifts",
+    "condition": {
+      "any": [
+        { "metric": "systolic_bp", "op": "gte", "value": 140 },
+        {
+          "all": [
+            { "metric": "systolic_bp", "op": "lte", "value": 90 },
+            { "metric": "symptom_score", "op": "gte", "value": 1 }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "id": "R3",
+    "name": "Blood glucose outside the safe range",
+    "severity": "critical",
+    "title": "Blood glucose outside the safe range",
+    "rationale": "Blood glucose is below 70 mg/dL or above 250 mg/dL. Both extremes require immediate attention.",
+    "recommended_action": "Follow the mission glucose protocol and contact the flight surgeon now.",
+    "citation": "hydration-nutrition",
+    "condition": {
+      "any": [
+        { "metric": "blood_glucose", "op": "lt", "value": 70 },
+        { "metric": "blood_glucose", "op": "gt", "value": 250 }
+      ]
+    }
+  },
+  {
+    "id": "R4",
+    "name": "Sleep debt is accumulating",
+    "severity": "caution",
+    "title": "Sleep debt is accumulating",
+    "rationale": "Sleep has been under four hours for three consecutive nights. Recovery and cognitive performance are at risk.",
+    "recommended_action": "Protect the next sleep window, reduce non-essential load, and log the change.",
+    "citation": "sleep-circadian",
+    "condition": {
+      "consecutive": {
+        "metric": "sleep_duration_h",
+        "op": "lt",
+        "value": 4.0,
+        "days": 3
+      }
+    }
+  },
+  {
+    "id": "R5",
+    "name": "Mood and social withdrawal",
+    "severity": "caution",
+    "title": "Mood and social withdrawal",
+    "rationale": "Mood has been at or below 2/5 for five consecutive days, with low crew contact. Isolation is a spaceflight hazard.",
+    "recommended_action": "Schedule a private check-in, protect the sleep window, and offer a crew connection slot.",
+    "citation": "isolation-confinement",
+    "condition": {
+      "all": [
+        {
+          "consecutive": {
+            "metric": "mood_score",
+            "op": "lte",
+            "value": 2.0,
+            "days": 5
+          }
+        },
+        { "metric": "social_interaction_score", "op": "lte", "value": 2.5 }
+      ]
+    }
+  },
+  {
+    "id": "R6",
+    "name": "Orthostatic intolerance",
+    "severity": "caution",
+    "title": "Orthostatic intolerance",
+    "rationale": "Heart rate rises by more than 30 bpm on standing. This can signal reduced orthostatic tolerance.",
+    "recommended_action": "Review fluid and salt intake, repeat the test under the same conditions, and report dizziness or near-syncope.",
+    "citation": "fluid-shifts",
+    "condition": {
+      "metric": "orthostatic_hr_rise",
+      "op": "gt",
+      "value": 30
+    }
+  },
+  {
+    "id": "R7",
+    "name": "Red-flag symptom reported",
+    "severity": "critical",
+    "title": "Red-flag symptom reported",
+    "rationale": "Chest pain, dyspnea, vision loss, or fainting was reported. These findings should never wait for a trend.",
+    "recommended_action": "Stop activity. Follow the emergency medical procedure and contact the flight surgeon immediately.",
+    "citation": "red-flags",
+    "condition": {
+      "any": [
+        {
+          "symptom_any": [
+            "chest pain",
+            "dyspnea",
+            "shortness of breath",
+            "vision loss",
+            "fainting"
+          ]
+        },
+        { "metric": "vision_change_score", "op": "gte", "value": 5 }
+      ]
+    }
+  }
+]

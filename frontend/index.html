@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/astra-mark.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#F4F6F8" />
+    <meta name="color-scheme" content="light" />
+    <meta
+      name="description"
+      content="AstraHealth — mission-control software for the human body. Health monitoring and readiness for long-duration spaceflight."
+    />
+    <title>AstraHealth — Flight Deck</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <div
+      id="boot-splash"
+      role="status"
+      aria-label="Loading AstraHealth"
+      style="
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        background: #f4f6f8;
+        color: #0f1b2d;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+      "
+    >
+      <div style="max-width: 480px; text-align: center">
+        <p style="margin: 0; color: #0f766e; font-size: 14px; font-weight: 500">AstraHealth</p>
+        <p
+          style="
+            margin: 8px 0 0;
+            font-size: 38px;
+            line-height: 1.2;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+          "
+        >
+          Mission health overview
+        </p>
+        <p style="margin: 8px 0 0; color: #526175; font-size: 14px">Loading your flight deck…</p>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
