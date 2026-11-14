@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
@@ -24,11 +25,15 @@ from app.models import (
 from app.schemas import (
     LogEventRead,
     MissionContextRead,
+    MissionProfileUpdate,
     MissionRead,
     SpaceWeatherEventRead,
     TapeEventRead,
 )
 from app.services.nasa import get_mission_context
+from app.services.readiness import compute_and_persist_readiness
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["mission"])
 
@@ -86,6 +91,41 @@ def read_mission(
         crew_count=crew_count,
         comms_delay_min=comms_delay_min,
     )
+
+
+@router.patch("/mission/profile", response_model=MissionRead)
+def update_mission_profile(
+    payload: MissionProfileUpdate,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> MissionRead:
+    if user.crew_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="No crew assigned to this user"
+        )
+    crew = db.get(Crew, user.crew_id)
+    if crew is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Crew not found")
+    mission = db.get(Mission, crew.mission_id)
+    if mission is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Mission not found")
+
+    # Demo affordance: any crew member can preview the environment. A production
+    # build would restrict this to the commander or flight surgeon.
+    mission.profile = payload.profile
+    db.add(mission)
+    db.commit()
+
+    # Recompute the score with the new profile weights so the ring and domain
+    # rows reflect the selected environment immediately.
+    try:
+        compute_and_persist_readiness(db, user, payload.profile, datetime.now(UTC))
+        db.commit()
+    except Exception:
+        db.rollback()
+        logger.exception("Readiness recompute failed after a mission profile change")
+
+    return read_mission(user, db)
 
 
 @router.get("/mission/context", response_model=MissionContextRead)

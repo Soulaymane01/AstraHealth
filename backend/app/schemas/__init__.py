@@ -37,6 +37,7 @@ from app.schemas.metric import (
 )
 from app.schemas.mission import (
     MissionContextRead,
+    MissionProfileUpdate,
     MissionRead,
     SpaceWeatherEventRead,
     TapeEventRead,
@@ -113,6 +114,7 @@ __all__ = [
     "MetricSeriesRead",
     "MetricStatsRead",
     "MissionContextRead",
+    "MissionProfileUpdate",
     "MissionRead",
     "PrivacyRead",
     "PrivacyUpdate",

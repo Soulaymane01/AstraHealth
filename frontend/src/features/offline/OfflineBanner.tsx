@@ -23,7 +23,7 @@ export function OfflineBanner() {
     <div
       role="status"
       aria-live="polite"
-      className="border-b border-line bg-watch-soft/70 px-4 py-2 text-watch lg:px-8"
+      className="border-b border-line bg-watch-soft/70 px-4 py-2 text-watch print:hidden lg:px-8"
     >
       <div className="mx-auto flex max-w-6xl flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-start gap-2">

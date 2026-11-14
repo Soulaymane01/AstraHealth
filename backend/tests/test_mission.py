@@ -49,6 +49,26 @@ def test_mission_returns_elapsed_time(
     assert body["met_seconds"] >= 9 * 86400
 
 
+def test_mission_profile_can_be_switched_for_a_crew(
+    client: TestClient, auth_headers: dict[str, str], db_session: Session
+) -> None:
+    _crew_for_user(db_session)
+
+    response = client.patch(
+        "/mission/profile", json={"profile": "lunar_surface"}, headers=auth_headers
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["profile"] == "lunar_surface"
+    assert body["comms_delay_min"] == 0.05
+
+    invalid = client.patch(
+        "/mission/profile", json={"profile": "deep_space"}, headers=auth_headers
+    )
+    assert invalid.status_code == 422
+
+
 def test_mission_context_returns_latest_event(
     client: TestClient, auth_headers: dict[str, str], db_session: Session
 ) -> None:

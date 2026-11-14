@@ -246,6 +246,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/mission/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Mission Profile */
+        patch: operations["update_mission_profile_mission_profile_patch"];
+        trace?: never;
+    };
     "/mission/context": {
         parameters: {
             query?: never;
@@ -1395,6 +1412,14 @@ export interface components {
             source: string;
             /** Fetched At */
             fetched_at?: string | null;
+        };
+        /** MissionProfileUpdate */
+        MissionProfileUpdate: {
+            /**
+             * Profile
+             * @enum {string}
+             */
+            profile: "mars_transit" | "lunar_surface" | "station";
         };
         /** MissionRead */
         MissionRead: {
@@ -2548,6 +2573,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MissionRead"];
+                };
+            };
+        };
+    };
+    update_mission_profile_mission_profile_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MissionProfileUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MissionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

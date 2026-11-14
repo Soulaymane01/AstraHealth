@@ -1,8 +1,9 @@
-import { LogOut, Orbit, Palette } from "lucide-react";
+import { Download, LogOut, Orbit, Palette } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { toast } from "sonner";
 
 import { useAuthStore } from "@/features/auth/auth-store";
+import { usePwaInstall } from "@/features/pwa/usePwaInstall";
 import { DEMO_MODE } from "@/lib/demo";
 import { NAV_ITEMS } from "@/features/shell/nav";
 import { useTrainingReminders } from "@/features/training/queries";
@@ -12,6 +13,7 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
   const reminders = useTrainingReminders();
+  const { canInstall, install } = usePwaInstall();
   const dueCount = reminders.data?.due_count ?? 0;
 
   if (!user) return null;
@@ -95,6 +97,21 @@ export function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             <LogOut size={14} aria-hidden />
           </button>
         </div>
+
+        {canInstall && (
+          <button
+            type="button"
+            onClick={() => {
+              void install().then((accepted) => {
+                if (accepted) toast.success("AstraHealth installed.");
+              });
+            }}
+            className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs text-muted transition-colors hover:bg-surface-muted hover:text-ink"
+          >
+            <Download size={14} aria-hidden />
+            Install app
+          </button>
+        )}
 
         {!DEMO_MODE && (
           <NavLink

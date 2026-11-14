@@ -48,6 +48,9 @@
 - **Systems Check** — a five-step wizard for vitals, sleep, mood, symptoms, training, and nutrition. Drafts survive a reload, skipped steps are explicit, and every submission ends in an instant Systems Report.
 - **Telemetry** — 7, 30, or 90-day trends for every metric, with a personal baseline band, a spaceflight reference range, event overlays, domain summaries, and CSV export.
 - **Explainable readiness** — deterministic z-score engine plus seven hard rules. Every score shows its contributing factors.
+- **Emergency triage** — a one-tap protocol with ordered immediate actions, active alerts, the next comms window, and a copyable flight-surgeon handoff.
+- **Mission environments** — switch between Mars transit, lunar surface, and space station; profile weights, comms delay, and the training plan update immediately.
+- **Handoff and routine exports** — print or save the Systems Report as PDF, export it as JSON, and add today’s Duty Roster to a calendar as `.ics`.
 - **Training and Duty Roster** — a weekly plan generated from active alerts and the mission profile, countermeasure links from every alert, session logging with RPE, adherence and streaks, a daily roster, and a next-due indicator in the nav and top bar.
 - **Motivation** — a credit ledger, Mission Rank, commendations, a one-time allowance catalog, streaks with a single grace day, and a Mission Log that records the whole loop. Never tied to health values.
 - **Crew** — consent-based status sharing, a privacy-filtered readiness roster, and a consistency board with no health values. Direct crew communication stays outside the health tool.

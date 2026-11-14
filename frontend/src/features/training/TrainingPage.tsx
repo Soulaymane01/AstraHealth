@@ -1,13 +1,22 @@
-import { CalendarDays, Flame, ShieldCheck, type LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  CalendarPlus,
+  Flame,
+  ShieldCheck,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/Button";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 import { DutyRoster } from "@/features/training/components/DutyRoster";
 import { LogSessionForm } from "@/features/training/components/LogSessionForm";
 import { PlanItemCard } from "@/features/training/components/PlanItemCard";
+import { exportRosterIcs } from "@/features/training/ics";
 import { useTrainingPlan, useTrainingRoster } from "@/features/training/queries";
 import type { TrainingPlanItem } from "@/lib/api/types";
 import { cn, formatRelativeTime } from "@/lib/utils";
@@ -217,7 +226,23 @@ export function TrainingPage() {
         </div>
 
         <div className="min-w-0 space-y-4 lg:col-span-4">
-          <Panel title="Today's roster" subtitle="Check-in, hydration, training, and sleep.">
+          <Panel
+            title="Today's roster"
+            subtitle="Check-in, hydration, training, and sleep."
+            actions={
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  exportRosterIcs(roster);
+                  toast.success("Duty roster downloaded. Open it to add the day to your calendar.");
+                }}
+              >
+                <CalendarPlus size={12} aria-hidden />
+                Calendar
+              </Button>
+            }
+          >
             <DutyRoster roster={roster} onLog={openLog} onCheckin={() => navigate("/check-in")} />
           </Panel>
 

@@ -56,7 +56,7 @@ export function MobileNav({ open, onClose }: { open: boolean; onClose: () => voi
 
   return (
     <div
-      className="fixed inset-0 z-50 lg:hidden"
+      className="fixed inset-0 z-50 print:hidden lg:hidden"
       role="dialog"
       aria-modal="true"
       aria-label="Navigation"

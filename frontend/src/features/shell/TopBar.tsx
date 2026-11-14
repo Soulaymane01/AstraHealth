@@ -23,8 +23,11 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
 
   const title = pathname.startsWith("/check-in/report")
     ? "Systems Report"
-    : (NAV_ITEMS.find((item) => (item.end ? pathname === item.to : pathname.startsWith(item.to)))
-        ?.label ?? "AstraHealth");
+    : pathname === "/triage"
+      ? "Triage protocol"
+      : (NAV_ITEMS.find((item) =>
+          item.end ? pathname === item.to : pathname.startsWith(item.to),
+        )?.label ?? "AstraHealth");
 
   const subtitle = mission
     ? `${mission.crew_name} · ${mission.name}${DEMO_MODE ? " · Simulated" : ""}`
@@ -38,7 +41,7 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
   const readinessMeta = readinessStatus ? STATUS_META[readinessStatus] : null;
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur lg:px-8">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur print:hidden lg:px-8">
       <button
         type="button"
         onClick={onOpenNav}

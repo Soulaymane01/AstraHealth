@@ -9,6 +9,7 @@ import { TopBar } from "@/features/shell/TopBar";
 
 function titleForPath(pathname: string): string {
   if (pathname === "/") return "Flight Deck";
+  if (pathname === "/triage") return "Triage protocol";
   if (pathname === "/check-in") return "Systems Check";
   if (pathname.startsWith("/check-in/report/")) return "Systems Report";
   if (pathname === "/telemetry") return "Telemetry";

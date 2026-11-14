@@ -1,10 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAuthStore } from "@/features/auth/auth-store";
 import { readClinical, writeClinical } from "@/features/offline/clinical-cache";
 import { api } from "@/lib/api/client";
 import type { LogEvent, Mission, MissionContext, TapeEvent } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
+
+export type MissionProfile = "mars_transit" | "lunar_surface" | "station";
 
 export async function fetchMission(): Promise<Mission | null> {
   const { data, response } = await api.GET("/mission");
@@ -25,6 +27,24 @@ export function useMission() {
     },
     initialData: cached?.data,
     initialDataUpdatedAt: cached?.savedAt,
+  });
+}
+
+export function useUpdateMissionProfile() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (profile: MissionProfile): Promise<Mission> => {
+      const { data } = await api.PATCH("/mission/profile", { body: { profile } });
+      if (!data) throw new Error("Unable to change the mission profile.");
+      return data;
+    },
+    onSuccess: (mission) => {
+      queryClient.setQueryData(queryKeys.mission, mission);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.mission });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.readiness });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.alerts });
+      void queryClient.invalidateQueries({ queryKey: ["training"] });
+    },
   });
 }
 

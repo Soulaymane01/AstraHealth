@@ -118,3 +118,22 @@
     scroll-behavior: auto !important;
   }
 }
+
+@media print {
+  @page {
+    margin: 14mm;
+  }
+  body {
+    background: #fff !important;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  .card-shadow {
+    box-shadow: none !important;
+  }
+  a[href]::after {
+    content: "";
+  }
+}

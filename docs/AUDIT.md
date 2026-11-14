@@ -57,6 +57,23 @@ The P0 engineering/demo items below were fixed after this audit. Deployment, vid
 
 ---
 
+## P2 remediation status — demo-relevant batch
+
+| P2 item | Status | What changed |
+|---|---|---|
+| Emergency triage card | ✅ Implemented | New `/triage` protocol with ordered immediate actions, active alerts, next comms window, current state, and a copyable flight-surgeon handoff. Critical alerts show a red banner on the Flight Deck and a triage button in Next action. |
+| Mission-profile switcher | ✅ Implemented | `PATCH /mission/profile` updates Mars transit / lunar surface / station, recomputes readiness with profile weights, and updates comms delay + training plan. Commander sees an Environment selector. |
+| PDF export | ✅ Implemented as print | Systems Report **Print / Save PDF** with print CSS; the app chrome is hidden and panels remain readable. JSON export remains. |
+| Duty Roster reminders | ✅ Implemented as calendar export | **Calendar** downloads today’s roster as an `.ics` file with the check-in, hydration, training, and sleep blocks. No notification permission or server scheduler required. |
+| Install prompt | ✅ Implemented | In-app **Install app** action appears when the browser fires `beforeinstallprompt`. |
+| Docs | ✅ Updated | README, API, DEMO, and this audit include triage, environments, print, calendar, and install. |
+
+**Deliberately skipped (stretch, not demo-critical):** push notifications (calendar export is more reliable), live OSDR/POWER ingestion, voice journal, wearable import, i18n, dark mode, and self-hosted camera assets. These would add scope without improving the three-minute story.
+
+**Verification:** typecheck/build pass; 77 backend tests; profile switch, triage, `.ics` download, offline cache, and print controls manually verified.
+
+---
+
 ## 1. Verdict
 
 AstraHealth is a **top-tier hackathon build**. It directly answers the NASA challenge, it is visually distinctive, it has a complete measure → understand → act → motivate loop, and its engineering quality is far above the typical Space Apps submission.

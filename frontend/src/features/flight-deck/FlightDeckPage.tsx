@@ -1,4 +1,4 @@
-import { ArrowRight, Orbit, RefreshCw, Sun, WifiOff } from "lucide-react";
+import { AlertTriangle, ArrowRight, Orbit, RefreshCw, Sun, WifiOff } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,7 +16,13 @@ import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { readClinical } from "@/features/offline/clinical-cache";
 import { useOfflineStore } from "@/features/offline/store";
-import { useMission, useMissionContext, useMissionTape } from "@/features/mission/queries";
+import {
+  useMission,
+  useMissionContext,
+  useMissionTape,
+  useUpdateMissionProfile,
+  type MissionProfile,
+} from "@/features/mission/queries";
 import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/readiness/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
 import type { DomainDetail, Readiness, SpaceWeatherEvent } from "@/lib/api/types";
@@ -100,6 +106,36 @@ function ContextBanner({
           {event.summary}
         </p>
       </div>
+    </div>
+  );
+}
+
+function CriticalTriageBanner({
+  count,
+  title,
+  onOpen,
+}: {
+  count: number;
+  title: string;
+  onOpen: () => void;
+}) {
+  return (
+    <div className="mt-4 flex flex-col gap-3 rounded-xl border border-critical/30 bg-critical-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        <AlertTriangle size={18} className="mt-0.5 shrink-0 text-critical" aria-hidden />
+        <div>
+          <p className="text-sm font-semibold text-critical">
+            {count} critical alert{count === 1 ? "" : "s"} active
+          </p>
+          <p className="mt-0.5 text-xs leading-relaxed text-critical">
+            {title}. Follow the emergency protocol now.
+          </p>
+        </div>
+      </div>
+      <Button variant="danger" size="sm" className="shrink-0" onClick={onOpen}>
+        Open triage protocol
+        <ArrowRight size={13} aria-hidden />
+      </Button>
     </div>
   );
 }
@@ -229,6 +265,7 @@ export function FlightDeckPage() {
   const tapeQuery = useMissionTape(tapeDays);
   const domainQuery = useDomainDetail(selectedDomain);
   const acknowledge = useAcknowledgeAlert();
+  const updateProfile = useUpdateMissionProfile();
   const hasCachedDashboard =
     missionQuery.data !== undefined && readinessQuery.data !== undefined;
   const cachedReadiness = readClinical<Readiness | null>(user?.id, "readiness");
@@ -335,6 +372,7 @@ export function FlightDeckPage() {
   const readiness = readinessQuery.data;
   const alerts = alertsQuery.data ?? [];
   const alertsError = alertsQuery.isError && !(!online && alertsQuery.data !== undefined);
+  const criticalAlerts = alerts.filter((alert) => alert.severity === "critical");
   const context = contextQuery.data;
   const name = user ? firstName(user.full_name) : "Commander";
   const status = readiness ? asStatus(readiness.status) : "unknown";
@@ -362,6 +400,17 @@ export function FlightDeckPage() {
     acknowledge.mutate(alertId, {
       onSuccess: () => toast.success("Alert acknowledged."),
       onError: () => toast.error("Unable to acknowledge the alert."),
+    });
+  };
+
+  const changeProfile = (profile: MissionProfile) => {
+    updateProfile.mutate(profile, {
+      onSuccess: (updated) =>
+        toast.success(`Mission environment set to ${profileLabel(updated.profile)}.`),
+      onError: (error) =>
+        toast.error(
+          error instanceof Error ? error.message : "Unable to change the mission environment.",
+        ),
     });
   };
 
@@ -410,6 +459,23 @@ export function FlightDeckPage() {
         >
           {mission.crew_name} · Day {day} · {profileLabel(mission.profile)}
         </p>
+        {user?.role === "commander" && (
+          <label className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+            <span>Environment</span>
+            <select
+              aria-label="Mission environment profile"
+              value={mission.profile}
+              disabled={updateProfile.isPending}
+              onChange={(event) => changeProfile(event.target.value as MissionProfile)}
+              className="rounded-md border border-line bg-surface px-2 py-1 text-[11px] text-ink disabled:opacity-60"
+            >
+              <option value="mars_transit">Mars transit</option>
+              <option value="lunar_surface">Lunar surface</option>
+              <option value="station">Space station</option>
+            </select>
+            {updateProfile.isPending && <span aria-live="polite">Updating…</span>}
+          </label>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -431,11 +497,18 @@ export function FlightDeckPage() {
         {context?.latest_event && (
           <div className="mt-4">
             <ContextBanner
-            event={context.latest_event}
-            active={context.active}
-            source={context.source}
-          />
+              event={context.latest_event}
+              active={context.active}
+              source={context.source}
+            />
           </div>
+        )}
+        {criticalAlerts.length > 0 && (
+          <CriticalTriageBanner
+            count={criticalAlerts.length}
+            title={criticalAlerts[0].title}
+            onOpen={() => navigate("/triage")}
+          />
         )}
         <Panel
           className="mt-6"
@@ -473,6 +546,14 @@ export function FlightDeckPage() {
             source={context.source}
           />
         </div>
+      )}
+
+      {criticalAlerts.length > 0 && (
+        <CriticalTriageBanner
+          count={criticalAlerts.length}
+          title={criticalAlerts[0].title}
+          onOpen={() => navigate("/triage")}
+        />
       )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
@@ -545,6 +626,9 @@ export function FlightDeckPage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <Button variant="secondary" size="sm" onClick={() => navigate("/check-in")}>
                 Log a check-in
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => navigate("/triage")}>
+                Triage protocol
               </Button>
               {alertsError && (
                 <Button variant="ghost" size="sm" onClick={() => void alertsQuery.refetch()}>

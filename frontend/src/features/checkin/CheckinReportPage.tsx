@@ -5,6 +5,7 @@ import {
   Download,
   Dumbbell,
   Plus,
+  Printer,
   ShieldCheck,
   Sparkles,
 } from "lucide-react";
@@ -102,7 +103,11 @@ export function CheckinReportPage() {
             {formatDateTime(report.completed_at)} · Check-in #{report.checkin_id}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 print:hidden">
+          <Button variant="secondary" size="sm" onClick={() => window.print()}>
+            <Printer size={13} aria-hidden />
+            Print / Save PDF
+          </Button>
           <Button variant="secondary" size="sm" onClick={() => downloadReport(report)}>
             <Download size={13} aria-hidden />
             Export JSON

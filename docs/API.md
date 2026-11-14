@@ -64,6 +64,7 @@ Regenerate after every contract change. Hand-written request/response types are 
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/mission` | Mission profile, environment, and MET origin |
+| PATCH | `/mission/profile` | Set `mars_transit`, `lunar_surface`, or `station`; recomputes readiness with the profile weights |
 | GET | `/mission/context` | Latest space-weather event and active flag, with `source` (`live` or `fixture`) and `fetched_at`; live DONKI is cached for 30 minutes |
 | GET | `/mission/tape?days=7\|30` | Check-ins, alerts, training, commendations, allowances, and weather |
 | GET | `/mission/log` | Personal feed of check-ins, alerts, training, achievements, and redemptions |

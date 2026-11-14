@@ -1,6 +1,11 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
+
+
+class MissionProfileUpdate(BaseModel):
+    profile: Literal["mars_transit", "lunar_surface", "station"]
 
 
 class MissionRead(BaseModel):

@@ -118,7 +118,7 @@ export function FlightSurgeonDrawer() {
     : messages;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label="Flight Surgeon">
+    <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label="Flight Surgeon">
       <div className="absolute inset-0 bg-ink/20" onClick={close} aria-hidden />
       <div ref={panelRef} className="absolute inset-y-0 right-0 w-full max-w-md p-3">
         <CopilotDrawer

@@ -67,6 +67,12 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 
 ---
 
+## Optional extra beats
+
+- **Pilot triage** — sign in as `pilot@astra.space` to show the critical R1 alert, the red **critical alert active** banner, and `/triage`: immediate actions, the active alert, the next comms window, and the copyable handoff summary.
+- **Environment switch** — as the commander, change **Environment** from Mars transit to Lunar surface. The readiness weights, score, comms delay, and training plan update. Switch back to Mars transit before the main demo.
+- **Calendar and print** — on Training, use **Calendar** to download today’s roster as `.ics`; on a Systems Report, use **Print / Save PDF** or **Export JSON** for the flight-surgeon handoff.
+
 ## Reset and accounts
 
 ```bash
