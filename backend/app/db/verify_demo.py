@@ -16,6 +16,8 @@ from app.models import (
     ReadinessSnapshot,
     Reward,
     SpaceWeatherEvent,
+    SurgeonAssessment,
+    SurgeonInstruction,
     TrainingItem,
     TrainingSession,
     User,
@@ -33,8 +35,31 @@ def main() -> int:
             failures.append("mission is missing")
 
         users = session.scalars(select(User).order_by(User.id)).all()
-        crew = {user.email: user for user in users if user.email.endswith("@astra.space")}
+        crew = {
+            user.email: user
+            for user in users
+            if user.email.endswith("@astra.space") and user.role != "flight_surgeon"
+        }
+        surgeon = next(
+            (user for user in users if user.email == "surgeon@astra.space"), None
+        )
         checks.append(("crew accounts", len(crew) == 4, f"{len(crew)} seeded"))
+        checks.append(
+            (
+                "flight surgeon",
+                surgeon is not None and surgeon.role == "flight_surgeon",
+                surgeon.full_name if surgeon else "missing",
+            )
+        )
+        instruction_count = session.scalar(select(func.count(SurgeonInstruction.id)))
+        assessment_count = session.scalar(select(func.count(SurgeonAssessment.id)))
+        checks.append(
+            (
+                "surgeon updates",
+                (instruction_count or 0) >= 1 and (assessment_count or 0) >= 1,
+                f"{instruction_count or 0} instructions, {assessment_count or 0} assessments",
+            )
+        )
 
         commander = crew.get("commander@astra.space")
         pilot = crew.get("pilot@astra.space")

@@ -58,6 +58,16 @@ from app.schemas.readiness import (
     ReadinessFactor,
     ReadinessSnapshotRead,
 )
+from app.schemas.surgeon import (
+    SurgeonAssessmentCreate,
+    SurgeonAssessmentRead,
+    SurgeonCrewDetailRead,
+    SurgeonCrewSummaryRead,
+    SurgeonInstructionCreate,
+    SurgeonInstructionRead,
+    SurgeonMissionRead,
+    SurgeonUpdatesRead,
+)
 from app.schemas.telemetry import (
     BaselineBandRead,
     DomainMetricSummaryRead,
@@ -139,6 +149,14 @@ __all__ = [
     "RewardRead",
     "SpaceWeatherEventRead",
     "StreakRead",
+    "SurgeonAssessmentCreate",
+    "SurgeonAssessmentRead",
+    "SurgeonCrewDetailRead",
+    "SurgeonCrewSummaryRead",
+    "SurgeonInstructionCreate",
+    "SurgeonInstructionRead",
+    "SurgeonMissionRead",
+    "SurgeonUpdatesRead",
     "SymptomCreate",
     "SymptomRead",
     "TapeEventRead",

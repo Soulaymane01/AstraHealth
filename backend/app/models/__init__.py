@@ -17,6 +17,7 @@ from app.models.health import (
     Symptom,
 )
 from app.models.social import CrewNudge, SpaceWeatherEvent
+from app.models.surgeon import SurgeonAssessment, SurgeonInstruction
 from app.models.user import Crew, Mission, User
 
 __all__ = [
@@ -38,6 +39,8 @@ __all__ = [
     "Reward",
     "SpaceWeatherEvent",
     "Streak",
+    "SurgeonAssessment",
+    "SurgeonInstruction",
     "Symptom",
     "TrainingItem",
     "TrainingSession",

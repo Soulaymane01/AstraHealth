@@ -18,6 +18,7 @@ from app.api import (
     missions,
     quizzes,
     readiness,
+    surgeon,
     training,
     users,
 )
@@ -37,6 +38,7 @@ TAGS_METADATA = [
     {"name": "knowledge", "description": "HRP-sourced health education."},
     {"name": "mission", "description": "Mission profile and space-weather context."},
     {"name": "assistant", "description": "AI Flight Surgeon with citations."},
+    {"name": "surgeon", "description": "Earth-side clinical console for the flight surgeon."},
 ]
 
 app = FastAPI(
@@ -76,6 +78,7 @@ app.include_router(quizzes.router)
 app.include_router(training.router)
 app.include_router(knowledge.router)
 app.include_router(assistant.router)
+app.include_router(surgeon.router)
 
 
 @app.get("/health", tags=["system"], summary="Service health")

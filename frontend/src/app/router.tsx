@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
 import { RequireAuth } from "@/features/auth/RequireAuth";
+import { RequireSurgeon } from "@/features/auth/RequireSurgeon";
 import { NotFoundPage } from "@/features/shared/NotFoundPage";
 import { FullPageLoader } from "@/features/shared/FullPageLoader";
 import { RouteErrorPage } from "@/features/shared/RouteErrorPage";
@@ -122,6 +123,23 @@ export const router = createBrowserRouter([
             path: "library/:slug",
             lazy: async () => ({
               Component: (await import("@/features/library/ArticlePage")).ArticlePage,
+            }),
+          },
+        ],
+      },
+    ],
+  },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <RequireSurgeon />,
+        children: [
+          {
+            path: "surgeon",
+            HydrateFallback: FullPageLoader,
+            lazy: async () => ({
+              Component: (await import("@/features/surgeon/SurgeonPage")).SurgeonPage,
             }),
           },
         ],

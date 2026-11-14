@@ -51,6 +51,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 
 - The score is explainable: factors and rules are visible, not a black box.
 - Vitals and load are automatic: the capture strip shows simulated habitat/suit readings with provenance, and the Systems Check pre-fills them. Sleep, mood, and symptoms remain the astronaut’s own input.
+- The Earth-side loop is complete: the flight surgeon sees every crew member’s captures, trends, check-ins, and alerts; can diagnose, acknowledge, and send a request; the astronaut sees the shared assessment and can mark the request done.
 - The check-in is honest about missing data: skipped steps are recorded, and the report says when a baseline is insufficient instead of inventing a score.
 - The telemetry charts never invent a reading. The personal baseline and spaceflight reference are visually distinct, the event rail explains context, and an empty range says what to do next.
 - The social layer is safe: the leaderboard contains no health values, privacy is enforced in the roster, the crew quiz only accepts consenting subjects, and the app does not duplicate direct crew communication with an in-app chat.
@@ -73,6 +74,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 - **Pilot triage** — sign in as `pilot@astra.space` to show the critical R1 alert, the red **critical alert active** banner, and `/triage`: immediate actions, the active alert, the next comms window, and the copyable handoff summary.
 - **Environment switch** — as the commander, change **Environment** from Mars transit to Lunar surface. The readiness weights, score, comms delay, and training plan update. Switch back to Mars transit before the main demo.
 - **Calendar and print** — on Training, use **Calendar** to download today’s roster as `.ics`; on a Systems Report, use **Print / Save PDF** or **Export JSON** for the flight-surgeon handoff.
+- **Flight Surgeon console** — sign in as `surgeon@astra.space`. The crew list shows four readiness states; select the pilot, review the capture and trend, acknowledge the critical alert, and save a clinical assessment. Send a check-in request. Sign out and sign in as the pilot to see the shared assessment and request on the Flight Deck; mark the request done. The surgeon console is at `/surgeon`.
 
 ## Reset and accounts
 
@@ -89,6 +91,7 @@ make start-demo
 | `pilot@astra.space` | Pilot | Febrile episode; crew comparison |
 | `specialist@astra.space` | Specialist | Neurobehavioral arc |
 | `engineer@astra.space` | Engineer | Stable control |
+| `surgeon@astra.space` | Flight Surgeon | Earth-side console at `/surgeon` |
 
 Password for all demo accounts: `astra-demo`.
 

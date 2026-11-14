@@ -15,6 +15,7 @@ import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { CaptureStrip } from "@/features/captures/CaptureStrip";
+import { SurgeonUpdatesPanel } from "@/features/surgeon/SurgeonUpdatesPanel";
 import { readClinical } from "@/features/offline/clinical-cache";
 import { useOfflineStore } from "@/features/offline/store";
 import {
@@ -559,6 +560,7 @@ export function FlightDeckPage() {
       )}
 
       <CaptureStrip />
+      <SurgeonUpdatesPanel />
 
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
         <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:col-span-5">

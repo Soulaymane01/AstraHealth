@@ -29,4 +29,9 @@ export const queryKeys = {
   knowledgeArticles: (domain: string) => ["knowledge", "articles", domain] as const,
   knowledgeArticle: (slug: string) => ["knowledge", "article", slug] as const,
   assistantSuggestions: ["assistant", "suggestions"] as const,
+  surgeonCrew: ["surgeon", "crew"] as const,
+  surgeonDetail: (crewId: number) => ["surgeon", "crew", crewId] as const,
+  surgeonSeries: (crewId: number, code: string, days: number) =>
+    ["surgeon", "crew", crewId, "series", code, days] as const,
+  surgeonUpdates: ["surgeon", "updates"] as const,
 };

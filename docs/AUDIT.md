@@ -84,6 +84,16 @@ Added after the audit to match the “astronaut does not type vitals” requirem
 
 **Verification:** 83 backend tests; smoke, typecheck, build, mobile layout, and axe pass.
 
+### Post-audit feature: Flight Surgeon console
+
+- Added a `flight_surgeon` role and demo account `surgeon@astra.space` (no crew assignment).
+- Added a dedicated Earth-side console at `/surgeon`: crew roster with readiness, alert, capture, and instruction status; full clinical record; metric trends; capture and measurement tables; alert acknowledgement; capture simulation.
+- Added clinical assessments (diagnosis, findings, plan, follow-up, share-with-crew) and crew instructions (note, check-in request, measurement request) with a crew-facing panel on the Flight Deck and a “Mark done” acknowledgement.
+- Added `SurgeonAssessment` and `SurgeonInstruction` tables with an Alembic migration, seeded surgeon/assessment/instruction data, and role-guarded `/surgeon` endpoints.
+- Crew visibility settings remain peer controls; medical console access is separate and documented.
+
+**Verification:** 87 backend tests; smoke, typecheck, build, and axe pass; the surgeon console and crew panel were exercised in the browser.
+
 ---
 
 ## 1. Verdict

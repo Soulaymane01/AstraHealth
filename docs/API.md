@@ -59,6 +59,27 @@ Regenerate after every contract change. Hand-written request/response types are 
 | GET | `/crew` | Crew roster filtered by privacy |
 | GET | `/crew/leaderboard` | Consistency ranking; no health fields |
 
+### Flight surgeon
+
+All routes require a `flight_surgeon` account. Medical access is intentionally broader than peer crew sharing; `share_status` controls the crew roster, not the surgeon.
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/surgeon/crew` | Crew summaries: readiness, alerts, last capture, open instructions |
+| GET | `/surgeon/crew/{id}` | Full clinical record: readiness, history, alerts, latest capture, measurements, check-ins, assessments, instructions |
+| GET | `/surgeon/crew/{id}/metrics/{code}/series?days=7\|30\|90` | Trend series for one crew member |
+| POST | `/surgeon/crew/{id}/captures/simulate` | Force a simulated capture and recompute readiness |
+| POST | `/surgeon/crew/{id}/assessments` | Create a clinical assessment/diagnosis |
+| POST | `/surgeon/crew/{id}/instructions` | Send a note, check-in request, or measurement request |
+| POST | `/surgeon/crew/{id}/alerts/{alert_id}/ack` | Acknowledge a crew alert |
+
+### Crew-facing surgeon updates
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/me/surgeon-updates` | Shared assessments and instructions for the signed-in astronaut |
+| POST | `/me/surgeon-updates/{instruction_id}/ack` | Mark an instruction done |
+
 ### Mission
 
 | Method | Path | Purpose |

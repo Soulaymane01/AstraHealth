@@ -34,6 +34,8 @@ from app.models import (
     Reward,
     SpaceWeatherEvent,
     Streak,
+    SurgeonAssessment,
+    SurgeonInstruction,
     Symptom,
     TrainingItem,
     TrainingSession,
@@ -76,6 +78,13 @@ USER_SPECS = [
         "avatar_seed": "tnov",
     },
 ]
+
+SURGEON_SPEC = {
+    "email": "surgeon@astra.space",
+    "full_name": "Dr. Elena Vasquez",
+    "role": "flight_surgeon",
+    "avatar_seed": "evas",
+}
 
 DEFAULT_BASE = {
     "heart_rate": 66.0,
@@ -723,6 +732,52 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
         users[spec["key"]] = user
     session.flush()
 
+    surgeon = User(
+        email=SURGEON_SPEC["email"],
+        password_hash=password_hash,
+        full_name=SURGEON_SPEC["full_name"],
+        role=SURGEON_SPEC["role"],
+        crew_id=None,
+        share_status="private",
+        avatar_seed=SURGEON_SPEC["avatar_seed"],
+    )
+    session.add(surgeon)
+    session.flush()
+
+    session.add_all(
+        [
+            SurgeonInstruction(
+                surgeon_id=surgeon.id,
+                crew_user_id=users["commander"].id,
+                kind="note",
+                message=(
+                    "Your HRV and sleep efficiency are below baseline. Protect the "
+                    "sleep window tonight, repeat the Systems Check tomorrow, and I "
+                    "will review the new capture."
+                ),
+                status="open",
+            ),
+            SurgeonAssessment(
+                surgeon_id=surgeon.id,
+                crew_user_id=users["pilot"].id,
+                status="final",
+                working_diagnosis="Febrile episode, likely viral — under observation",
+                findings=(
+                    "Core temperature 38.4 °C with tachycardia at 104 bpm, headache, "
+                    "and reduced sleep. No chest pain or dyspnea reported."
+                ),
+                plan=(
+                    "Stop exercise, hydrate, monitor temperature every four hours, "
+                    "repeat vitals through the capture feed, and escalate immediately "
+                    "for chest pain, dyspnea, or confusion."
+                ),
+                follow_up="Review in 12 hours; flight surgeon call at the next comms window.",
+                share_with_crew=True,
+            ),
+        ]
+    )
+    session.flush()
+
     _seed_content(session)
     measurement_count = _seed_measurements(session, users, now, rng)
     checkin_count = _seed_checkins(session, users, now)
@@ -776,7 +831,10 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     print(f"  training items: {len(TRAINING_ITEMS)}")
     print(f"  achievements: {len(ACHIEVEMENTS)}")
     print(f"  rewards: {len(REWARDS)}")
-    print(f"  demo accounts: {', '.join(spec['email'] for spec in USER_SPECS)}")
+    print(
+        "  demo accounts: "
+        + ", ".join([*(spec["email"] for spec in USER_SPECS), SURGEON_SPEC["email"]])
+    )
     print(f"  password: {DEMO_PASSWORD}")
 
 

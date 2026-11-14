@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
 import { AuthLayout } from "@/features/auth/AuthLayout";
 import { useAuthStore } from "@/features/auth/auth-store";
+import { isFlightSurgeon } from "@/lib/roles";
 
 const schema = z.object({
   email: z.email("Enter a valid email address."),
@@ -22,6 +23,7 @@ type LoginValues = z.infer<typeof schema>;
 
 export function LoginPage() {
   const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
   const login = useAuthStore((state) => state.login);
   const location = useLocation();
   const [formError, setFormError] = useState<string | null>(null);
@@ -39,7 +41,7 @@ export function LoginPage() {
   });
 
   if (status === "authenticated") {
-    return <Navigate to={from} replace />;
+    return <Navigate to={isFlightSurgeon(user) ? "/surgeon" : from} replace />;
   }
 
   const onSubmit = handleSubmit(async (values) => {
@@ -58,11 +60,17 @@ export function LoginPage() {
     setFormError(null);
   };
 
+  const fillSurgeon = () => {
+    setValue("email", "surgeon@astra.space", { shouldValidate: true });
+    setValue("password", "astra-demo", { shouldValidate: true });
+    setFormError(null);
+  };
+
   return (
     <AuthLayout>
       <div className="card-shadow rounded-xl border border-line bg-surface p-6">
         <h1 className="text-xl font-semibold tracking-tight text-ink">Welcome back</h1>
-        <p className="mt-1 text-sm text-ink-2">Sign in to your crew account.</p>
+        <p className="mt-1 text-sm text-ink-2">Sign in to your crew or flight surgeon account.</p>
 
         <form className="mt-6 space-y-4" onSubmit={onSubmit} noValidate>
           <Field label="Email" htmlFor="email" error={errors.email?.message}>
@@ -129,12 +137,17 @@ export function LoginPage() {
           <div>
             <p className="text-xs font-medium text-ink">Demo access</p>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
-              Seeded commander with an active anomaly.
+              Seeded commander or the Earth-side flight surgeon.
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={fillDemo}>
-            Use demo
-          </Button>
+          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+            <Button variant="secondary" size="sm" onClick={fillDemo}>
+              Commander
+            </Button>
+            <Button variant="secondary" size="sm" onClick={fillSurgeon}>
+              Flight surgeon
+            </Button>
+          </div>
         </div>
       </div>
 

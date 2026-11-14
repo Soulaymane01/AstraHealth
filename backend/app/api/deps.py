@@ -57,3 +57,12 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
+
+
+def get_current_surgeon(user: User = Depends(get_current_user)) -> User:
+    if user.role != "flight_surgeon":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Flight surgeon access required",
+        )
+    return user

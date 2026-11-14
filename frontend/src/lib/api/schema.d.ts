@@ -91,6 +91,40 @@ export interface paths {
         patch: operations["update_privacy_me_privacy_patch"];
         trace?: never;
     };
+    "/me/surgeon-updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Surgeon Updates */
+        get: operations["read_surgeon_updates_me_surgeon_updates_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/surgeon-updates/{instruction_id}/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge Surgeon Instruction */
+        post: operations["acknowledge_surgeon_instruction_me_surgeon_updates__instruction_id__ack_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/metrics/definitions": {
         parameters: {
             query?: never;
@@ -801,6 +835,142 @@ export interface paths {
         put?: never;
         /** Ask */
         post: operations["ask_assistant_ask_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Crew */
+        get: operations["list_crew_surgeon_crew_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Detail */
+        get: operations["read_crew_detail_surgeon_crew__crew_user_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/metrics/{code}/series": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Metric Series */
+        get: operations["read_crew_metric_series_surgeon_crew__crew_user_id__metrics__code__series_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/captures/simulate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Simulate Crew Capture */
+        post: operations["simulate_crew_capture_surgeon_crew__crew_user_id__captures_simulate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Assessment */
+        post: operations["create_assessment_surgeon_crew__crew_user_id__assessments_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/instructions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Instruction */
+        post: operations["create_instruction_surgeon_crew__crew_user_id__instructions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/alerts/{alert_id}/ack": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Acknowledge Crew Alert */
+        post: operations["acknowledge_crew_alert_surgeon_crew__crew_user_id__alerts__alert_id__ack_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/surgeon/crew/{crew_user_id}/updates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Updates */
+        get: operations["read_crew_updates_surgeon_crew__crew_user_id__updates_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1802,6 +1972,162 @@ export interface components {
             /** Days To Milestone */
             days_to_milestone: number;
         };
+        /** SurgeonAssessmentCreate */
+        SurgeonAssessmentCreate: {
+            /** Working Diagnosis */
+            working_diagnosis: string;
+            /** Findings */
+            findings: string;
+            /** Plan */
+            plan: string;
+            /** Follow Up */
+            follow_up?: string | null;
+            /**
+             * Share With Crew
+             * @default true
+             */
+            share_with_crew: boolean;
+        };
+        /** SurgeonAssessmentRead */
+        SurgeonAssessmentRead: {
+            /** Id */
+            id: number;
+            /** Surgeon Id */
+            surgeon_id: number;
+            /** Surgeon Name */
+            surgeon_name: string;
+            /** Crew User Id */
+            crew_user_id: number;
+            /** Status */
+            status: string;
+            /** Working Diagnosis */
+            working_diagnosis: string;
+            /** Findings */
+            findings: string;
+            /** Plan */
+            plan: string;
+            /** Follow Up */
+            follow_up: string | null;
+            /** Share With Crew */
+            share_with_crew: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** SurgeonCrewDetailRead */
+        SurgeonCrewDetailRead: {
+            member: components["schemas"]["SurgeonCrewSummaryRead"];
+            mission: components["schemas"]["SurgeonMissionRead"];
+            readiness: components["schemas"]["ReadinessSnapshotRead"] | null;
+            /** Readiness History */
+            readiness_history: components["schemas"]["ReadinessSnapshotRead"][];
+            /** Alerts */
+            alerts: components["schemas"]["AlertRead"][];
+            latest_capture: components["schemas"]["CaptureFeedRead"];
+            /** Measurements */
+            measurements: components["schemas"]["MeasurementRead"][];
+            /** Checkins */
+            checkins: components["schemas"]["CheckinRead"][];
+            /** Assessments */
+            assessments: components["schemas"]["SurgeonAssessmentRead"][];
+            /** Instructions */
+            instructions: components["schemas"]["SurgeonInstructionRead"][];
+        };
+        /** SurgeonCrewSummaryRead */
+        SurgeonCrewSummaryRead: {
+            /** Id */
+            id: number;
+            /** Full Name */
+            full_name: string;
+            /** Role */
+            role: string;
+            /** Avatar Seed */
+            avatar_seed: string | null;
+            /** Readiness Score */
+            readiness_score: number | null;
+            /** Readiness Status */
+            readiness_status: string | null;
+            /** Active Alerts */
+            active_alerts: number;
+            /** Critical Alerts */
+            critical_alerts: number;
+            /** Last Capture At */
+            last_capture_at: string | null;
+            /** Last Capture Source */
+            last_capture_source: string | null;
+            /** Last Checkin At */
+            last_checkin_at: string | null;
+            /** Open Instructions */
+            open_instructions: number;
+        };
+        /** SurgeonInstructionCreate */
+        SurgeonInstructionCreate: {
+            /**
+             * Kind
+             * @default note
+             * @enum {string}
+             */
+            kind: "note" | "request_checkin" | "request_measurement";
+            /** Message */
+            message: string;
+        };
+        /** SurgeonInstructionRead */
+        SurgeonInstructionRead: {
+            /** Id */
+            id: number;
+            /** Surgeon Id */
+            surgeon_id: number;
+            /** Surgeon Name */
+            surgeon_name: string;
+            /** Crew User Id */
+            crew_user_id: number;
+            /** Kind */
+            kind: string;
+            /** Message */
+            message: string;
+            /** Status */
+            status: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Acknowledged At */
+            acknowledged_at: string | null;
+            /** Completed At */
+            completed_at: string | null;
+        };
+        /** SurgeonMissionRead */
+        SurgeonMissionRead: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Profile */
+            profile: string;
+            /** Environment */
+            environment: string;
+            /** Mission Day */
+            mission_day: number;
+            /** Comms Delay Min */
+            comms_delay_min: number;
+        };
+        /** SurgeonUpdatesRead */
+        SurgeonUpdatesRead: {
+            /** Assessments */
+            assessments: components["schemas"]["SurgeonAssessmentRead"][];
+            /** Instructions */
+            instructions: components["schemas"]["SurgeonInstructionRead"][];
+            /** Open Instructions */
+            open_instructions: number;
+        };
         /** SymptomCreate */
         SymptomCreate: {
             /** Region */
@@ -2291,6 +2617,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PrivacyRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_surgeon_updates_me_surgeon_updates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonUpdatesRead"];
+                };
+            };
+        };
+    };
+    acknowledge_surgeon_instruction_me_surgeon_updates__instruction_id__ack_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                instruction_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonInstructionRead"];
                 };
             };
             /** @description Validation Error */
@@ -3496,6 +3873,255 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssistantAnswerRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_crew_surgeon_crew_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonCrewSummaryRead"][];
+                };
+            };
+        };
+    };
+    read_crew_detail_surgeon_crew__crew_user_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonCrewDetailRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_crew_metric_series_surgeon_crew__crew_user_id__metrics__code__series_get: {
+        parameters: {
+            query?: {
+                days?: number;
+            };
+            header?: never;
+            path: {
+                crew_user_id: number;
+                code: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MetricSeriesRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    simulate_crew_capture_surgeon_crew__crew_user_id__captures_simulate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CaptureFeedRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_assessment_surgeon_crew__crew_user_id__assessments_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurgeonAssessmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonAssessmentRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_instruction_surgeon_crew__crew_user_id__instructions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SurgeonInstructionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonInstructionRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    acknowledge_crew_alert_surgeon_crew__crew_user_id__alerts__alert_id__ack_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+                alert_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlertRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_crew_updates_surgeon_crew__crew_user_id__updates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonUpdatesRead"];
                 };
             };
             /** @description Validation Error */

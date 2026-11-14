@@ -55,6 +55,7 @@
 - **Training and Duty Roster** — a weekly plan generated from active alerts and the mission profile, countermeasure links from every alert, session logging with RPE, adherence and streaks, a daily roster, and a next-due indicator in the nav and top bar.
 - **Motivation** — a credit ledger, Mission Rank, commendations, a one-time allowance catalog, streaks with a single grace day, and a Mission Log that records the whole loop. Never tied to health values.
 - **Crew** — consent-based status sharing, a privacy-filtered readiness roster, and a consistency board with no health values. Direct crew communication stays outside the health tool.
+- **Flight Surgeon console** — a separate Earth-side dashboard for the medical officer: all crew readiness and alerts, the full capture and manual record, metric trends, clinical assessments/diagnoses, alert acknowledgement, and instructions or check-in requests sent back to the crew. Shared assessments and requests appear on the astronaut’s Flight Deck.
 - **Quizzes** — Know Yourself and the consent-gated Know Your Crew, with scoring, source explanations, and a first-completion credit award.
 - **Knowledge and AI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
@@ -96,7 +97,7 @@ make start
 
 Prefer separate terminals? Use `make db`, then `make api` and `make web` in two shells.
 
-Open **http://localhost:5173** — sign in with a demo account. The shell shows a **Demo** badge for the seeded mission. The styleguide is hidden in demo mode; set `VITE_DEMO_MODE=false` and restart Vite to expose `/styleguide`.
+Open **http://localhost:5173** — sign in with a demo account. The shell shows a **Demo** badge for the seeded mission. Signing in as `surgeon@astra.space` opens the Earth-side clinical console at `/surgeon`; the crew accounts open the Flight Deck. The styleguide is hidden in demo mode; set `VITE_DEMO_MODE=false` and restart Vite to expose `/styleguide`.
 
 ### Demo mode
 
@@ -148,8 +149,9 @@ After `make seed` (or `make reset-demo`), use any of these at `POST /auth/login`
 | `pilot@astra.space` | Pilot | Febrile episode; critical alert |
 | `specialist@astra.space` | Specialist | Mood and social withdrawal |
 | `engineer@astra.space` | Engineer | Stable control |
+| `surgeon@astra.space` | Flight Surgeon | Earth-side console; opens at `/surgeon` |
 
-Password for all demo accounts: `astra-demo`.
+Password for all demo accounts: `astra-demo`. The surgeon is not a crew member and does not consume a seat in the roster.
 
 ### Ports
 
@@ -196,14 +198,15 @@ React 19 PWA (browser)
   └─ MediaPipe FaceLandmarker ── on-device pulse estimate
 
 FastAPI
-  ├─ JWT auth, privacy, rate limits
+  ├─ JWT auth, privacy, rate limits, flight-surgeon role
   ├─ simulated habitat/suit captures → measurements + provenance
+  ├─ Earth-side console → crew record, assessments, instructions
   ├─ readiness engine + hard rules + alert lifecycle
   ├─ atomic check-in transaction
   └─ 9 HRP articles, quizzes, training, rewards
 
 PostgreSQL 16
-  └─ 23 tables, seeded mission, crew, telemetry, content
+  └─ 25 tables, seeded mission, crew, telemetry, content, surgeon records
 
 Optional: NASA DONKI (space weather) and an OpenAI-compatible LLM.
 ```
@@ -231,7 +234,7 @@ AstraHealth provides guidance, not diagnosis. Red-flag findings always route to 
 
 ### Local security model
 
-The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. For offline viewing, the last readiness/alerts/mission snapshot is cached per user in `localStorage` and cleared on logout; it is never shared between accounts, and the service worker still does not cache API responses. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens and clinical cache to secure, encrypted storage, terminate TLS, and put the API behind a real rate limiter.
+The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. The flight-surgeon role is separate and role-guarded; it intentionally sees all crew clinical data, while `share_status` only controls what crewmates can see in the peer roster. For offline viewing, the last readiness/alerts/mission snapshot is cached per user in `localStorage` and cleared on logout; it is never shared between accounts, and the service worker still does not cache API responses. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens and clinical cache to secure, encrypted storage, terminate TLS, and put the API behind a real rate limiter.
 
 ---
 
