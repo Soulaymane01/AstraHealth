@@ -1,12 +1,18 @@
 import {
   CalendarClock,
+  ClipboardCheck,
   ClipboardList,
+  LayoutDashboard,
+  LineChart,
   LogOut,
+  NotebookPen,
   PersonStanding,
   RefreshCw,
+  ScanLine,
   Send,
   Sparkles,
   Stethoscope,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -54,14 +60,14 @@ type TabKey = "overview" | "body" | "trends" | "captures" | "quizzes" | "clinica
 type Measurement = SurgeonCrewDetail["measurements"][number];
 type Days = 7 | 30 | 90;
 
-const TABS: { key: TabKey; label: string }[] = [
-  { key: "overview", label: "Overview" },
-  { key: "body", label: "Body" },
-  { key: "trends", label: "Trends" },
-  { key: "captures", label: "Captures" },
-  { key: "quizzes", label: "Quizzes" },
-  { key: "clinical", label: "Clinical record" },
-  { key: "copilot", label: "Copilot" },
+const SECTIONS: { key: TabKey; label: string; icon: LucideIcon }[] = [
+  { key: "overview", label: "Overview", icon: LayoutDashboard },
+  { key: "body", label: "Body", icon: PersonStanding },
+  { key: "trends", label: "Trends", icon: LineChart },
+  { key: "captures", label: "Captures", icon: ScanLine },
+  { key: "quizzes", label: "Quizzes & screens", icon: ClipboardCheck },
+  { key: "clinical", label: "Clinical record", icon: NotebookPen },
+  { key: "copilot", label: "Copilot", icon: Sparkles },
 ];
 
 const NO_EVENTS: TapeEvent[] = [];
@@ -445,6 +451,186 @@ function BodySystemsTab({
   );
 }
 
+function CrewPicker({
+  crew,
+  onSelect,
+}: {
+  crew: SurgeonCrewSummary[];
+  onSelect: (member: SurgeonCrewSummary) => void;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-5xl px-4 py-8 lg:px-6">
+      <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted">
+        Flight Surgeon
+      </p>
+      <h1 className="mt-1 text-2xl font-semibold tracking-[-0.02em] text-ink">
+        Choose an astronaut.
+      </h1>
+      <p className="mt-1 text-sm text-muted">Open a profile to review the full record.</p>
+
+      {crew.length === 0 ? (
+        <Panel className="mt-6" title="No crew assigned">
+          <p className="text-sm text-ink-2">Seed or assign a crew to use the console.</p>
+        </Panel>
+      ) : (
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          {crew.map((memberSummary) => {
+            const memberStatus = memberSummary.readiness_status
+              ? asStatus(memberSummary.readiness_status)
+              : null;
+            return (
+              <button
+                key={memberSummary.id}
+                type="button"
+                onClick={() => onSelect(memberSummary)}
+                className={cn(
+                  "group rounded-3xl border p-5 text-left transition-transform duration-150 hover:-translate-y-0.5 hover:shadow-[0_16px_36px_rgba(10,42,92,0.12)]",
+                  memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-surface/75 text-xs font-semibold text-ink-2">
+                      {initials(memberSummary.full_name)}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="truncate text-base font-semibold text-ink">
+                        {memberSummary.full_name}
+                      </p>
+                      <p className="text-[11px] text-ink-2">{titleCase(memberSummary.role)}</p>
+                    </div>
+                  </div>
+                  {memberStatus && <StatusPill status={memberStatus} />}
+                </div>
+
+                <div className="mt-5 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-5xl font-semibold leading-none tabular tracking-tight text-ink">
+                      {memberSummary.readiness_score !== null
+                        ? Math.round(memberSummary.readiness_score)
+                        : "—"}
+                    </p>
+                    <p className="mt-1 text-[10px] text-ink-2">readiness</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1.5">
+                    {memberSummary.active_alerts > 0 && (
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          memberSummary.critical_alerts > 0
+                            ? "bg-critical text-white"
+                            : "bg-surface/80 text-watch",
+                        )}
+                      >
+                        {memberSummary.active_alerts} alert
+                        {memberSummary.active_alerts === 1 ? "" : "s"}
+                      </span>
+                    )}
+                    {memberSummary.open_instructions > 0 && (
+                      <span className="rounded-full bg-surface/80 px-2 py-0.5 text-[10px] font-medium text-accent">
+                        {memberSummary.open_instructions} open request
+                        {memberSummary.open_instructions === 1 ? "" : "s"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex items-center justify-between border-t border-ink/10 pt-2.5 text-[10px] text-ink/70">
+                  <span>
+                    Capture{" "}
+                    {memberSummary.last_capture_at
+                      ? formatRelativeTime(memberSummary.last_capture_at)
+                      : "pending"}
+                  </span>
+                  <span className="font-semibold text-ink">Open profile →</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PatientSidebar({
+  member,
+  activeSection,
+  onSection,
+  onSwitch,
+}: {
+  member?: SurgeonCrewSummary;
+  activeSection: TabKey;
+  onSection: (section: TabKey) => void;
+  onSwitch: () => void;
+}) {
+  const memberStatus = member?.readiness_status ? asStatus(member.readiness_status) : null;
+
+  return (
+    <aside className="w-full shrink-0 space-y-3 lg:sticky lg:top-20 lg:w-60 lg:self-start">
+      {member && (
+        <div
+          className={cn(
+            "rounded-2xl border p-3",
+            memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
+          )}
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[11px] font-semibold text-ink-2">
+              {initials(member.full_name)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-ink">{member.full_name}</p>
+              <p className="text-[10px] text-ink-2">{titleCase(member.role)}</p>
+            </div>
+            {memberStatus && <StatusPill status={memberStatus} />}
+          </div>
+          <div className="mt-3 flex items-end justify-between">
+            <p className="text-3xl font-semibold leading-none tabular text-ink">
+              {member.readiness_score !== null ? Math.round(member.readiness_score) : "—"}
+            </p>
+            <p className="text-[9px] text-ink-2">readiness</p>
+          </div>
+          <button
+            type="button"
+            onClick={onSwitch}
+            className="mt-3 w-full rounded-lg bg-surface/80 px-2 py-1.5 text-[10px] font-semibold text-accent transition-colors hover:bg-surface"
+          >
+            ← Switch astronaut
+          </button>
+        </div>
+      )}
+
+      <nav className="flex flex-wrap gap-1 lg:flex-col" aria-label="Patient record sections">
+        {SECTIONS.map((section) => {
+          const Icon = section.icon;
+          const active = activeSection === section.key;
+          return (
+            <button
+              key={section.key}
+              type="button"
+              onClick={() => onSection(section.key)}
+              aria-pressed={active}
+              className={cn(
+                "inline-flex items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors",
+                active
+                  ? "bg-accent-soft font-medium text-accent"
+                  : "text-ink-2 hover:bg-surface-muted hover:text-ink",
+              )}
+            >
+              <Icon size={14} aria-hidden />
+              {section.label}
+            </button>
+          );
+        })}
+      </nav>
+      <p className="px-1 text-[10px] text-muted">
+        Guidance only · clinical judgment stays with the surgeon.
+      </p>
+    </aside>
+  );
+}
+
 export function SurgeonPage() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -456,7 +642,7 @@ export function SurgeonPage() {
   const requestedId = Number(searchParams.get("crew"));
   const activeId = crew.some((member) => member.id === requestedId)
     ? requestedId
-    : crew[0]?.id;
+    : undefined;
   const detailQuery = useSurgeonDetail(activeId);
 
   const [tab, setTab] = useState<TabKey>("overview");
@@ -504,6 +690,11 @@ export function SurgeonPage() {
 
   const selectCrew = (member: SurgeonCrewSummary) => {
     setSearchParams({ crew: String(member.id) });
+    setTab("overview");
+  };
+
+  const switchCrew = () => {
+    setSearchParams({});
     setTab("overview");
   };
 
@@ -682,83 +873,18 @@ export function SurgeonPage() {
         </div>
       </header>
 
+      {!activeId ? (
+        <CrewPicker crew={crew} onSelect={selectCrew} />
+      ) : (
       <div className="mx-auto flex max-w-[1500px] flex-col gap-4 px-4 py-4 lg:flex-row lg:px-6">
-        <aside className="w-full shrink-0 space-y-3 lg:w-72">
-          <Panel title="Crew" subtitle={`${crew.length} crew members`}>
-            <div className="space-y-1.5">
-              {crew.map((memberSummary) => {
-                const memberStatus = memberSummary.readiness_status
-                  ? asStatus(memberSummary.readiness_status)
-                  : null;
-                const selected = memberSummary.id === activeId;
-                return (
-                  <button
-                    key={memberSummary.id}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => selectCrew(memberSummary)}
-                    className={cn(
-                      "w-full rounded-2xl border px-3 py-2.5 text-left transition-transform hover:-translate-y-0.5",
-                      memberStatus ? STATUS_META[memberStatus].surface : "border-line bg-surface",
-                      selected && "ring-2 ring-accent/40",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface/75 text-[10px] font-semibold text-ink-2">
-                          {initials(memberSummary.full_name)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-ink">
-                            {memberSummary.full_name}
-                          </p>
-                          <p className="text-[10px] text-ink-2">{titleCase(memberSummary.role)}</p>
-                        </div>
-                      </div>
-                      {memberStatus && <StatusPill status={memberStatus} />}
-                    </div>
-                    <div className="mt-2 flex items-end justify-between gap-2">
-                      <p className="text-2xl font-semibold leading-none tabular text-ink">
-                        {memberSummary.readiness_score !== null
-                          ? Math.round(memberSummary.readiness_score)
-                          : "—"}
-                      </p>
-                      <span className="flex items-center gap-1.5">
-                        {memberSummary.active_alerts > 0 && (
-                          <span
-                            className={cn(
-                              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
-                              memberSummary.critical_alerts > 0
-                                ? "bg-critical text-white"
-                                : "bg-surface/80 text-watch",
-                            )}
-                          >
-                            {memberSummary.active_alerts} alert
-                            {memberSummary.active_alerts === 1 ? "" : "s"}
-                          </span>
-                        )}
-                        {memberSummary.open_instructions > 0 && (
-                          <span className="rounded-full bg-surface/80 px-1.5 py-0.5 text-[9px] font-medium text-accent">
-                            {memberSummary.open_instructions} open
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </Panel>
-          <p className="px-1 text-[10px] text-muted">Guidance only · clinical judgment stays with the surgeon.</p>
-        </aside>
+        <PatientSidebar
+          member={member}
+          activeSection={tab}
+          onSection={setTab}
+          onSwitch={switchCrew}
+        />
 
         <main className="min-w-0 flex-1 space-y-4">
-          {!activeId && (
-            <Panel title="No crew assigned">
-              <p className="text-sm text-ink-2">Seed or assign a crew to use the console.</p>
-            </Panel>
-          )}
-
           {detailQuery.isLoading && <PageSkeleton />}
 
           {detailQuery.isError && (
@@ -829,10 +955,6 @@ export function SurgeonPage() {
                           aria-hidden
                         />
                         Capture now
-                      </Button>
-                      <Button variant="secondary" size="sm" onClick={() => setTab("body")}>
-                        <PersonStanding size={12} aria-hidden />
-                        Body
                       </Button>
                       <Button variant="secondary" size="sm" onClick={() => quickRequest("request_checkin")}>
                         Request check-in
@@ -905,24 +1027,7 @@ export function SurgeonPage() {
                 </button>
               )}
 
-              <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-surface p-1">
-                {TABS.map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    aria-pressed={tab === item.key}
-                    onClick={() => setTab(item.key)}
-                    className={cn(
-                      "rounded-lg px-3 py-1.5 text-xs font-medium transition-colors",
-                      tab === item.key
-                        ? "bg-accent-soft text-accent"
-                        : "text-muted hover:bg-surface-muted hover:text-ink",
-                    )}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
+
 
               {tab === "overview" && (
                 <div className="space-y-4">
@@ -1854,6 +1959,7 @@ export function SurgeonPage() {
           )}
         </main>
       </div>
+      )}
     </div>
   );
 }
