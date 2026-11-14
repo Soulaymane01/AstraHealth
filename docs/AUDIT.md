@@ -37,6 +37,26 @@ The P0 engineering/demo items below were fixed after this audit. Deployment, vid
 
 ---
 
+## P1 remediation status — first batch
+
+| P1 item | Status | What changed |
+|---|---|---|
+| No live NASA DONKI | ✅ Implemented | `services/nasa.py` fetches notifications with a 30-minute cache, maps type/severity/time, upserts locally, falls back to the seeded event on key/network/rate-limit failure, and exposes `source` + `fetched_at`. UI labels **Live NASA DONKI** vs **Demo fixture**. |
+| R7 cleared by a newer symptom-free check-in | ✅ Fixed | Symptoms are unioned over the recent 3-day window instead of only the latest check-in. |
+| No offline clinical data | ✅ Implemented | Last readiness, alerts, mission, context, tape, history, and selected domain detail are cached per user in `localStorage`, hydrated as query initial data, labelled “last synced,” and cleared on logout. Verified with an offline production reload: the full Flight Deck renders. |
+| Telemetry range switch blanks the page | ✅ Fixed | `keepPreviousData` on metric/domain queries + “Updating…” indicator. |
+| Training form opens above the viewport | ✅ Fixed | The form scrolls into view and focuses its first field; reduced motion respected. |
+| Wizard steps lose context | ✅ Fixed | Step changes scroll to the step panel and focus its heading; reduced motion respected. |
+| No flight-surgeon export | ✅ Fixed | Systems Report has an **Export JSON** action with source/guidance metadata. |
+| No route error recovery / titles | ✅ Fixed | Route error element, per-route document titles, and scroll restoration. |
+| DONKI/offline claims in docs | ✅ Updated | README, API, SOURCES, DEMO, and `.env.example` now match the implementation. |
+
+**Verification:** `make check` exit 0 · **77 backend tests** · full smoke suite · offline cached reload verified · `make demo-verify` all PASS.
+
+**Remaining P1 backlog:** 48 px targets + microcopy sizes, silent empty states on auxiliary queries, privacy scope for activity counts, stale-readiness TTL, measurement bounds, Vitest/CI, Redis rate limiting/refresh rotation, PWA precache trim, dead-code/docs cleanup, emergency triage card, mission-profile switcher, PDF export.
+
+---
+
 ## 1. Verdict
 
 AstraHealth is a **top-tier hackathon build**. It directly answers the NASA challenge, it is visually distinctive, it has a complete measure → understand → act → motivate loop, and its engineering quality is far above the typical Space Apps submission.

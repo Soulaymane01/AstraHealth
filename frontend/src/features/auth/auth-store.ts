@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
 import { queryClient } from "@/app/query-client";
+import { clearClinicalCache } from "@/features/offline/clinical-cache";
 import {
   api,
   clearTokens,
@@ -107,6 +108,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   logout: () => {
     clearTokens();
     clearCachedUser();
+    clearClinicalCache();
     queryClient.clear();
     set({ user: null, status: "unauthenticated" });
   },
@@ -144,6 +146,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (!refresh) {
         clearTokens();
         clearCachedUser();
+        clearClinicalCache();
         set({ user: null, status: "unauthenticated" });
         return;
       }
@@ -166,6 +169,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       clearTokens();
       clearCachedUser();
+      clearClinicalCache();
       set({ user: null, status: "unauthenticated" });
     } finally {
       sessionRevalidating = false;

@@ -1,4 +1,5 @@
 import { CalendarDays, Flame, ShieldCheck, type LucideIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { Panel } from "@/components/ui/Panel";
@@ -58,6 +59,17 @@ export function TrainingPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const planQuery = useTrainingPlan();
   const rosterQuery = useTrainingRoster();
+  const selectedCode = searchParams.get("item");
+  const logFormRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedCode) return;
+    const node = logFormRef.current;
+    if (!node) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    node.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+    node.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+  }, [selectedCode, planQuery.data]);
 
   if (planQuery.isLoading || rosterQuery.isLoading) {
     return <PageSkeleton />;
@@ -79,7 +91,7 @@ export function TrainingPage() {
 
   const plan = planQuery.data;
   const roster = rosterQuery.data;
-  const selectedItem = plan.items.find((item) => item.code === searchParams.get("item")) ?? null;
+  const selectedItem = plan.items.find((item) => item.code === selectedCode) ?? null;
   const trainingItems = plan.items.filter((item) => item.kind === "training");
   const countermeasureItems = plan.items.filter((item) => item.kind === "countermeasure");
 
@@ -156,7 +168,9 @@ export function TrainingPage() {
       </div>
 
       {selectedItem && (
-        <LogSessionForm key={selectedItem.code} item={selectedItem} onClose={closeLog} />
+        <div ref={logFormRef} className="scroll-mt-24">
+          <LogSessionForm key={selectedItem.code} item={selectedItem} onClose={closeLog} />
+        </div>
       )}
 
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">

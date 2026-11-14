@@ -54,7 +54,7 @@
 - **Quizzes** — Know Yourself and the consent-gated Know Your Crew, with scoring, source explanations, and a first-completion credit award.
 - **Knowledge and AI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
-- **Offline-first PWA** — a Workbox service worker precaches the shell and route chunks. Check-ins submitted without a link are written to IndexedDB, shown in an explicit offline banner with the next comms window, and synced exactly once on reconnect using the check-in idempotency key. Failed items can be reviewed and discarded.
+- **Offline-first PWA** — a Workbox service worker precaches the shell and route chunks, and the last readiness/alerts/mission snapshot is cached per user for offline viewing with a “last synced” label. Check-ins submitted without a link are written to IndexedDB, shown in an explicit offline banner with the next comms window, and synced exactly once on reconnect using the check-in idempotency key. Failed items can be reviewed and discarded.
 - **Hardened delivery** — route-level code splitting, cached auth profile for offline reloads, retryable error panels on every data view, and auth rate limits. Lighthouse on the Flight Deck: 100 performance / 100 accessibility on desktop and 99–100 performance / 100 accessibility on the mobile preset across verification runs.
 
 ---
@@ -111,7 +111,7 @@ make demo-verify
 
 Everything works with safe local defaults:
 
-- **NASA space weather** — the demo ships a seeded DONKI-style event. A live DONKI client is deferred; `NASA_API_KEY` is reserved for it.
+- **NASA space weather** — set `NASA_API_KEY` (or `DEMO_KEY`) for live DONKI context. The endpoint is cached for 30 minutes, falls back to the seeded event on any failure, and the UI labels the source as live or fixture.
 - **AI Flight Surgeon** — defaults to `LLM_PROVIDER=none`, which uses the deterministic cited answer engine. Set `LLM_PROVIDER=openai`, `LLM_API_KEY`, and `LLM_MODEL` to use an OpenAI-compatible chat endpoint; `LLM_BASE_URL` defaults to `https://api.openai.com/v1`. Refusal and red-flag answers always stay rule-based.
 - **Camera pulse** — MediaPipe WASM and the face model load from CDN at runtime; no camera assets are committed. Override `VITE_MEDIAPIPE_WASM_URL` and `VITE_MEDIAPIPE_MODEL_URL` to self-host them. Camera permission is optional and the manual heart-rate field remains the fallback.
 
@@ -187,6 +187,7 @@ Password for all demo accounts: `astra-demo`.
 React 19 PWA (browser)
   ├─ TanStack Query ── typed openapi-fetch ──► FastAPI
   ├─ IndexedDB ── check-in drafts + per-user offline queue
+  ├─ localStorage ── last synced readiness/alerts/mission snapshot (per user)
   ├─ Workbox service worker ── app shell and static assets only
   └─ MediaPipe FaceLandmarker ── on-device pulse estimate
 
@@ -219,13 +220,13 @@ docs/         Plan, API, design, sources, demo script
 
 ## Data honesty
 
-AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered and camera-derived measurements, clearly labeled simulated crew telemetry, and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context is a seeded DONKI-style fixture in this build; live DONKI is a deferred integration.
+AstraHealth does **not** access live astronaut health data. NASA does not publish a real-time per-astronaut health API. The product uses user-entered and camera-derived measurements, clearly labeled simulated crew telemetry, and public NASA HRP/OSDR material for reference ranges, countermeasures, and citations. Space-weather context comes from NASA DONKI when a key is configured, with a labeled seeded fixture as the fallback.
 
 AstraHealth provides guidance, not diagnosis. Red-flag findings always route to a flight surgeon.
 
 ### Local security model
 
-The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. The production build does not cache API responses in the service worker, so health data is never persisted into the public cache. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens to secure cookies, terminate TLS, and put the API behind a real rate limiter.
+The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. For offline viewing, the last readiness/alerts/mission snapshot is cached per user in `localStorage` and cleared on logout; it is never shared between accounts, and the service worker still does not cache API responses. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens and clinical cache to secure, encrypted storage, terminate TLS, and put the API behind a real rate limiter.
 
 ---
 

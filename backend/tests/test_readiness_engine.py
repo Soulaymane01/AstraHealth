@@ -178,6 +178,37 @@ def test_r7_red_flag_symptom(db_session, metric_definitions, test_user) -> None:
     assert "R7" in result.fired_rules
 
 
+def test_r7_survives_a_newer_symptom_free_checkin(
+    db_session, metric_definitions, test_user
+) -> None:
+    add_series(db_session, test_user, "vision_change_score", 0, 0)
+
+    earlier = Checkin(
+        user_id=test_user.id,
+        started_at=REFERENCE - timedelta(days=2),
+        completed_at=REFERENCE - timedelta(days=2),
+        status="completed",
+    )
+    earlier.symptoms.append(Symptom(region="chest", symptom="chest pain", severity=6))
+    db_session.add(earlier)
+
+    newer = Checkin(
+        user_id=test_user.id,
+        started_at=REFERENCE - timedelta(hours=1),
+        completed_at=REFERENCE - timedelta(hours=1),
+        status="completed",
+    )
+    db_session.add(newer)
+    db_session.flush()
+
+    result = compute_readiness(
+        db_session, test_user, "mars_transit", REFERENCE + timedelta(minutes=2)
+    )
+
+    assert result is not None
+    assert "R7" in result.fired_rules
+
+
 def test_determinism(db_session, metric_definitions, test_user) -> None:
     add_nominal_baseline(db_session, test_user)
 

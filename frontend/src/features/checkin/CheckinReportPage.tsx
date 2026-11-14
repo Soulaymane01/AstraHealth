@@ -2,6 +2,7 @@ import {
   ArrowRight,
   BookOpen,
   CircleHelp,
+  Download,
   Dumbbell,
   Plus,
   ShieldCheck,
@@ -19,6 +20,7 @@ import { StatusBadge, StatusPill } from "@/components/ui/Status";
 import { useCheckinReport } from "@/features/checkin/queries";
 import { AchievementTile } from "@/features/gamification/components/AchievementTile";
 import { StreakTile } from "@/features/gamification/components/StreakTile";
+import type { CheckinReport } from "@/lib/api/types";
 import { asStatus, STATUS_META } from "@/lib/status";
 import { cn, displayMetricValue, formatSigned } from "@/lib/utils";
 
@@ -30,6 +32,26 @@ function formatDateTime(iso: string | null): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function downloadReport(report: CheckinReport): void {
+  const payload = {
+    exported_at: new Date().toISOString(),
+    source: "AstraHealth Systems Report",
+    note: "Guidance, not a diagnosis. Simulated demo data unless entered by the user.",
+    report,
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `astrahealth-checkin-${report.checkin_id}.json`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 export function CheckinReportPage() {
@@ -80,10 +102,16 @@ export function CheckinReportPage() {
             {formatDateTime(report.completed_at)} · Check-in #{report.checkin_id}
           </p>
         </div>
-        <Button variant="secondary" size="sm" onClick={() => navigate("/check-in")}>
-          <Plus size={13} aria-hidden />
-          Start another check-in
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" onClick={() => downloadReport(report)}>
+            <Download size={13} aria-hidden />
+            Export JSON
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => navigate("/check-in")}>
+            <Plus size={13} aria-hidden />
+            Start another check-in
+          </Button>
+        </div>
       </div>
 
       <Panel

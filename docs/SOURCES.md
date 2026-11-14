@@ -7,7 +7,7 @@ AstraHealth does **not** access live astronaut health data. NASA does not publis
 - User-entered measurements and camera-derived heart rate.
 - Simulated crew telemetry, labeled as simulated in the UI and in this document.
 - Public NASA human-research material for reference ranges, countermeasures, and citations.
-- A seeded DONKI-style space-weather event as mission context; a live DONKI client is a deferred integration.
+- NASA DONKI space-weather notifications when `NASA_API_KEY` is configured, with a labeled seeded fixture as the fallback.
 
 This statement is repeated in the README, in the Library footer, and in the persistent **Demo** badge in the app shell. The seeded mission, crew, and telemetry are demonstration fixtures; the citations are real NASA material.
 
@@ -55,7 +55,7 @@ The full citation name, URL, and access date are stored on each article row and 
 
 ### NASA DONKI
 
-The current build ships a seeded DONKI-style event with the same shape a live integration would return: severity, active flag, and mission-tape event. The live DONKI fetch (and `NASA_API_KEY`) is deferred; the UI label says the context is mission data, not a live astronaut health feed.
+DONKI supplies space-weather context when `NASA_API_KEY` is configured. The app fetches notifications with a 30-minute cache, maps them to a severity and active window, upserts them locally, and labels the source as **Live NASA DONKI**. With no key, on a rate limit, or on a network failure, it serves the seeded fixture and labels it **Demo fixture**. The event is mission context, not a live astronaut health feed.
 
 - **API:** https://api.nasa.gov/
 - **DONKI:** https://ccmc.gsfc.nasa.gov/tools/DONKI/

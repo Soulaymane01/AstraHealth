@@ -10,7 +10,7 @@ import {
   WifiOff,
 } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { Button } from "@/components/ui/Button";
@@ -99,12 +99,31 @@ export function SystemsCheckPage() {
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [storageUnavailable, setStorageUnavailable] = useState(false);
 
+  const stepPanelRef = useRef<HTMLDivElement>(null);
+  const firstStepRender = useRef(true);
   const activeStep = CHECKIN_STEPS[step] ?? CHECKIN_STEPS[0];
   const activeSkipped = skipped.includes(activeStep.key);
   const isLastStep = step === CHECKIN_STEPS.length - 1;
   const readingCount =
     Object.values(form.metrics).filter((value) => value.trim() !== "").length +
     form.symptoms.length;
+
+  useEffect(() => {
+    if (phase !== "ready") return;
+    if (firstStepRender.current) {
+      firstStepRender.current = false;
+      return;
+    }
+    const node = stepPanelRef.current;
+    if (!node) return;
+    node.scrollIntoView({
+      block: "start",
+      behavior: reduce ? "auto" : "smooth",
+    });
+    const heading = node.querySelector<HTMLElement>("h2");
+    heading?.setAttribute("tabindex", "-1");
+    heading?.focus({ preventScroll: true });
+  }, [step, phase, reduce]);
 
   useEffect(() => {
     if (!user) return;
@@ -553,9 +572,10 @@ export function SystemsCheckPage() {
 
       <div className="mt-4 grid min-w-0 gap-4 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-8">
-          <Panel
-            title={activeStep.title}
-            subtitle={activeStep.description}
+          <div ref={stepPanelRef} className="scroll-mt-24">
+            <Panel
+              title={activeStep.title}
+              subtitle={activeStep.description}
             actions={
               <span className="text-xs text-muted">
                 {readingCount} reading{readingCount === 1 ? "" : "s"}
@@ -686,7 +706,8 @@ export function SystemsCheckPage() {
                 </Button>
               </div>
             </div>
-          </Panel>
+            </Panel>
+          </div>
         </div>
 
         <aside className="min-w-0 space-y-4 lg:col-span-4 lg:sticky lg:top-20 lg:self-start">

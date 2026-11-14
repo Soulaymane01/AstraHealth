@@ -5,6 +5,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
+from app.core.config import settings
 from app.db.session import get_db
 from app.models import (
     Achievement,
@@ -27,6 +28,7 @@ from app.schemas import (
     SpaceWeatherEventRead,
     TapeEventRead,
 )
+from app.services.nasa import get_mission_context
 
 router = APIRouter(tags=["mission"])
 
@@ -93,14 +95,9 @@ def read_mission_context(
 ) -> MissionContextRead:
     del user
     now = datetime.now(UTC)
-    event = db.scalar(
-        select(SpaceWeatherEvent)
-        .where(SpaceWeatherEvent.start_at >= now - timedelta(days=30))
-        .order_by(SpaceWeatherEvent.start_at.desc())
-        .limit(1)
-    )
+    event, source = get_mission_context(db, settings.nasa_api_key)
     if event is None:
-        return MissionContextRead(latest_event=None, active=False)
+        return MissionContextRead(latest_event=None, active=False, source=source)
 
     start_at = _as_utc(event.start_at)
     end_at = _as_utc(event.end_at) if event.end_at is not None else start_at
@@ -108,6 +105,8 @@ def read_mission_context(
     return MissionContextRead(
         latest_event=SpaceWeatherEventRead.model_validate(event),
         active=start_at <= now <= end_at,
+        source=source,
+        fetched_at=event.fetched_at,
     )
 
 

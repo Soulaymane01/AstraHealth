@@ -31,6 +31,8 @@ class SpaceWeatherEventRead(BaseModel):
 class MissionContextRead(BaseModel):
     latest_event: SpaceWeatherEventRead | None
     active: bool
+    source: str = "fixture"
+    fetched_at: datetime | None = None
 
 
 class TapeEventRead(BaseModel):

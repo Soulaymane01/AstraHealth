@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useAuthStore } from "@/features/auth/auth-store";
+import { readClinical, writeClinical } from "@/features/offline/clinical-cache";
 import { api } from "@/lib/api/client";
 import type { Alert } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
@@ -28,9 +30,17 @@ export async function fetchAlerts(): Promise<Alert[]> {
 }
 
 export function useAlerts() {
+  const userId = useAuthStore((state) => state.user?.id);
+  const cached = readClinical<Alert[]>(userId, "alerts");
   return useQuery({
     queryKey: queryKeys.alerts,
-    queryFn: fetchAlerts,
+    queryFn: async (): Promise<Alert[]> => {
+      const data = await fetchAlerts();
+      writeClinical(userId, "alerts", data);
+      return data;
+    },
+    initialData: cached?.data,
+    initialDataUpdatedAt: cached?.savedAt,
   });
 }
 

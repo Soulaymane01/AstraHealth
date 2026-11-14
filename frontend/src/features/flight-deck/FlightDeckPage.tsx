@@ -14,11 +14,12 @@ import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
+import { readClinical } from "@/features/offline/clinical-cache";
 import { useOfflineStore } from "@/features/offline/store";
 import { useMission, useMissionContext, useMissionTape } from "@/features/mission/queries";
 import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/readiness/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
-import type { DomainDetail, SpaceWeatherEvent } from "@/lib/api/types";
+import type { DomainDetail, Readiness, SpaceWeatherEvent } from "@/lib/api/types";
 import { asStatus, statusFromScore, STATUS_META, type Status } from "@/lib/status";
 import {
   cn,
@@ -51,8 +52,17 @@ function weatherStatus(severity: string): Status {
   return "watch";
 }
 
-function ContextBanner({ event, active }: { event: SpaceWeatherEvent; active: boolean }) {
+function ContextBanner({
+  event,
+  active,
+  source,
+}: {
+  event: SpaceWeatherEvent;
+  active: boolean;
+  source?: string;
+}) {
   const meta = STATUS_META[weatherStatus(event.severity)];
+  const live = source === "live";
   const time = active
     ? "Active now"
     : event.end_at
@@ -68,6 +78,19 @@ function ContextBanner({ event, active }: { event: SpaceWeatherEvent; active: bo
             Space weather · {titleCase(event.severity)}
           </span>
           <span className="text-[11px] text-muted">{time}</span>
+          <span
+            className={cn(
+              "rounded-full px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide",
+              live ? "bg-accent-soft text-accent" : "bg-surface-muted text-muted",
+            )}
+            title={
+              live
+                ? "Fetched from NASA DONKI"
+                : "Seeded demo event; set NASA_API_KEY for live DONKI context"
+            }
+          >
+            {live ? "Live NASA DONKI" : "Demo fixture"}
+          </span>
         </div>
         <p className="mt-0.5 text-sm font-medium text-ink">{event.kind}</p>
         <p
@@ -206,6 +229,9 @@ export function FlightDeckPage() {
   const tapeQuery = useMissionTape(tapeDays);
   const domainQuery = useDomainDetail(selectedDomain);
   const acknowledge = useAcknowledgeAlert();
+  const hasCachedDashboard =
+    missionQuery.data !== undefined && readinessQuery.data !== undefined;
+  const cachedReadiness = readClinical<Readiness | null>(user?.id, "readiness");
 
   if (missionQuery.isLoading || readinessQuery.isLoading || alertsQuery.isLoading) {
     return (
@@ -219,7 +245,7 @@ export function FlightDeckPage() {
   // Alerts are handled locally so an alerts outage does not blank the whole
   // dashboard; the rest of the readiness view can still render.
   const error = missionQuery.error ?? readinessQuery.error;
-  if (error && !online) {
+  if (!online && !hasCachedDashboard) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-xl items-center">
         <Panel title="Offline" className="w-full">
@@ -259,7 +285,7 @@ export function FlightDeckPage() {
     );
   }
 
-  if (error) {
+  if (error && online) {
     return (
       <div className="mx-auto flex min-h-[60vh] max-w-xl items-center">
         <div className="card-shadow w-full rounded-xl border border-line bg-surface p-8 text-center">
@@ -308,7 +334,7 @@ export function FlightDeckPage() {
 
   const readiness = readinessQuery.data;
   const alerts = alertsQuery.data ?? [];
-  const alertsError = alertsQuery.isError;
+  const alertsError = alertsQuery.isError && !(!online && alertsQuery.data !== undefined);
   const context = contextQuery.data;
   const name = user ? firstName(user.full_name) : "Commander";
   const status = readiness ? asStatus(readiness.status) : "unknown";
@@ -404,7 +430,11 @@ export function FlightDeckPage() {
         {header}
         {context?.latest_event && (
           <div className="mt-4">
-            <ContextBanner event={context.latest_event} active={context.active} />
+            <ContextBanner
+            event={context.latest_event}
+            active={context.active}
+            source={context.source}
+          />
           </div>
         )}
         <Panel
@@ -437,7 +467,11 @@ export function FlightDeckPage() {
 
       {context?.latest_event && (
         <div className="mt-4">
-          <ContextBanner event={context.latest_event} active={context.active} />
+          <ContextBanner
+            event={context.latest_event}
+            active={context.active}
+            source={context.source}
+          />
         </div>
       )}
 
@@ -445,7 +479,13 @@ export function FlightDeckPage() {
         <div className="order-1 min-w-0 space-y-4 lg:order-2 lg:col-span-5">
           <Panel
             title="Readiness"
-            subtitle="Composite score across six domains."
+            subtitle={
+              !online && cachedReadiness
+                ? `Composite score across six domains · last synced ${formatRelativeTime(
+                    new Date(cachedReadiness.savedAt).toISOString(),
+                  )}`
+                : "Composite score across six domains."
+            }
             actions={<StatusPill status={status} />}
           >
             <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
@@ -604,7 +644,7 @@ export function FlightDeckPage() {
           <DomainDetailPanel
             detail={domainQuery.data}
             loading={domainQuery.isLoading}
-            error={domainQuery.isError}
+            error={domainQuery.isError && !(!online && domainQuery.data !== undefined)}
             onRetry={() => void domainQuery.refetch()}
             onViewTrend={() => navigate(`/telemetry/domain/${selectedDomain}`)}
           />
@@ -672,9 +712,9 @@ export function FlightDeckPage() {
           </div>
         }
       >
-        {tapeQuery.isLoading ? (
+        {tapeQuery.isLoading && !tapeQuery.data ? (
           <Skeleton className="h-24 w-full" />
-        ) : tapeQuery.isError ? (
+        ) : tapeQuery.isError && !tapeQuery.data ? (
           <p className="text-sm text-ink-2">Unable to load the mission tape.</p>
         ) : (
           <MissionTape events={tapeEvents} maxDay={tapeDays} />

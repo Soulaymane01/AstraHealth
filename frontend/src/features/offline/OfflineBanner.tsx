@@ -39,8 +39,8 @@ export function OfflineBanner() {
           <p className="text-[11px] leading-relaxed">
             {!online ? (
               <>
-                <span className="font-medium">Offline.</span> The shell and check-in drafts stay on
-                this device.
+                <span className="font-medium">Offline.</span> Showing last synced data where
+                available; check-in drafts stay on this device.
                 {pending > 0 && <> {queuedLabel} queued.</>} Next comms window at{" "}
                 <span className="tabular">{windowLabel}</span>.
               </>

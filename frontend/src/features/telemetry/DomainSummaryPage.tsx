@@ -61,7 +61,7 @@ export function DomainSummaryPage() {
     );
   }
 
-  if (summaryQuery.isLoading) {
+  if (summaryQuery.isLoading && !summaryQuery.data) {
     return <PageSkeleton />;
   }
 
@@ -110,12 +110,17 @@ export function DomainSummaryPage() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-2">{domain.description}</p>
         </div>
-        <SegmentedControl
-          label="Telemetry range"
-          value={days}
-          options={rangeOptions}
-          onChange={setDays}
-        />
+        <div className="flex items-center gap-2">
+          <SegmentedControl
+            label="Telemetry range"
+            value={days}
+            options={rangeOptions}
+            onChange={setDays}
+          />
+          <span className="text-[11px] text-muted" aria-live="polite">
+            {summaryQuery.isPlaceholderData ? "Updating…" : ""}
+          </span>
+        </div>
       </div>
 
       <Panel

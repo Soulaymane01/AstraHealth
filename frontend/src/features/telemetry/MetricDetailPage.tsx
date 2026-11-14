@@ -82,7 +82,7 @@ export function MetricDetailPage() {
     );
   };
 
-  if (seriesQuery.isLoading) {
+  if (seriesQuery.isLoading && !seriesQuery.data) {
     return <PageSkeleton />;
   }
 
@@ -268,12 +268,17 @@ export function MetricDetailPage() {
         <div className="lg:col-span-8">
           <Panel title="Trend" subtitle={`${metric.name} over the last ${days} days.`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <SegmentedControl
-                label="Telemetry range"
-                value={days}
-                options={rangeOptions}
-                onChange={setDays}
-              />
+              <div className="flex items-center gap-2">
+                <SegmentedControl
+                  label="Telemetry range"
+                  value={days}
+                  options={rangeOptions}
+                  onChange={setDays}
+                />
+                <span className="text-[11px] text-muted" aria-live="polite">
+                  {seriesQuery.isPlaceholderData ? "Updating…" : ""}
+                </span>
+              </div>
               {hasAnyBand && (
                 <SegmentedControl
                   label="Comparison band"

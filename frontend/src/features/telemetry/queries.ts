@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { api } from "@/lib/api/client";
 import type { DomainSummary, MetricDefinition, MetricSeries } from "@/lib/api/types";
@@ -29,6 +29,7 @@ export function useMetricSeries(code: string | null, days: RangeDays) {
       return data;
     },
     enabled: Boolean(code),
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -45,5 +46,6 @@ export function useDomainSummary(domain: string | null, days: RangeDays) {
       return data;
     },
     enabled: Boolean(domain),
+    placeholderData: keepPreviousData,
   });
 }

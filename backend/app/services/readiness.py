@@ -330,19 +330,25 @@ def evaluate_condition(
     return False
 
 
-def _latest_symptoms(db: Session, user_id: int, reference_time: datetime) -> set[str]:
-    checkin = db.scalar(
+def _recent_symptoms(db: Session, user_id: int, reference_time: datetime) -> set[str]:
+    """Union symptoms over the recent window.
+
+    A newer symptom-free check-in must not clear an earlier red-flag report;
+    chest pain, dyspnea, and vision loss stay visible until the window passes.
+    """
+    checkins = db.scalars(
         select(Checkin)
         .where(
             Checkin.user_id == user_id,
             Checkin.started_at >= reference_time - timedelta(days=3),
+            Checkin.started_at <= reference_time,
         )
         .order_by(Checkin.started_at.desc())
-        .limit(1)
-    )
-    if checkin is None:
-        return set()
-    return {symptom.symptom.lower() for symptom in checkin.symptoms}
+    ).all()
+    symptoms: set[str] = set()
+    for checkin in checkins:
+        symptoms.update(symptom.symptom.lower() for symptom in checkin.symptoms)
+    return symptoms
 
 
 def compute_readiness(
@@ -433,7 +439,7 @@ def compute_readiness(
 
     # Evaluate hard rules from the latest values even when the user has no
     # baseline yet. A first-ever check-in can still report a red flag.
-    symptoms = _latest_symptoms(db, user.id, reference_time)
+    symptoms = _recent_symptoms(db, user.id, reference_time)
     today = reference_time.date()
     fired: list[dict[str, Any]] = []
 

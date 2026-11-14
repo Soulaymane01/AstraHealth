@@ -1388,6 +1388,13 @@ export interface components {
             latest_event: components["schemas"]["SpaceWeatherEventRead"] | null;
             /** Active */
             active: boolean;
+            /**
+             * Source
+             * @default fixture
+             */
+            source: string;
+            /** Fetched At */
+            fetched_at?: string | null;
         };
         /** MissionRead */
         MissionRead: {

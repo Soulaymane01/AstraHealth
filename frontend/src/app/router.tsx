@@ -3,10 +3,14 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RequireAuth } from "@/features/auth/RequireAuth";
 import { NotFoundPage } from "@/features/shared/NotFoundPage";
 import { FullPageLoader } from "@/features/shared/FullPageLoader";
+import { RouteErrorPage } from "@/features/shared/RouteErrorPage";
 import { AppLayout } from "@/features/shell/AppLayout";
 import { DEMO_MODE } from "@/lib/demo";
 
 export const router = createBrowserRouter([
+  {
+    errorElement: <RouteErrorPage />,
+    children: [
   {
     path: "/login",
     HydrateFallback: FullPageLoader,
@@ -119,4 +123,6 @@ export const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <NotFoundPage /> },
+    ],
+  },
 ]);

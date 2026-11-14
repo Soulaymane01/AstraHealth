@@ -39,7 +39,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screens: `library.png`, `assistant.png`, `assistant-refusal.png`.*
 
 8. **Offline close — 2:45**
-   Start a new Systems Check, enter a heart rate and a note, and switch the browser offline. The watch-toned banner appears with the next comms window. Complete the check-in; the wizard becomes **Check-in saved on this device** with the reading count and idempotency key. Switch back online: the queue syncs, the banner clears, and the check-in appears exactly once. If time allows, reload while offline to show the cached shell and the calm offline Flight Deck.
+   Start a new Systems Check, enter a heart rate and a note, and switch the browser offline. The watch-toned banner appears with the next comms window. Complete the check-in; the wizard becomes **Check-in saved on this device** with the reading count and idempotency key. Switch back online: the queue syncs, the banner clears, and the check-in appears exactly once. If time allows, reload while offline to show the cached Flight Deck with the last synced readiness, alerts, and mission context.
    *Expected screens: `offline-queue.png`, `offline-shell.png`.*
 
 9. **Close — 2:58**

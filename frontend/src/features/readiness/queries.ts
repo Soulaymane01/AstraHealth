@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { useAuthStore } from "@/features/auth/auth-store";
+import { readClinical, writeClinical } from "@/features/offline/clinical-cache";
 import { api } from "@/lib/api/client";
 import type { DomainDetail, Readiness } from "@/lib/api/types";
 import { queryKeys } from "@/lib/query-keys";
@@ -12,25 +14,41 @@ export async function fetchReadiness(): Promise<Readiness | null> {
 }
 
 export function useReadiness() {
+  const userId = useAuthStore((state) => state.user?.id);
+  const cached = readClinical<Readiness | null>(userId, "readiness");
   return useQuery({
     queryKey: queryKeys.readiness,
-    queryFn: fetchReadiness,
+    queryFn: async (): Promise<Readiness | null> => {
+      const data = await fetchReadiness();
+      writeClinical(userId, "readiness", data);
+      return data;
+    },
+    initialData: cached?.data,
+    initialDataUpdatedAt: cached?.savedAt,
   });
 }
 
 export function useReadinessHistory(limit = 2) {
+  const userId = useAuthStore((state) => state.user?.id);
+  const cached = readClinical<Readiness[]>(userId, `readiness-history-${limit}`);
   return useQuery({
     queryKey: queryKeys.readinessHistory(limit),
-    queryFn: async () => {
+    queryFn: async (): Promise<Readiness[]> => {
       const { data } = await api.GET("/readiness/history", {
         params: { query: { limit } },
       });
-      return data ?? [];
+      if (!data) throw new Error("Unable to load readiness history.");
+      writeClinical(userId, `readiness-history-${limit}`, data);
+      return data;
     },
+    initialData: cached?.data,
+    initialDataUpdatedAt: cached?.savedAt,
   });
 }
 
 export function useDomainDetail(domain: string | null) {
+  const userId = useAuthStore((state) => state.user?.id);
+  const cached = readClinical<DomainDetail>(userId, `domain-${domain ?? "none"}`);
   return useQuery({
     queryKey: queryKeys.readinessDomain(domain ?? "none"),
     queryFn: async (): Promise<DomainDetail> => {
@@ -39,8 +57,11 @@ export function useDomainDetail(domain: string | null) {
         params: { path: { domain } },
       });
       if (!data) throw new Error("Unable to load domain detail.");
+      writeClinical(userId, `domain-${domain}`, data);
       return data;
     },
     enabled: Boolean(domain),
+    initialData: cached?.data,
+    initialDataUpdatedAt: cached?.savedAt,
   });
 }
