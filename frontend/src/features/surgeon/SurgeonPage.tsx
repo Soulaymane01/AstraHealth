@@ -1939,7 +1939,7 @@ export function SurgeonPage() {
                         </label>
                         <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
                           <p className="text-[10px] leading-relaxed text-muted">
-                            Clinical judgment by the flight surgeon. Not SI-generated.
+                            Clinical judgment by the flight surgeon. Human-entered.
                           </p>
                           <Button
                             variant="primary"

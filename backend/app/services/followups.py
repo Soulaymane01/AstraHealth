@@ -42,7 +42,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
                 "The system detected a red-flag pattern. Please repeat your temperature, "
                 "heart rate, and oxygen saturation now, and record any chest pain, "
                 "breathlessness, or vision change. Contact the flight surgeon on the next "
-                "comms window. This is an SI-generated follow-up, not a diagnosis."
+                "comms window. This is an Automated follow-up, not a diagnosis."
             ),
             target_metrics=["body_temp_c", "heart_rate", "spo2", "symptom_score"],
             reason="; ".join(prediction.red_flags) if prediction.red_flags else top_evidence,
@@ -55,7 +55,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             message=(
                 "Please complete a focused cardiovascular check: rest for five minutes, "
                 "record blood pressure and heart rate, then record the heart-rate rise "
-                "after standing for one minute. Note any dizziness. This is an SI-generated "
+                "after standing for one minute. Note any dizziness. This is an Automated "
                 "follow-up, not a diagnosis."
             ),
             target_metrics=["systolic_bp", "diastolic_bp", "heart_rate", "orthostatic_hr_rise"],
@@ -69,7 +69,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             message=(
                 "Please repeat oxygen saturation at rest and after two minutes of quiet "
                 "breathing, and record any cough, breathlessness, or chest discomfort. "
-                "This is an SI-generated follow-up, not a diagnosis."
+                "This is an Automated follow-up, not a diagnosis."
             ),
             target_metrics=["spo2", "heart_rate", "symptom_score"],
             reason=top_evidence,
@@ -81,7 +81,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             protocol="vital_recheck",
             message=(
                 "Please repeat your temperature, heart rate, and symptom check. Record the "
-                "time and any new symptoms. This is an SI-generated follow-up, not a diagnosis."
+                "time and any new symptoms. This is an Automated follow-up, not a diagnosis."
             ),
             target_metrics=["body_temp_c", "heart_rate", "symptom_score"],
             reason=top_evidence,
@@ -100,7 +100,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             message=(
                 "Please complete a focused recovery check: log last night's sleep, repeat "
                 "HRV and resting heart rate tomorrow morning, and record hydration. Protect "
-                "the sleep window tonight. This is an SI-generated follow-up, not a diagnosis."
+                "the sleep window tonight. This is an Automated follow-up, not a diagnosis."
             ),
             target_metrics=["sleep_duration_h", "sleep_efficiency_pct", "hrv_rmssd", "hydration_l"],
             reason=top_evidence,
@@ -112,7 +112,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             protocol="mood_check",
             message=(
                 "Please complete a private mood and crew-contact check. There is no right "
-                "answer; the flight surgeon will review it with you. This is an SI-generated "
+                "answer; the flight surgeon will review it with you. This is an Automated "
                 "follow-up, not a diagnosis."
             ),
             target_metrics=["mood_score", "stress_score", "social_interaction_score"],
@@ -125,7 +125,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             protocol="hydration_check",
             message=(
                 "Please log your fluid and energy intake for today and repeat the hydration "
-                "reading. This is an SI-generated follow-up, not a diagnosis."
+                "reading. This is an Automated follow-up, not a diagnosis."
             ),
             target_metrics=["hydration_l", "caloric_intake"],
             reason=top_evidence,
@@ -137,7 +137,7 @@ def plan_followup(prediction: PredictionRead) -> FollowupPlan | None:
             protocol="training_check",
             message=(
                 "Please review this week's loading plan, record the next prescribed "
-                "session, and note any pain or limitation. This is an SI-generated "
+                "session, and note any pain or limitation. This is an Automated "
                 "follow-up, not a diagnosis."
             ),
             target_metrics=["exercise_load_min", "bone_load_min", "strength_check"],
@@ -153,10 +153,10 @@ def ensure_ai_followup(
     member: User,
     now: datetime | None = None,
 ) -> SurgeonInstruction | None:
-    """Create one deduplicated SI follow-up request when an anomaly is present.
+    """Create one deduplicated Follow-up request when an anomaly is present.
 
     The request is attributed to the supervising flight surgeon, marked as
-    SI-generated, and asks for a specific focused check. It never diagnoses or
+    Automated, and asks for a specific focused check. It never diagnoses or
     prescribes.
     """
     now = now or datetime.now(UTC)

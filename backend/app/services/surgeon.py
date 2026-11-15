@@ -51,7 +51,7 @@ def crew_updates(db: Session, crew_user_id: int) -> SurgeonUpdatesRead:
     member = db.get(User, crew_user_id)
     if member is not None:
         # Anomaly detection runs before the feed is read, so the astronaut can
-        # receive a specific SI follow-up request without waiting for a manual
+        # receive a specific follow-up request without waiting for a manual
         # surgeon action.
         ensure_ai_followup(db, member)
     assessments = db.scalars(

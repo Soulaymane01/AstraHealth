@@ -101,10 +101,10 @@ Added after the audit to match the “astronaut does not type vitals” requirem
 - Added `/surgeon/crew/{id}/assistant`: a surgeon-facing, cited decision-support copilot. It summarizes readiness, alerts, captures, check-ins, and early-warning drivers; refuses diagnosis, prescriptions, and doses; deterministically cites HRP articles; optional LLM path has a post-check and falls back safely.
 - The console adds early-warning badges to the roster, a banner, a detailed Copilot tab with the risk card, suggested questions, chat, citations, and the refusal path. The crew-facing assistant is unchanged.
 - The prediction is explicitly not a validated deterioration model or a diagnosis; clinical judgment remains with the surgeon.
-- **Closed-loop SI follow-up:** when an anomaly is detected, the system creates one deduplicated SI request supervised by the flight surgeon. It names a specific protocol (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), target metrics, reason, and due time. The astronaut sees it on the Flight Deck and can start a focused Systems Check at the right step; a successful check-in closes the request automatically. Suggested requests are not repeated for 12 hours after completion.
-- Added `source`, `protocol`, `target_metrics`, `due_at`, and `reason` to surgeon instructions, with a migration. The Copilot answer also names the open SI follow-up.
+- **Closed-loop follow-up:** when an anomaly is detected, the system creates one deduplicated follow-up request supervised by the flight surgeon. It names a specific protocol (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), target metrics, reason, and due time. The astronaut sees it on the Flight Deck and can start a focused Systems Check at the right step; a successful check-in closes the request automatically. Suggested requests are not repeated for 12 hours after completion.
+- Added `source`, `protocol`, `target_metrics`, `due_at`, and `reason` to surgeon instructions, with a migration. The Copilot answer also names the open follow-up.
 
-**Verification:** 93 backend tests; prediction, SI follow-up dedupe, focused-check flow, Copilot refusal/citations, smoke, typecheck, build, axe, and the full demo flow.
+**Verification:** 93 backend tests; prediction, follow-up dedupe, focused-check flow, Copilot refusal/citations, smoke, typecheck, build, axe, and the full demo flow.
 
 ---
 
@@ -363,7 +363,7 @@ When `LLM_PROVIDER=openai`, the prompt includes metrics and alerts and is sent t
 
 ### What to avoid saying
 
-- “SI diagnoses” — it does not, and should not.
+- “The assistant diagnoses” — it does not, and should not.
 - “Live NASA astronaut data” — it does not exist.
 - “Clinically validated” — it is not.
 - “Fully offline” — the shell and drafts are; clinical data is not cached yet.
@@ -465,7 +465,7 @@ NASA does not publish real-time per-astronaut health data. The demo uses clearly
 **“How is this different from a fitness app?”**
 Explainable readiness against a personal 21-day baseline, hard-rule escalation, prescribed countermeasures, privacy-preserving crew sharing, and offline exactly-once sync.
 
-**“Is the SI real?”**
+**“Is the assistant real?”**
 The default is a deterministic, cited answer engine; an OpenAI-compatible provider is optional. Red flags and refusals always stay rule-based.
 
 **“What would you do with more time?”**

@@ -1,4 +1,4 @@
-"""SI follow-up requests on surgeon instructions
+"""Follow-up requests on surgeon instructions
 
 Revision ID: 0a1b2c3d4e5f
 Revises: 9c1d2e3f4a5b

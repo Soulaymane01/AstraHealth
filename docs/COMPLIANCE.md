@@ -1,10 +1,10 @@
 # NASA Space Apps 2026 — Compliance Report
 
-**Project:** AstraHealth  
-**Challenge:** Create Health Monitoring Software for Astronauts on Space Missions  
-**Report date:** 2026-11-15  
-**Scope:** repository, live demo, 30-second videos, documentation, and submission readiness.  
-**Status:** Strong challenge fit; submission packaging still has external actions.
+**Project:** AstraHealth
+**Challenge:** Create Health Monitoring Software for Astronauts on Space Missions
+**Report date:** 2026-11-15
+**Scope:** repository, live demo, documentation, and submission readiness.
+**Status:** Strong challenge fit; the demo asset and submission page are still missing.
 
 ## Sources checked
 
@@ -18,18 +18,9 @@ The submission deadline is **Sunday, 15 November 2026, 11:59 p.m. local time** f
 
 ## Executive summary
 
-**Terminology:** AstraHealth uses **SI (Super Intelligence)** consistently in its documentation and UI. The 2026 Space Apps guide defines SI as machine learning, chatbots, image generation, and large language models; the project uses SI in user-facing copy.
+AstraHealth directly addresses the official challenge and has a coherent, working live demo. The largest remaining risks are **submission page completeness, the demo asset, public link access, NASA-data depth, and citation specificity**.
 
-AstraHealth directly addresses the official challenge and has a coherent, working demo. The largest remaining risks are not product gaps; they are **submission page completeness, public link access, NASA-data depth, and citation specificity**.
-
-Already fixed during this audit:
-
-- The 30-second videos were **30.033 s** and are now **29.904 s**, inside the strict 30-second limit.
-- The project had no root open-source license; **Apache-2.0** is now included.
-- SI terminology and disclosure were added across the UI, docs, audio, and video metadata.
-- The astronaut assistant panel is now **Flight Surgeon SI**; the surgeon panel is **Clinical Copilot SI**.
-- The login page now has **one-click demo access** for the astronaut and surgeon demos, so judges do not need to type a password.
-- Third-party licenses and asset notices are documented in `THIRD_PARTY.md`.
+There is currently **no demo asset in the repository**: neither a video nor a 7-slide deck. The team must create one of those two formats before submitting; the limit is strict.
 
 ## Requirements matrix
 
@@ -38,27 +29,24 @@ Already fixed during this audit:
 | Respond to an official NASA Space Apps challenge | **PASS** | The app addresses the exact 2026 health-monitoring challenge in `announcement.txt`. |
 | Gather health indicators and help astronauts evaluate/act | **PASS** | Systems Check, Telemetry, readiness, alerts, countermeasures, triage. |
 | Visual tool with clear presentation | **PASS** | 3D body systems, readiness ring, color + word status, dynamic charts. |
-| Use NASA HRP resources and explain measurements | **PASS with depth risk** | Nine HRP-sourced articles, hard rules, cited assistant. Citations are still mostly HRP landing pages; see action A4. |
-| Use at least one NASA data/resource for Global Award eligibility | **PARTIAL** | NASA HRP material is used; live DONKI is optional and currently falls back to a labeled fixture. Set `NASA_API_KEY` and verify `Live NASA DONKI`. |
-| Demo: 30-second video or ≤7 slides | **PASS (fixed)** | `AstraHealth-Power-Astronaut-30s.mp4` and `AstraHealth-App-Demo-30s.mp4` are 29.904 s. |
-| Demo link publicly accessible, no password/permission/registration | **PARTIAL** | Video is in the public GitHub repo, but a raw GitHub blob is not a polished viewing link. Upload to YouTube/Drive and link that. The app now has one-click demo access, but still opens a login page; describe that clearly or add a direct `/demo` link. |
-| English on submission page and linked materials | **PASS** | English app, README, video, and SRT captions. |
-| English subtitles if video is non-English | **N/A / PASS** | Video is English; English SRT files are included. |
+| Use NASA HRP resources and explain measurements | **PASS with depth risk** | Nine HRP-sourced articles, hard rules, cited assistant. Citations are still mostly HRP landing pages; add specific evidence pages. |
+| Use at least one NASA data/resource for Global Award eligibility | **PARTIAL** | NASA HRP material is used; live DONKI is optional and currently falls back to a labeled fixture. Set `NASA_API_KEY` and verify **Live NASA DONKI**. |
+| Demo: 30-second video or ≤7 slides | **ACTION REQUIRED** | No video or slide deck is currently in the repository. Create a 7-slide deck (title, challenge, solution, demo, NASA data, impact, team) or a new ≤30 s video. |
+| Demo link publicly accessible, no password/permission/registration | **ACTION REQUIRED** | Will be satisfied by a public YouTube/Drive slide deck link. The app itself has one-click **Astronaut demo** / **Surgeon demo** access, but still opens a login page. |
+| English on submission page and linked materials | **PASS** | English app and README. The future slide deck must be in English. |
 | All team members registered at the same Local Event, 1–6 members | **EXTERNAL ACTION** | Cannot be verified from the repository. Confirm team membership and event selection before submitting. |
-| Complete all required project-page fields | **EXTERNAL ACTION** | Project name, summary, demo link, final project link, detailed description, SI use, NASA data, references. Copy is ready below. |
-| Submit before the deadline | **EXTERNAL ACTION** | Must click **Submit for Judging** by 11:59 p.m. local time on 15 November 2026. |
-| Open-source license for original work | **PASS (fixed)** | `LICENSE` is Apache-2.0. |
+| Complete all required project-page fields | **EXTERNAL ACTION** | Project name, summary, demo link, final project link, detailed description, NASA data, references. |
+| Submit before the deadline | **EXTERNAL ACTION** | Click **Submit for Judging** by 11:59 p.m. local time on 15 November 2026. |
+| Open-source license for original work | **PASS** | `LICENSE` is Apache-2.0. |
 | Third-party materials are open source/licensed and cited | **PASS with action** | `THIRD_PARTY.md`, `docs/licenses/`, `package-lock.json`, `uv.lock`. Add the same references to the submission page. |
 | Cite every source used | **PARTIAL** | `docs/SOURCES.md` lists sources, but the nine article rows mostly cite the HRP homepage. Add specific HRP evidence pages/DOIs and library versions. |
-| Original work / no unlicensed copyrighted material | **PASS** | Original code; third-party assets are licensed and listed; no music; no stock images. |
-| No PII or under-18 likeness | **PASS** | Fictional crew, simulated data, no real people in the video. |
-| No NASA branding/design elements in SI-generated content | **REVIEW** | No NASA logo, flag, or mission identifier is used. The title cards and README use the event name “NASA Space Apps 2026” as text. Confirm this is acceptable under the event brand guidelines. |
+| Original work / no unlicensed copyrighted material | **PASS** | Original code; third-party assets are licensed and listed; no music, stock images, or video. |
+| No PII or under-18 likeness | **PASS** | Fictional crew, simulated data, no real people. |
+| No NASA branding/design elements | **REVIEW** | No NASA logo, flag, or mission identifier is used. The app and README use the event name “NASA Space Apps 2026” as text. Confirm this is acceptable under the event brand guidelines. |
 | No commercial promotion | **PASS** | No ads, paid services, or commercial calls to action. |
-| SI tools permitted but disclosed | **PASS (fixed)** | `SI_USAGE.md`; UI labels; audio and video metadata; code/data acknowledgment. |
-| SI not used to invent the idea | **PASS** | The challenge and product direction are documented in `prompt.md` and were team-defined. |
-| SI-generated images/videos visibly watermarked | **N/A / REVIEW** | No generative image or video model was used; footage is a screen recording, and title cards/GIF are code-rendered. If NASA treats the code-rendered cards as SI-generated imagery, add a visible “SI-assisted” marker. |
-| SI-generated audio acknowledged in description and metadata | **PASS (fixed)** | MP3/MP4 `comment` and `description` fields; `docs/video/README.md`; `SI_USAGE.md`. |
-| SI-generated code/data acknowledged in description and metadata | **PASS (fixed)** | `SI_USAGE.md` and README disclosure. |
+| SI question on the submission form | **ACTION REQUIRED** | Complete the form’s SI question truthfully for the tools used. Do not leave it blank. |
+| Verify the app URL works for judges | **PASS with note** | <https://astrahealth-gamma.vercel.app> is live; one-click demo access is available. The login page still appears first. |
+| Verify the final project link is public | **PASS** | Live app and public GitHub repository. |
 
 ## Judging-criteria readiness
 
@@ -67,29 +55,29 @@ Official scale: 1–5 for Impact, Creativity, Validity, Relevance, Presentation.
 | Criterion | Current read | Main risk |
 |---|---|---|
 | **Impact** | **4–5** | Strong self-care and surgeon loop; no real astronaut/clinician validation yet. |
-| **Creativity** | **4–5** | 3D body, dual persona, game loop, and cited copilot are distinctive; avoid presenting it as a generic dashboard. |
+| **Creativity** | **4–5** | 3D body, dual persona, game loop, and cited copilot are distinctive. |
 | **Validity** | **4** | Deterministic and tested, but heuristic; specific citations and a limitations page would strengthen it. |
 | **Relevance** | **4** | Deep spaceflight framing; NASA data needs a live surface (DONKI + specific HRP evidence). |
-| **Presentation** | **4–5** | 30-second video, live demo, and clear README; public video link and one-click demo access are the remaining friction points. |
+| **Presentation** | **3–5** | The live app and README are strong, but the demo asset is missing. A polished 7-slide deck is now the fastest path. |
 
 ## What still needs fixing
 
 ### P0 — before clicking Submit for Judging
 
-1. **Create the project submission page and fill every required field.** Use the copy pack below.
-2. **Upload the 30-second video to YouTube or Google Drive** and use that public link. Add the English `.srt` captions in the platform.
-3. **Use a public final-project link** to the live app and GitHub. Explain that the app has one-click demo access; no password is required.
+1. **Create the 7-slide demo deck or a new ≤30-second video.** Recommended: 7-slide deck with title, challenge, product, live demo screenshots, NASA data, impact, and team. The submission guide permits up to seven slides.
+2. **Create the project submission page and fill every required field.**
+3. **Upload the demo deck to a public link** (Google Slides, Canva, PDF on Drive, or GitHub) with no login or permission prompt.
 4. **Confirm team eligibility:** all members registered, same Local Event, 1–6 people, not waitlisted.
-5. **Add specific references** for the nine HRP articles and the 3D anatomy models; list Apache-2.0, CC BY-SA 4.0, CC BY-SA 2.1 Japan, OFL-1.1, ISC, MIT, and the SI tools.
+5. **Add specific references** for the nine HRP articles and the 3D anatomy models; list Apache-2.0, CC BY-SA 4.0, CC BY-SA 2.1 Japan, OFL-1.1, ISC, and MIT.
 6. **Set `NASA_API_KEY`** in Vercel and verify the space-weather card switches to **Live NASA DONKI**. If the key is unavailable, keep the fixture label and say so.
 7. **Add a “not a NASA product / not endorsed by NASA” disclaimer** to the submission description and README.
-8. **Decide on the SI visual marker.** No generative imagery is used; if the organizers interpret code-rendered title cards as SI-generated images, add a visible “SI-assisted” label to the title cards.
+8. **Complete the SI question** on the project page for the tools used.
+9. **Decide how the login page is described.** The app is live and has one-click demo buttons; make that clear in the final-project description.
 
 ### P1 — strengthens the submission
 
 - Replace HRP homepage citations with specific evidence pages or DOIs.
 - Add a short **Methods & Limitations** section to the submission page.
-- Add a **YouTube** demo link rather than a repository blob.
 - Add OSDR or NASA POWER context if time allows; this strengthens the Relevance criterion.
 - Add a clinician/astronaut-adjacent review or quote if available.
 - Add `CITATION.cff` and a `NOTICE` file if the team wants a formal open-source package.
@@ -99,21 +87,21 @@ Official scale: 1–5 for Impact, Creativity, Validity, Relevance, Presentation.
 
 **Project name:** AstraHealth
 
-**High-level summary:**  
+**High-level summary:**
 AstraHealth is mission-control software for the human body. It turns astronaut-entered and simulated sensor readings into an explainable readiness score, shows the contributing body systems, recommends the next countermeasure, and escalates red flags to a flight surgeon. The astronaut gets a calm daily check-in; the surgeon gets an Earth-side console with early warning, cited guidance, and a focused follow-up request.
 
-**Demo link:** the 30-second video (public YouTube/Drive link after upload).
+**Demo link:** the public 7-slide deck (or new 30-second video).
 
 **Final project link:** <https://astrahealth-gamma.vercel.app> and <https://github.com/Soulaymane01/AstraHealth>.
 
 **Detailed description:** see [`README.md`](../README.md), [`docs/DESIGN.md`](DESIGN.md), and [`docs/API.md`](API.md).
 
-**SI use:** see [`SI_USAGE.md`](../SI_USAGE.md). State that SI assisted code, documentation, video assembly, and the voiceover; the default assistant is deterministic and cited; the challenge idea and product direction were team-defined.
-
 **NASA data/resources:** NASA Human Research Program and Human Research Roadmap; NASA DONKI when configured; NASA OSDR as a reference source. Link `docs/SOURCES.md`.
 
 **References:** `THIRD_PARTY.md`, `docs/SOURCES.md`, `LICENSE`, `docs/licenses/`.
 
+**Access note:** the live app opens on a login page; use the one-click **Astronaut demo** or **Surgeon demo** buttons. No password is required.
+
 ## Bottom line
 
-AstraHealth is **substantively compliant** with the challenge and the 2026 judging criteria. The product is not the bottleneck. The submission is: public demo hosting, the project page, references, live NASA data, and the final eligibility checks need to be completed before the deadline. The 30-second limit is now satisfied; do not upload the old 3-minute cut as the submission demo.
+AstraHealth is **substantively compliant** with the challenge and the 2026 judging criteria. The product is not the bottleneck. The submission still needs a demo asset (7-slide deck is the fastest path), the project page, references, live NASA data, and the final eligibility checks before the deadline.

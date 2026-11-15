@@ -70,7 +70,7 @@ export function SurgeonUpdatesPanel() {
               {topInstruction?.source === "ai" && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
                   <Sparkles size={9} aria-hidden />
-                  SI follow-up
+                  Follow-up
                 </span>
               )}
             </div>
@@ -138,7 +138,7 @@ export function SurgeonUpdatesPanel() {
                   {isSi && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent">
                       <Sparkles size={9} aria-hidden />
-                      SI follow-up
+                      Follow-up
                     </span>
                   )}
                   <span>

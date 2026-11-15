@@ -1,7 +1,7 @@
 # AstraHealth — Build Plan
 
 **Concept:** *You are the spacecraft.* A flight-deck style health monitor for astronauts on long-duration missions.
-**Executor:** SI coding agent.
+**Executor:** coding agent.
 **Reviewer:** project owner (guidance, verification, acceptance).
 **Status:** approved scope for a local-only build. NASA API key and LLM provider are deferred integrations, not blockers.
 **Product update:** the redeemable rewards/allowance catalog described in this historical plan was removed. Mission points now advance rank only.

@@ -292,7 +292,7 @@ def _prediction_answer(context: SurgeonContext) -> str:
     )
     recommendations = " ".join(prediction.recommendations[:2])
     followup = (
-        f"An SI follow-up request is open: {context.open_followups[0].message}"
+        f"A follow-up request is open: {context.open_followups[0].message}"
         if context.open_followups
         else ""
     )

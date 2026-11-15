@@ -11,10 +11,8 @@
 > Or use the one-click **Astronaut demo** / **Surgeon demo** buttons on the login page; no password required.
 >
 > Hosted on Vercel with Neon Postgres. The first request after idle may take a few seconds while the serverless API warms up.
->
-> **Demo video:** [Power Astronaut cut](docs/video/AstraHealth-Power-Astronaut-30s.mp4) · [App-only cut](docs/video/AstraHealth-App-Demo-30s.mp4)
 
-> Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the 30-second demo and the extended three-minute script run end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
+> Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the seeded demo state runs end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 
 > **Windows and never used a terminal?** Start with [`START_HERE_WINDOWS.md`](START_HERE_WINDOWS.md). It walks you through installing Docker Desktop, Node.js, and uv, then launches everything with a double-click.
 
@@ -73,15 +71,6 @@
 - **Hardened delivery** — route-level code splitting, cached auth profile for offline reloads, retryable error panels on every data view, and auth rate limits. Lighthouse on the Flight Deck: 100 performance / 100 accessibility on desktop and 99–100 performance / 100 accessibility on the mobile preset across verification runs.
 
 ---
-
-### SI-generated content
-
-Some code, documentation, assistant answers, follow-up requests, and the video
-voiceover are generated with **SI (Super Intelligence)**, the term used in the
-2026 NASA Space Apps [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/).
-The default assistant is deterministic and cited; an optional LLM provider can
-be configured. SI output is guidance, not diagnosis. See
-[`SI_USAGE.md`](SI_USAGE.md) for the full disclosure, tools, and metadata.
 
 ## Stack
 
@@ -275,8 +264,7 @@ The runtime is a single-user local deployment. JWTs are stored in `localStorage`
 - [`docs/DESIGN.md`](docs/DESIGN.md) — tokens, components, motion, accessibility
 - [`docs/API.md`](docs/API.md) — endpoint contract
 - [`docs/SOURCES.md`](docs/SOURCES.md) — scientific sources and data honesty
-- [`SI_USAGE.md`](SI_USAGE.md) — where and how SI was used
 - [`THIRD_PARTY.md`](THIRD_PARTY.md) — third-party resources and licenses
 - [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — NASA Space Apps 2026 compliance report
 - [`LICENSE`](LICENSE) — Apache License 2.0
-- [`docs/DEMO.md`](docs/DEMO.md) — three-minute demo script
+- [`docs/DEMO.md`](docs/DEMO.md) — live demo script
