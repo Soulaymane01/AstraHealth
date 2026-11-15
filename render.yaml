@@ -1,0 +1,32 @@
+# Render blueprint for the AstraHealth FastAPI service.
+#
+# 1. Create a Neon Postgres database and copy its pooled connection string.
+# 2. In Render, create a Blueprint from this repository; it reads this file.
+# 3. Fill the sync:false values when Render prompts for them.
+#
+# The database is external (Neon) so the free Render web service can restart
+# without taking the data with it. Render's own free Postgres expires, so it is
+# deliberately not defined here.
+
+services:
+  - type: web
+    name: astrahealth-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: NASA_API_KEY
+        sync: false
+      - key: LLM_PROVIDER
+        value: none

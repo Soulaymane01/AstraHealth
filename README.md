@@ -112,6 +112,14 @@ make demo-verify
 
 `make demo-verify` checks the four crew accounts, privacy settings, commander readiness around 80 / Watch, the two expected alerts, mission day 42, space-weather context, and the content catalog (9 articles, 8 training items, 17 achievements, 4 quizzes).
 
+### Deployment
+
+The recommended free deployment is **Vercel** for the static frontend,
+**Render** for the FastAPI service, and **Neon** for Postgres. The repository
+includes a backend Dockerfile, a Render blueprint, and a Vercel configuration.
+See [`DEPLOY.md`](DEPLOY.md) for the full setup, environment variables, remote
+seed commands, and troubleshooting.
+
 ### Optional integrations
 
 Everything works with safe local defaults:

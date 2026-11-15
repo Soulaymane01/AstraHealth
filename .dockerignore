@@ -1,0 +1,17 @@
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+frontend
+docs
+AstraHealth_v21_blueprint.html
+START_HERE_WINDOWS.pdf
+
+**/__pycache__
+**/*.pyc
+backend/.venv
+backend/.pytest_cache
+backend/.ruff_cache
+backend/tests
