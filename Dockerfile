@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Build from the repository root:
-#   docker build -f backend/Dockerfile -t astrahealth-api .
+#   docker build -t astrahealth-api .
 #
 # The backend reads ../README.md from pyproject.toml, so the repository layout
 # is preserved inside the image instead of flattening the backend directory.

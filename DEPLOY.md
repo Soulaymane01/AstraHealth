@@ -1,45 +1,40 @@
 # Deploying AstraHealth
 
-The app is a React/Vite static frontend, a FastAPI backend, and PostgreSQL. The
-least fragile free setup is:
+AstraHealth has a React/Vite static frontend, a FastAPI backend, and
+PostgreSQL. The zero-cost, no-card path is:
 
 | Piece | Host | Why |
 |---|---|---|
-| Frontend | **Vercel** | Static Vite build, HTTPS, previews, custom domain |
-| API | **Render** (Docker web service) | Runs the existing FastAPI app as a normal long-lived process |
-| Database | **Neon** | Managed Postgres with a free tier and a pooled connection string |
+| Frontend | **Vercel** — <https://astrahealth-gamma.vercel.app> | Static Vite build, HTTPS, previews, custom domain |
+| API | **Vercel Python runtime** — <https://astrahealth-api.vercel.app> | No card required; FastAPI runs as a serverless function |
+| Database | **Neon** — project `astrahealth` | Managed Postgres with a free tier and pooled connections |
 
-This keeps the backend close to how it runs locally, so there is no serverless
-rewrite and no database connection surprises. Total cost: **$0** on the free
-tiers, with the caveats below.
+Render is also supported as an optional backend host if you are willing to add
+a card. It runs the API as a normal long-lived container, which avoids
+serverless cold starts. The repository includes `render.yaml` and a root
+`Dockerfile` for that path.
 
-## Why not the alternatives?
+## Why not Hostinger for the backend?
 
-- **Hostinger shared hosting** can serve the built `dist/` folder, but it cannot
-  run FastAPI, Python, or Postgres. It is a static/PHP host. Use it for the
-  frontend only if you already pay for it.
-- **Hostinger VPS** can run everything with Docker Compose, but you own the
-  server, TLS, backups, and security. It is a good option only if you already
-  have a VPS.
-- **Vercel for the backend** is possible with the Python runtime, but it turns
-  FastAPI into a serverless function. That adds cold starts, database pooling
-  work, a 10-second Hobby limit, and an awkward migration/seed path. It is not
-  the recommended first deployment.
-- **Render's free Postgres** expires after a short period. Use Neon instead.
+Hostinger shared hosting can serve the built `dist/` folder, but it cannot run
+FastAPI, Python, or Postgres. It is a static/PHP host. Hostinger VPS can run
+everything with Docker, but you own TLS, backups, security, and maintenance.
+Use Hostinger for the frontend only if you already pay for it.
 
-NASA provides free **APIs and data** (DONKI, POWER, OSDR), not general app
-hosting. A free NASA API key removes the `DEMO_KEY` rate limit for space
-weather.
+NASA provides free APIs and data (DONKI, POWER, OSDR), not general app hosting.
 
-## 1. Create the database (Neon)
+## 1. Database (Neon)
+
+The Neon project `astrahealth` is already provisioned and seeded. For a new
+environment:
 
 1. Create a project at <https://neon.tech>.
 2. Copy the **pooled** connection string. It looks like:
-   `postgresql://user:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
+   `postgresql://user:password@ep-xxx-pooler.region.aws.neon.tech/astrahealth?sslmode=require`
 3. Change the scheme for SQLAlchemy/psycopg:
-   `postgresql+psycopg://user:password@ep-xxx-pooler.region.aws.neon.tech/neondb?sslmode=require`
+   `postgresql+psycopg://user:password@ep-xxx-pooler.region.aws.neon.tech/astrahealth?sslmode=require`
 
-Run migrations and seed from your machine against Neon:
+Run migrations and seed from your machine:
 
 ```bash
 cd backend
@@ -50,67 +45,100 @@ uv run python -m app.db.seed --reset
 uv run python -m app.db.verify_demo
 ```
 
-`--reset` truncates the hosted database and rebuilds the scripted day-42 demo.
-Run it again before judging so the mission day and readiness state are fresh.
+Use the **pooled** host for Vercel and the **direct** host for Render. Run
+`--reset` again before judging so the mission day and readiness state are fresh.
 
 > `app.db.seed` uses the server clock. If the demo sits for several days, the
 > mission advances. `verify_demo` accepts day 41+ and prints a reset hint after
 > day 43.
 
-## 2. Deploy the API (Render)
+## 2. Backend on Vercel
 
-1. Push this repository to GitHub.
-2. In Render, choose **New → Blueprint** and select the repository. Render reads
-   [`render.yaml`](../render.yaml).
-3. Fill the prompted values:
-   - `DATABASE_URL`: the Neon URL from above.
-   - `CORS_ORIGINS`: a JSON array with the Vercel URL, for example
-     `["https://astrahealth.vercel.app"]`. Add `http://localhost:5173` if you
-     also want local development against the hosted API.
-   - `NASA_API_KEY`: your NASA key, or leave blank to use the labeled fixture.
-4. Deploy. The container runs `alembic upgrade head` on start, then Uvicorn.
-5. Confirm `https://<service>.onrender.com/health` returns `200`.
+The backend-specific deployment files are:
 
-The Docker image is built from [`backend/Dockerfile`](../backend/Dockerfile).
-If you prefer not to use the blueprint, create a **Web Service** manually:
-runtime Docker, Dockerfile path `backend/Dockerfile`, Docker context `.`,
-health check `/health`.
+- `backend/api/index.py` — exposes the FastAPI `app` to Vercel.
+- `backend/vercel.json` — sends every path to the function and includes
+  `app/**` and `data/**` in the bundle.
+- `backend/requirements.txt` — generated from `uv.lock`; do not hand-edit.
 
-## 3. Deploy the frontend (Vercel)
+Deploy:
+
+```bash
+cd backend
+vercel link --yes --project astrahealth-api
+vercel env add DATABASE_URL --environment production --value 'postgresql+psycopg://...' --yes
+vercel env add JWT_SECRET --environment production --value "$(openssl rand -hex 32)" --yes
+vercel env add ENVIRONMENT --environment production --value production --yes
+vercel env add CORS_ORIGINS --environment production --value '["https://your-frontend.vercel.app"]' --yes
+vercel env add NASA_API_KEY --environment production --value 'YOUR_NASA_KEY' --yes
+vercel env add LLM_PROVIDER --environment production --value none --yes
+vercel --prod --yes
+```
+
+Or set the same variables in the Vercel dashboard under
+**Project → Settings → Environment Variables**.
+
+Important serverless details:
+
+- Vercel's Hobby plan limits function execution time. AstraHealth endpoints are
+  short, but cold starts can add a few seconds.
+- Vercel functions are stateless. The database, not the process, holds all
+  state.
+- Schema migrations and seeding are **not** run by Vercel. Run them locally
+  against Neon.
+- Keep `DATABASE_URL` on the pooled Neon host for Vercel. The pooler prevents
+  connection exhaustion across function instances.
+- After changing `requirements.txt`, regenerate it:
+  `uv export --frozen --no-dev --no-hashes --format requirements-txt > requirements.txt`
+- If the function bundle misses a file, add it to `includeFiles` in
+  `backend/vercel.json`.
+
+## 3. Frontend on Vercel
 
 1. Import the repository at <https://vercel.com/new>.
 2. Set **Root Directory** to `frontend`. Vercel detects Vite.
 3. Add the production environment variable:
-   - `VITE_API_URL=https://<service>.onrender.com` (no trailing slash)
+   ```
+   VITE_API_URL=https://astrahealth-api.vercel.app
+   ```
+   Use the actual backend URL, with no trailing slash.
 4. Deploy. `frontend/vercel.json` provides the SPA fallback so direct links such
-   as `/log` and `/surgeon` work.
-5. Add the final Vercel domain to the API's `CORS_ORIGINS` and redeploy the API
-   if you changed it.
+   as `/log`, `/check-in`, and `/surgeon` work.
+5. Add the final frontend domain to the backend's `CORS_ORIGINS` and redeploy
+   the backend if you changed it. The current production CORS values are
+   `["https://astrahealth-gamma.vercel.app","http://localhost:5173"]`.
 
 `VITE_API_URL` is baked in at build time. Changing it requires a frontend
 redeploy, not just an environment edit.
 
-## 4. Keep the free API awake
+If you use the Vercel CLI instead of the dashboard:
 
-Render free web services spin down after inactivity. For judging, create a free
-uptime monitor (UptimeRobot, cron-job.org, or a GitHub Actions schedule) that
-requests `https://<service>.onrender.com/health` every 10 minutes. Warm it up a
-few minutes before the demo.
+```bash
+cd frontend
+vercel link --yes --project astrahealth
+vercel env add VITE_API_URL --environment production --value 'https://astrahealth-api.vercel.app' --yes
+vercel --prod --yes
+```
 
-## Environment variables
+## Optional: backend on Render
 
-| Variable | Where | Value |
-|---|---|---|
-| `DATABASE_URL` | Render | Neon pooled URL with `postgresql+psycopg://` |
-| `JWT_SECRET` | Render | Generated by the blueprint, or `openssl rand -hex 32` |
-| `ENVIRONMENT` | Render | `production` |
-| `CORS_ORIGINS` | Render | JSON array of allowed frontend origins |
-| `NASA_API_KEY` | Render | Optional; free key from <https://api.nasa.gov> |
-| `LLM_PROVIDER` | Render | Keep `none` unless you intentionally enable an LLM |
-| `VITE_API_URL` | Vercel | Public API base URL |
-| `VITE_DEMO_MODE` | Vercel | Leave unset or `true` for the demo badge |
+Render's free web service may ask for a payment method even though the plan is
+free. If you have a card on file, Render is the more robust backend option
+because it runs FastAPI as a normal process.
 
-Do not commit `.env` or real keys. The repository already ignores `.env`.
+1. Push the repository to GitHub.
+2. In Render, choose **New → Blueprint** and select the repository. Render reads
+   [`render.yaml`](../render.yaml).
+3. Fill `DATABASE_URL` (direct Neon host), `CORS_ORIGINS`, and optionally
+   `NASA_API_KEY`.
+4. Deploy. The container runs `alembic upgrade head` on start, then Uvicorn.
+
+You can also create a **Web Service** manually: runtime Docker, Dockerfile path
+`Dockerfile`, Docker context `.`, health check `/health`.
+
+The root [`Dockerfile`](../Dockerfile) builds the API from the repository root.
+Render free services spin down after inactivity, so use UptimeRobot or
+cron-job.org to ping `/health` every 10 minutes.
 
 ## Optional: Hostinger frontend
 
@@ -118,7 +146,7 @@ If you want the frontend on Hostinger instead of Vercel:
 
 ```bash
 cd frontend
-VITE_API_URL=https://<service>.onrender.com npm run build
+VITE_API_URL=https://astrahealth-api.vercel.app npm run build
 ```
 
 Upload the contents of `frontend/dist/` to `public_html/`. Add this
@@ -138,25 +166,47 @@ Upload the contents of `frontend/dist/` to `public_html/`. Add this
 Enable free SSL in Hostinger, then add `https://your-domain` to
 `CORS_ORIGINS`. Rebuild the frontend whenever `VITE_API_URL` changes.
 
-## Optional: one Hostinger VPS
+## Environment variables
 
-If you already have a VPS and want everything on one origin, run the API and a
-Caddy/Nginx reverse proxy there, serve `frontend/dist` as static files, and use
-a managed Postgres or a Postgres container with a volume. The backend
-Dockerfile works unchanged. This is the most work and the least appropriate
-choice for a three-minute hackathon demo.
+| Variable | Where | Value |
+|---|---|---|
+| `DATABASE_URL` | Vercel backend | Neon pooled URL with `postgresql+psycopg://` |
+| `JWT_SECRET` | Vercel backend | `openssl rand -hex 32` |
+| `ENVIRONMENT` | Vercel backend | `production` |
+| `CORS_ORIGINS` | Vercel backend | JSON array of allowed frontend origins |
+| `NASA_API_KEY` | Vercel backend | Optional; free key from <https://api.nasa.gov> |
+| `LLM_PROVIDER` | Vercel backend | Keep `none` unless you intentionally enable an LLM |
+| `VITE_API_URL` | Vercel frontend | Public API base URL |
+| `VITE_DEMO_MODE` | Vercel frontend | Leave unset or `true` for the demo badge |
+
+Do not commit `.env` or real keys. The repository already ignores `.env`.
+
+## Current deployment
+
+| Item | URL |
+|---|---|
+| Frontend | <https://astrahealth-gamma.vercel.app> |
+| API | <https://astrahealth-api.vercel.app> |
+| API health | <https://astrahealth-api.vercel.app/health> |
+| Neon project | `astrahealth` (`divine-queen-95255482`) |
+
+The Neon database is already migrated and seeded with the day-42 demo. The
+Vercel frontend was built with `VITE_API_URL=https://astrahealth-api.vercel.app`.
+Re-run the seed against Neon before judging if the demo has aged.
 
 ## Post-deploy checklist
 
-- [ ] `/health` returns 200.
+- [ ] `https://<api>/health` returns 200.
 - [ ] Login works for `commander@astra.space` / `astra-demo`.
 - [ ] Flight Deck shows readiness around 80 / Watch and two alerts.
 - [ ] Direct links `/log`, `/check-in`, and `/surgeon` do not 404.
 - [ ] Surgeon login works and the astronaut picker loads.
 - [ ] 3D body models load; the 2D fallback appears if WebGL fails.
 - [ ] Browser console has no CORS or mixed-content errors.
-- [ ] `make reset-demo` has been run against Neon before judging.
-- [ ] The Render service has been warmed after a period of inactivity.
+- [ ] The demo has been re-seeded against Neon before judging.
+- [ ] The backend has been warmed after a period of inactivity. The repository
+      includes `.github/workflows/keep-warm.yml`, which pings `/health` every
+      ten minutes; you can also use UptimeRobot or cron-job.org.
 
 ## Troubleshooting
 
@@ -165,18 +215,19 @@ choice for a three-minute hackathon demo.
 string.
 
 **Login works but every request 401s.** Check that the frontend was built with
-the correct `VITE_API_URL`, and that the API's `JWT_SECRET` has not changed
+the correct `VITE_API_URL`, and that the backend's `JWT_SECRET` has not changed
 between deploys. Changing the secret invalidates existing tokens.
 
-**Database connection errors.** Use the Neon **pooled** host and keep
+**Database connection errors.** Use the Neon pooled host for Vercel and keep
 `?sslmode=require`. Make sure the URL starts with `postgresql+psycopg://`.
 
-**API sleeps.** Render free services spin down. Use the keep-alive monitor and
-open the app a few minutes before judging.
+**Function times out.** Vercel Hobby has a short execution limit. Most
+AstraHealth endpoints are quick; if one is slow, check the Neon compute state
+and the function logs.
 
 **Old UI after deploy.** The PWA service worker may serve a cached shell. Hard
 reload once, or use a fresh browser profile. The app uses `autoUpdate` and
 `skipWaiting`, so a normal reload usually picks up the new build.
 
-**Space weather says “Demo fixture”.** Set `NASA_API_KEY` on Render and redeploy;
-the UI labels live DONKI responses as “Live NASA DONKI”.
+**Space weather says “Demo fixture”.** Set `NASA_API_KEY` on the backend and
+redeploy. The UI labels live DONKI responses as “Live NASA DONKI”.

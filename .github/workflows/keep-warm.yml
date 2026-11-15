@@ -1,0 +1,15 @@
+name: Keep the demo API warm
+
+on:
+  schedule:
+    # Vercel functions cold-start after idle periods. A light ping keeps the
+    # judging path responsive without changing the deployment.
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS --max-time 30 https://astrahealth-api.vercel.app/health

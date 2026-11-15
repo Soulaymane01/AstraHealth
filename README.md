@@ -2,6 +2,10 @@
 
 **A calm flight deck for the human body.** A light, low-density health monitor for astronauts on long-duration missions: collect health indicators, explain what they mean in spaceflight, score crew readiness, and recommend the next action.
 
+> **Live demo:** <https://astrahealth-gamma.vercel.app>
+>
+> Astronaut: `commander@astra.space` · Surgeon: `surgeon@astra.space` · Password: `astra-demo`
+
 > Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the three-minute script runs end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 
 > **Windows and never used a terminal?** Start with [`START_HERE_WINDOWS.md`](START_HERE_WINDOWS.md). It walks you through installing Docker Desktop, Node.js, and uv, then launches everything with a double-click.
@@ -114,9 +118,10 @@ make demo-verify
 
 ### Deployment
 
-The recommended free deployment is **Vercel** for the static frontend,
-**Render** for the FastAPI service, and **Neon** for Postgres. The repository
-includes a backend Dockerfile, a Render blueprint, and a Vercel configuration.
+The recommended free deployment is **Vercel** for the frontend and the FastAPI
+service, with **Neon** for Postgres. Render is supported as an optional
+long-lived backend if you have a card on file. The repository includes Vercel
+configurations for both projects, a root Dockerfile, and a Render blueprint.
 See [`DEPLOY.md`](DEPLOY.md) for the full setup, environment variables, remote
 seed commands, and troubleshooting.
 
