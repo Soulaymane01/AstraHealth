@@ -1,8 +1,8 @@
 # AstraHealth — Demo Video Script
 
-**Format:** 16:9, 1600×900 source, 1080p output  
+**Format:** 16:9, 1600×900 source, 1080p output
 **Length:** 2:58 (branded cut) · 2:51 (app-only cut)
-**Voice:** warm, calm, conversational; about 180 words per minute  
+**Voice:** warm, calm, conversational; about 180 words per minute
 **Two cuts:**
 
 1. `AstraHealth-Power-Astronaut.mp4` — includes “Presented by Power Astronaut” in the intro and outro.
@@ -10,8 +10,10 @@
 
 The app footage is identical in both cuts. Only the intro and outro differ.
 
-**Final files:** `docs/video/AstraHealth-Power-Astronaut.mp4` and
-`docs/video/AstraHealth-App-Demo.mp4`
+**30-second submission cut:** see [`VIDEO_SCRIPT_30S.md`](VIDEO_SCRIPT_30S.md).
+
+**Extended files:** `docs/video/extended/AstraHealth-Power-Astronaut.mp4` and
+`docs/video/extended/AstraHealth-App-Demo.mp4`
 
 ---
 

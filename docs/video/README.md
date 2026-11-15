@@ -1,61 +1,58 @@
 # AstraHealth — Demo Videos
 
-Two cuts of the same app story:
+The submission cut is **30 seconds**. Two versions share the same app footage:
 
 | File | Length | Description |
 |---|---:|---|
-| `AstraHealth-Power-Astronaut.mp4` | 2:58 | Branded intro/outro: **Presented by Power Astronaut** |
-| `AstraHealth-App-Demo.mp4` | 2:51 | App-only cut, no team branding |
-| `AstraHealth-Voiceover.mp3` | 2:58 | Full voice track, for replacement or reuse |
-| `poster.jpg` | — | Poster frame from the branded cut |
-| `AstraHealth-Power-Astronaut.srt` | — | Captions for the branded cut |
-| `AstraHealth-App-Demo.srt` | — | Captions for the app-only cut |
+| `AstraHealth-Power-Astronaut-30s.mp4` | 0:30 | Branded cut: **Presented by Power Astronaut** |
+| `AstraHealth-App-Demo-30s.mp4` | 0:30 | App-only cut, no team branding |
+| `AstraHealth-Voiceover-30s.mp3` | 0:30 | Voice track, ready to replace |
+| `AstraHealth-Power-Astronaut-30s.srt` | — | Captions for the branded cut |
+| `AstraHealth-App-Demo-30s.srt` | — | Captions for the app-only cut |
+| `poster-30s.jpg` | — | Poster frame |
 
-**Resolution:** 1920×1080, 30 fps, H.264 + AAC.  
-**Script:** [`../VIDEO_SCRIPT.md`](../VIDEO_SCRIPT.md).  
+**Resolution:** 1920×1080, 30 fps, H.264 + AAC.
+**Script:** [`../VIDEO_SCRIPT_30S.md`](../VIDEO_SCRIPT_30S.md).
 **Live app:** <https://astrahealth-gamma.vercel.app>.
 
-## Chapters (branded cut)
+## Chapters
 
 | Time | Chapter |
 |---|---|
-| 0:00 | Intro / Power Astronaut |
-| 0:12 | The problem |
-| 0:27 | Flight Deck and readiness |
-| 0:46 | 3D body systems |
-| 0:57 | Explainable score |
-| 1:12 | Systems Check |
-| 1:27 | Systems Report |
-| 1:42 | Mission Log and achievements |
-| 1:54 | Mental-health screens |
-| 2:07 | Flight Surgeon console |
-| 2:24 | Clinical Copilot |
-| 2:40 | Privacy and safety |
-| 2:49 | Outro |
+| 0:00 | Intro |
+| 0:03 | Flight Deck / readiness |
+| 0:10 | 3D body systems |
+| 0:18 | Systems Check |
+| 0:21 | Flight Surgeon console |
+| 0:26 | Outro |
 
 ## Audio
 
-The voice is a neural TTS voice (`en-US-AndrewNeural`, rate `-8%`, pitch `-2Hz`).
+The voice is a neural TTS voice (`en-US-AndrewNeural`, rate `+2%`, pitch `-2Hz`).
 There is no music bed, so the narration is easy to replace.
 
-To replace the voice track while keeping the visuals:
+To replace the voice track:
 
 ```bash
-ffmpeg -i AstraHealth-Power-Astronaut.mp4 \
+ffmpeg -i AstraHealth-Power-Astronaut-30s.mp4 \
   -i your-voiceover.wav \
   -map 0:v:0 -map 1:a:0 \
   -c:v copy -c:a aac -b:a 192k -shortest \
-  AstraHealth-Power-Astronaut-v2.mp4
+  AstraHealth-Power-Astronaut-30s-v2.mp4
 ```
 
-If the new voice is shorter, the video will end when the audio ends with
-`-shortest`. For a precise fit, time-stretch or pad the new track to 2:58 first.
+Keep the new track at 30 seconds for a clean fit.
+
+## Extended versions
+
+The earlier 3-minute cuts are in [`extended/`](extended/) with their own
+captions and voiceover. They are optional; the 30-second cuts are the ones
+linked from the main README.
 
 ## Notes
 
 - The demo uses the seeded day-42 mission and the two demo accounts.
 - The surgeon sequence uses `surgeon@astra.space`.
-- The check-in sequence creates one real check-in in the local demo database.
 - “Power Astronaut” is used as the team name in the branded cut. If the official
-  name is plural or styled differently, only the intro/outro cards and two
-  narration lines need to change.
+  name is styled differently, only the intro/outro cards and two narration lines
+  need to change.
