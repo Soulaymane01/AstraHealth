@@ -32,11 +32,15 @@ CAPTURE_METRICS = (
     "exercise_load_min",
     "bone_load_min",
     "body_mass",
+    "sleep_duration_h",
+    "sleep_efficiency_pct",
+    "sleep_latency_min",
 )
 
-# Deliberately not captured: sleep, mood, stress, social contact, symptoms,
-# hydration, intake, vitamin D, strength checks, and glucose fingersticks.
-# Those stay astronaut-entered because a habitat sensor cannot infer them.
+# Sleep is treated as a wearable/sleep-pad signal for the demo. Mood, stress,
+# social contact, symptoms, hydration, intake, vitamin D, strength checks, and
+# glucose fingersticks remain astronaut-entered because a habitat sensor
+# cannot infer them.
 
 CLAMPS: dict[str, tuple[float, float]] = {
     "heart_rate": (35, 200),
@@ -49,6 +53,9 @@ CLAMPS: dict[str, tuple[float, float]] = {
     "exercise_load_min": (0, 240),
     "bone_load_min": (0, 120),
     "body_mass": (35, 200),
+    "sleep_duration_h": (0, 16),
+    "sleep_efficiency_pct": (0, 100),
+    "sleep_latency_min": (0, 180),
 }
 
 NOISE: dict[str, float] = {
@@ -62,6 +69,9 @@ NOISE: dict[str, float] = {
     "exercise_load_min": 2.0,
     "bone_load_min": 1.5,
     "body_mass": 0.1,
+    "sleep_duration_h": 0.35,
+    "sleep_efficiency_pct": 2.0,
+    "sleep_latency_min": 3.0,
 }
 
 DECIMALS: dict[str, int] = {
@@ -75,6 +85,15 @@ DECIMALS: dict[str, int] = {
     "exercise_load_min": 0,
     "bone_load_min": 0,
     "body_mass": 1,
+    "sleep_duration_h": 1,
+    "sleep_efficiency_pct": 0,
+    "sleep_latency_min": 0,
+}
+
+SLEEP_DEFAULTS: dict[str, float] = {
+    "sleep_duration_h": 7.0,
+    "sleep_efficiency_pct": 88.0,
+    "sleep_latency_min": 16.0,
 }
 
 # One capture run per process is enough for the local demo.
@@ -118,7 +137,9 @@ def _default_value(metric: MetricDefinition | None) -> float:
 
 
 def _simulated_value(code: str, previous: float | None, metric: MetricDefinition | None) -> float:
-    base = previous if previous is not None else _default_value(metric)
+    base = previous if previous is not None and previous > 0 else _default_value(metric)
+    if code in SLEEP_DEFAULTS and (previous is None or previous <= 0):
+        base = SLEEP_DEFAULTS[code]
     value = base + random.gauss(0.0, NOISE.get(code, 1.0))
     low, high = CLAMPS.get(code, (0.0, 1000.0))
     value = max(low, min(high, value))

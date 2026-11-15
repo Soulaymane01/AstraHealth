@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 export interface SparklineProps {
   values: number[];
   status?: Status;
+  color?: string;
   width?: number;
   height?: number;
   fill?: boolean;
@@ -16,6 +17,7 @@ export interface SparklineProps {
 export function Sparkline({
   values,
   status = "unknown",
+  color,
   width = 96,
   height = 24,
   fill = false,
@@ -24,6 +26,7 @@ export function Sparkline({
 }: SparklineProps) {
   const gradientId = `spark-${useId().replace(/:/g, "")}`;
   const meta = STATUS_META[status];
+  const strokeColor = color ?? meta.hex;
 
   if (values.length === 0) {
     return (
@@ -75,12 +78,12 @@ export function Sparkline({
       <path
         d={line}
         fill="none"
-        stroke={meta.hex}
+        stroke={strokeColor}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {last && <circle cx={last[0]} cy={last[1]} r={1.6} fill={meta.hex} />}
+      {last && <circle cx={last[0]} cy={last[1]} r={1.6} fill={strokeColor} />}
     </svg>
   );
 }

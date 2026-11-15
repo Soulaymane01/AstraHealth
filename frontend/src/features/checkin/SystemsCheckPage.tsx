@@ -667,12 +667,19 @@ export function SystemsCheckPage() {
                 this step and submit; the follow-up request closes automatically.
               </div>
             )}
-            {(activeStep.key === "vitals" || activeStep.key === "training") &&
+            {(activeStep.key === "vitals" ||
+              activeStep.key === "sleep" ||
+              activeStep.key === "training") &&
               captureQuery.data?.captured_at && (
                 <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-accent/20 bg-accent-soft/40 px-3 py-2 text-[11px] leading-relaxed text-ink-2">
                   <Radio size={13} className="shrink-0 text-accent" aria-hidden />
                   <span>
-                    {activeStep.key === "vitals" ? "Sensor-filled" : "Load pre-filled"} ·{" "}
+                    {activeStep.key === "vitals"
+                      ? "Sensor-filled"
+                      : activeStep.key === "sleep"
+                        ? "Sleep tracker filled"
+                        : "Load pre-filled"}{" "}
+                    ·{" "}
                     {captureSourceLabel(captureQuery.data.source)}
                   </span>
                   <span className="rounded-full bg-surface px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">

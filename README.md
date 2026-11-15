@@ -45,7 +45,7 @@
 ## What it does
 
 - **Flight Deck** — a 70+ region anatomical body map with front/back views, readiness ring, six domain rows, an exception list, and a mission tape.
-- **Automatic captures** — simulated ISS habitat, lunar surface, and Mars transit sensors stream heart rate, HRV, blood pressure, temperature, SpO₂, body mass, and exercise/bone load into Telemetry, and pre-fill the Systems Check. Sleep, mood, stress, symptoms, strength, hydration, and nutrition stay astronaut-entered.
+- **Automatic captures** — simulated ISS habitat, lunar surface, and Mars transit sensors stream heart rate, HRV, blood pressure, temperature, SpO₂, body mass, exercise/bone load, and sleep duration/efficiency/latency into Telemetry, and pre-fill the Systems Check. Mood, stress, symptoms, strength, hydration, and nutrition stay astronaut-entered.
 - **Systems Check** — a five-step wizard whose vitals and load arrive locked from the capture feed; a single **Override captures** toggle unlocks them if a sensor is unavailable. The astronaut adds sleep, mood, symptoms, strength, hydration, and nutrition. Drafts survive a reload, skipped steps are explicit, and every submission ends in an instant Systems Report.
 - **Telemetry** — 7, 30, or 90-day trends for every metric, with a personal baseline band, a spaceflight reference range, event overlays, domain summaries, and CSV export.
 - **Explainable readiness** — deterministic z-score engine plus seven hard rules. Every score shows its contributing factors.

@@ -51,7 +51,7 @@ def test_surgeon_console_is_role_protected_and_lists_the_crew(
     body = detail.json()
     assert body["member"]["id"] == test_user.id
     assert body["mission"]["name"] == "Test Mission"
-    assert len(body["latest_capture"]["metrics"]) == 10
+    assert len(body["latest_capture"]["metrics"]) == 13
     assert body["latest_capture"]["simulated"] is True
 
 

@@ -907,6 +907,7 @@ export function FlightDeckPage() {
           <Sparkline
             values={trend}
             status={status}
+            color="#0B3D91"
             width={420}
             height={72}
             fill

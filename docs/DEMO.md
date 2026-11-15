@@ -14,7 +14,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screen: `shell.png`.*
 
 2. **Anomaly — 0:20**
-   The exception list shows **HRV is below your baseline** and **Sleep is fragmented**, both at Caution. The factors explain the score: sleep efficiency around 76%, sleep duration around 5.3 h, HRV around 38.8 ms, and stress around 3–4/5. Click the chest on the anatomical body map for cardiovascular detail, or the **Sleep & circadian** row for sleep efficiency. Open **Why this score?** to show the full contribution list. Point at the **Automatic sensor capture** strip: ten readings from the Mars transit sensors, labeled **Simulated**, with **no astronaut entry**.
+   The exception list shows **HRV is below your baseline** and **Sleep is fragmented**, both at Caution. The factors explain the score: sleep efficiency around 76%, sleep duration around 5.3 h, HRV around 38.8 ms, and stress around 3–4/5. Click the chest on the anatomical body map for cardiovascular detail, or the **Sleep & circadian** row for sleep efficiency. Open **Why this score?** to show the full contribution list. Point at the **Automatic sensor capture** strip: thirteen readings from the Mars transit sensors, labeled **Simulated**, with **no astronaut entry**.
    *Expected screen: `domain.png`.*
 
 3. **Act — 0:40**
@@ -50,7 +50,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 ## What to point out to judges
 
 - The score is explainable: factors and rules are visible, not a black box.
-- Vitals and load are automatic: the capture strip shows simulated habitat/suit readings with provenance, and the Systems Check pre-fills them. Sleep, mood, and symptoms remain the astronaut’s own input.
+- Vitals, load, and sleep are automatic: the capture strip shows simulated habitat/suit and sleep-pad readings with provenance, and the Systems Check pre-fills them. Mood and symptoms remain the astronaut’s own input.
 - The Earth-side loop is complete: the flight surgeon sees every crew member’s captures, trends, check-ins, and alerts; can diagnose, acknowledge, and send a request; the astronaut sees the shared assessment and can mark the request done.
 - The check-in is honest about missing data: skipped steps are recorded, and the report says when a baseline is insufficient instead of inventing a score.
 - The telemetry charts never invent a reading. The personal baseline and spaceflight reference are visually distinct, the event rail explains context, and an empty range says what to do next.

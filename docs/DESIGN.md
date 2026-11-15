@@ -158,6 +158,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 
 - The default view is the readiness window: one ring, status, three key factors at `sm` and above, and a one-line next action.
 - A critical alert appears as a single full-width red ribbon above readiness. Everything else waits.
+- The 7-day readiness trend uses the blue accent for the line and fill, independent of status.
 - Six visual quick tiles open focused `DetailSheet` views: Body systems, Needs attention, Vitals, Flight Surgeon, Mission tape, and Space weather.
 - Body systems opens a wide sheet with the layered body map, the six domain rows, and the selected-domain metric detail.
 - The anatomical map has Skin, Muscular, and Skeletal layers with front/back views. Skin uses status-tinted body zones, muscular uses the 70+ `body-muscles` regions, and skeletal groups the skull, spine, ribs, pelvis, arms, and legs by domain.
@@ -167,7 +168,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 
 ### 6.3 Systems Check wizard
 
-- Five steps: Vitals, Sleep, Mood & Stress, Symptoms, Training & Nutrition. The active step uses a centered, full-width form; notes live in an optional disclosure and the long summary sidebar is gone.
+- Five steps: Vitals, Sleep, Mood & Stress, Symptoms, Training & Nutrition. Vitals, load, and sleep are pre-filled from the simulated capture feed; the active step uses a centered, full-width form. Notes live in an optional disclosure and the long summary sidebar is gone.
 - Progress uses five small rings. Complete steps are nominal green with a check, the active step is deep blue, skipped steps are a muted dash, and a labelled progress bar sits underneath.
 - Fields use large-touch inputs with a 24 px tabular value, unit, optional tag, and inline error. Scales are 1–5 with low/high anchors and an explicit Clear action.
 - Every step has a "Why we ask" disclosure. The copy is condensed from the corresponding knowledge article and names the NASA HRP source.
@@ -201,11 +202,11 @@ The design intentionally uses fewer panels than a traditional mission-control da
 
 ### 6.6 Mission Log and motivation
 
-- The Mission Log is the motivation hub: a `RankBadge`, streaks, a points card with recent history, a filterable/collapsible activity feed, and a 17-achievement grid. Each achievement shows progress toward its next unlock, and unlocked achievements are surfaced first.
+- The Mission Log is the motivation hub: a `RankBadge`, streaks, a points card with recent history, a next-achievement card, a 17-achievement grid, and the activity feed last. Activity has type filters and a hide/show control. Each achievement shows progress toward its next unlock, and unlocked achievements are surfaced first.
 - Rank uses lifetime mission points, so consistency advances the astronaut. The rank card shows the next rank and the percentage progress.
-- The activity feed is a vertical timeline of check-ins, alerts, training sessions, achievements, and redemptions, newest first. Alerts keep their semantic status pill; the rest use quiet icon circles.
+- The activity feed is a compact list of check-ins, alerts, training sessions, and achievements, last on the page. Alerts keep their semantic status pill; the rest use quiet icon circles. Filters and Hide/Show keep it collapsible.
 - Mission points are awarded for consistency only: check-ins, training adherence, quizzes, and streak milestones. They advance rank but never reflect a health reading.
-- Achievements are compact tiles with an icon, name, description, and unlock date. Locked tiles use a dashed border and a lock icon, never a red or warning surface.
+- Achievements are compact tiles with an icon, name, progress bar, and unlock date. Unlocked tiles surface first; locked tiles show progress toward the next unlock and use a dashed border and a lock icon.
 - A new achievement appears as a celebration panel on the check-in report and quiz result. There is no confetti or flash; the accent-soft surface and the unlock line carry the moment.
 
 ### 6.7 Quizzes and screens

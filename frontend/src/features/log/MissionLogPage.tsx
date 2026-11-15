@@ -8,7 +8,7 @@ import {
   TriangleAlert,
   type LucideIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { createElement, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { CreditChip, RankBadge } from "@/components/ui/RankBadge";
@@ -17,6 +17,7 @@ import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { AchievementTile } from "@/features/gamification/components/AchievementTile";
+import { achievementIcon } from "@/features/gamification/icons";
 import { StreakTile } from "@/features/gamification/components/StreakTile";
 import {
   useAchievements,
@@ -136,6 +137,7 @@ export function MissionLogPage() {
     if (a.unlocked !== b.unlocked) return Number(b.unlocked) - Number(a.unlocked);
     return b.progress - a.progress;
   });
+  const nextAchievement = orderedAchievements.find((achievement) => !achievement.unlocked);
   const filteredEvents = events.filter(
     (event) => activityFilter === "all" || event.type === activityFilter,
   );
@@ -258,6 +260,78 @@ export function MissionLogPage() {
 
       </div>
 
+      {nextAchievement && (
+        <Panel
+          className="mt-4"
+          title="Next achievement"
+          actions={
+            <span className="text-xs font-semibold tabular text-accent">
+              {Math.round(nextAchievement.progress * 100)}%
+            </span>
+          }
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+              {createElement(achievementIcon(nextAchievement.icon), {
+                size: 18,
+                "aria-hidden": true,
+              })}
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="truncate text-sm font-semibold text-ink">
+                  {nextAchievement.name}
+                </p>
+                <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[9px] uppercase tracking-wide text-muted">
+                  Locked
+                </span>
+              </div>
+              <p className="mt-0.5 truncate text-[10px] text-muted">
+                {nextAchievement.description}
+              </p>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
+                <div
+                  className="h-full rounded-full bg-accent transition-[width] duration-500"
+                  style={{ width: `${Math.max(4, Math.round(nextAchievement.progress * 100))}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </Panel>
+      )}
+
+      <Panel
+        className="mt-4"
+        title="Achievements"
+        subtitle={
+          achievementsQuery.isLoading
+            ? "Loading commendations…"
+            : `${unlocked} of ${achievements.length} unlocked`
+        }
+      >
+        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-line">
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-500"
+            style={{
+              width: `${achievements.length > 0 ? (unlocked / achievements.length) * 100 : 0}%`,
+            }}
+          />
+        </div>
+        {achievementsQuery.isLoading ? (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }, (_, index) => (
+              <Skeleton key={index} className="h-20 w-full" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+            {orderedAchievements.map((achievement) => (
+              <AchievementTile key={achievement.code} achievement={achievement} />
+            ))}
+          </div>
+        )}
+      </Panel>
+
       <Panel
         className="mt-4"
         title="Activity"
@@ -362,38 +436,6 @@ export function MissionLogPage() {
               </button>
             )}
           </>
-        )}
-      </Panel>
-
-      <Panel
-        className="mt-4"
-        title="Achievements"
-        subtitle={
-          achievementsQuery.isLoading
-            ? "Loading commendations…"
-            : `${unlocked} of ${achievements.length} unlocked`
-        }
-      >
-        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-line">
-          <div
-            className="h-full rounded-full bg-accent transition-[width] duration-500"
-            style={{
-              width: `${achievements.length > 0 ? (unlocked / achievements.length) * 100 : 0}%`,
-            }}
-          />
-        </div>
-        {achievementsQuery.isLoading ? (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }, (_, index) => (
-              <Skeleton key={index} className="h-20 w-full" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
-            {orderedAchievements.map((achievement) => (
-              <AchievementTile key={achievement.code} achievement={achievement} />
-            ))}
-          </div>
         )}
       </Panel>
     </div>

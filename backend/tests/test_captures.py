@@ -33,10 +33,8 @@ def test_capture_feed_simulates_sensor_data_not_manual_inputs(
     assert feed["captured_at"] is not None
     codes = {metric["metric_code"] for metric in feed["metrics"]}
     assert set(CAPTURE_METRICS) == codes
-    # Sleep, mood, stress, symptoms, nutrition, and strength stay manual.
+    # Mood, stress, symptoms, nutrition, and strength stay manual.
     assert {
-        "sleep_duration_h",
-        "sleep_efficiency_pct",
         "mood_score",
         "stress_score",
         "symptom_score",
