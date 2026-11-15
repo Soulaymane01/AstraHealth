@@ -18,6 +18,7 @@ import {
   Send,
   Sparkles,
   Stethoscope,
+  Sun,
   Thermometer,
   Wind,
   type LucideIcon,
@@ -39,6 +40,7 @@ import { useAuthStore } from "@/features/auth/auth-store";
 import { useShellStore } from "@/features/shell/shell-store";
 import { MetricChart } from "@/features/telemetry/components/MetricChart";
 import { sourceLabel } from "@/features/telemetry/telemetry-config";
+import { useMissionContext } from "@/features/mission/queries";
 import { useMetricDefinitions } from "@/features/telemetry/queries";
 import {
   useAcknowledgeCrewAlert,
@@ -55,6 +57,7 @@ import {
 } from "@/features/surgeon/queries";
 import type {
   AssistantCitation,
+  MissionContext,
   Prediction,
   MetricDefinition,
   SurgeonAssessment,
@@ -607,9 +610,11 @@ function SurgeonQuizDetailSheet({
 
 function CrewPicker({
   crew,
+  context,
   onSelect,
 }: {
   crew: SurgeonCrewSummary[];
+  context?: MissionContext;
   onSelect: (member: SurgeonCrewSummary) => void;
 }) {
   return (
@@ -621,6 +626,7 @@ function CrewPicker({
         Choose an astronaut.
       </h1>
       <p className="mt-1 text-sm text-muted">Open a profile to review the full record.</p>
+      <SpaceWeatherStrip context={context} className="mt-4" />
 
       {crew.length === 0 ? (
         <Panel className="mt-6" title="No crew assigned">
@@ -703,6 +709,58 @@ function CrewPicker({
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+function weatherStatus(severity: string): "watch" | "caution" | "critical" {
+  if (severity === "severe") return "critical";
+  if (severity === "moderate") return "caution";
+  return "watch";
+}
+
+function SpaceWeatherStrip({
+  context,
+  compact = false,
+  className,
+}: {
+  context?: MissionContext;
+  compact?: boolean;
+  className?: string;
+}) {
+  const event = context?.latest_event;
+  if (!event) return null;
+  const status = weatherStatus(event.severity);
+  const meta = STATUS_META[status];
+  const time = context?.active
+    ? "Active now"
+    : event.end_at
+      ? `Ended ${formatRelativeTime(event.end_at)}`
+      : formatRelativeTime(event.start_at);
+
+  return (
+    <div
+      className={cn(
+        "flex flex-col gap-2 rounded-2xl border px-3.5 py-2.5 sm:flex-row sm:items-center sm:justify-between",
+        meta.surface,
+        className,
+      )}
+    >
+      <div className="flex min-w-0 items-start gap-2.5">
+        <Sun size={15} className={cn("mt-0.5 shrink-0", meta.text)} aria-hidden />
+        <div className="min-w-0">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted">
+            Space weather · {titleCase(event.severity)}
+          </p>
+          <p className="truncate text-sm font-semibold text-ink">{event.kind}</p>
+          {!compact && (
+            <p className="mt-0.5 line-clamp-1 text-[10px] text-ink-2">{event.summary}</p>
+          )}
+        </div>
+      </div>
+      <span className="shrink-0 pl-6 text-[9px] text-muted sm:pl-0">
+        {time} · {context?.source === "live" ? "Live NASA DONKI" : "Demo fixture"}
+      </span>
     </div>
   );
 }
@@ -957,6 +1015,7 @@ export function SurgeonPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const crewQuery = useSurgeonCrew();
   const metricsQuery = useMetricDefinitions();
+  const contextQuery = useMissionContext();
   const crew = crewQuery.data ?? [];
   const requestedId = Number(searchParams.get("crew"));
   const activeId = crew.some((member) => member.id === requestedId)
@@ -1203,7 +1262,7 @@ export function SurgeonPage() {
         />
 
         {!activeId ? (
-          <CrewPicker crew={crew} onSelect={selectCrew} />
+          <CrewPicker crew={crew} context={contextQuery.data} onSelect={selectCrew} />
         ) : (
           <main className="mx-auto w-full max-w-7xl px-4 py-5 lg:px-8">
             <SurgeonSectionNav activeSection={tab} onSection={setTab} />
@@ -1288,6 +1347,8 @@ export function SurgeonPage() {
                   </Button>
                 </div>
               </div>
+
+              <SpaceWeatherStrip context={contextQuery.data} compact className="mt-3" />
 
               {criticalAlerts.length > 0 && (
                 <div className="flex flex-col gap-2 rounded-xl border border-critical/30 bg-critical-soft px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
