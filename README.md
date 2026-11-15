@@ -5,6 +5,8 @@
 > **Live demo:** <https://astrahealth-gamma.vercel.app>
 >
 > Astronaut: `commander@astra.space` · Surgeon: `surgeon@astra.space` · Password: `astra-demo`
+>
+> Hosted on Vercel with Neon Postgres. The first request after idle may take a few seconds while the serverless API warms up.
 
 > Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the three-minute script runs end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 
