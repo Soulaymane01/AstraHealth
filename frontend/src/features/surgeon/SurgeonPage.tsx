@@ -1939,7 +1939,7 @@ export function SurgeonPage() {
                         </label>
                         <div className="flex items-center justify-between gap-3 border-t border-line pt-3">
                           <p className="text-[10px] leading-relaxed text-muted">
-                            Clinical judgment by the flight surgeon. Not AI-generated.
+                            Clinical judgment by the flight surgeon. Not SI-generated.
                           </p>
                           <Button
                             variant="primary"
@@ -2129,12 +2129,12 @@ export function SurgeonPage() {
                   </Panel>
 
                   <Panel
-                    title="Clinical Copilot"
+                    title="Clinical Copilot SI"
                     subtitle="Decision support. It explains and suggests; it does not diagnose."
                     actions={
                       <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
                         <Sparkles size={9} aria-hidden />
-                        AI
+                        SI
                       </span>
                     }
                   >

@@ -81,7 +81,7 @@ function ScreeningResultView({
               className="mt-3 border-white/30 bg-white text-critical hover:bg-white/90"
               onClick={openAssistant}
             >
-              Talk to the Flight Surgeon
+              Talk to Flight Surgeon SI
             </Button>
           </div>
         )}
@@ -112,7 +112,7 @@ function ScreeningResultView({
           </Button>
           {!urgent && (
             <Button variant="secondary" size="sm" onClick={openAssistant}>
-              Talk to the Flight Surgeon
+              Talk to Flight Surgeon SI
             </Button>
           )}
           <Button variant="ghost" size="sm" onClick={() => navigate("/quizzes")}>

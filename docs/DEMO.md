@@ -1,7 +1,7 @@
 # Demo Script
 
 **Length:** about three minutes.
-**Setup:** `make reset-demo` rebuilds the scripted state and `make demo-verify` checks it. The demo account is the mission commander, 42 days into a Mars transit. The sidebar carries a **Demo** badge; this build hides the developer styleguide.
+**Setup:** `make reset-demo` rebuilds the scripted state and `make demo-verify` checks it. The login page also has one-click **Astronaut demo** and **Surgeon demo** buttons, so no password is required for judging. The demo account is the mission commander, 42 days into a Mars transit. The sidebar carries a **Demo** badge; this build hides the developer styleguide.
 
 ---
 
@@ -35,7 +35,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screen: `log.png`.*
 
 7. **Credibility — 2:30**
-   Open **Library**, filter to **Cardiovascular**, and open **Why HRV falls before you feel tired**. Point at the real source card. Open the **Flight Surgeon** from the top bar and ask **"Why is my HRV low?"** The answer names the current value and baseline deviation, then cites the article. Ask **"Diagnose my chest pain and prescribe a dose."** It refuses, gives the red-flag criteria, and cites **When to contact the flight surgeon**. If a camera is available, show the 25-second pulse card; otherwise point out that the manual field is always the fallback.
+   Open **Library**, filter to **Cardiovascular**, and open **Why HRV falls before you feel tired**. Point at the real source card. Open **Flight Surgeon SI** from the top bar and ask **"Why is my HRV low?"** The answer names the current value and baseline deviation, then cites the article. Ask **"Diagnose my chest pain and prescribe a dose."** It refuses, gives the red-flag criteria, and cites **When to contact the flight surgeon**. If a camera is available, show the 25-second pulse card; otherwise point out that the manual field is always the fallback.
    *Expected screens: `library.png`, `assistant.png`, `assistant-refusal.png`.*
 
 8. **Offline close — 2:45**
@@ -74,7 +74,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 - **Pilot triage** — sign in as `pilot@astra.space` to show the critical R1 alert, the red **critical alert active** banner, and `/triage`: immediate actions, the active alert, the next comms window, and the copyable handoff summary.
 - **Environment switch** — as the commander, change **Environment** from Mars transit to Lunar surface. The readiness weights, score, comms delay, and training plan update. Switch back to Mars transit before the main demo.
 - **Calendar and print** — on Training, use **Calendar** to download today’s roster as `.ics`; on a Systems Report, use **Print / Save PDF** or **Export JSON** for the flight-surgeon handoff.
-- **Flight Surgeon console** — sign in as `surgeon@astra.space`. The crew list shows four readiness states and early-warning badges; select the pilot, review the capture and trend, acknowledge the critical alert, and open **Copilot**. Ask **“What is the early-warning risk?”**; the answer names the drivers and cites sources without diagnosing. Ask **“Diagnose the fever and prescribe a dose”** to show the refusal. Save a clinical assessment and send a check-in request. Sign out and sign in as the pilot to see the shared assessment plus the **AI follow-up** request; use **Start focused check**, complete the step, and the request closes automatically. The surgeon console is at `/surgeon`.
+- **Flight Surgeon console** — sign in as `surgeon@astra.space`. The crew list shows four readiness states and early-warning badges; select the pilot, review the capture and trend, acknowledge the critical alert, and open **Clinical Copilot SI**. Ask **“What is the early-warning risk?”**; the answer names the drivers and cites sources without diagnosing. Ask **“Diagnose the fever and prescribe a dose”** to show the refusal. Save a clinical assessment and send a check-in request. Sign out and sign in as the pilot to see the shared assessment plus the **SI follow-up** request; use **Start focused check**, complete the step, and the request closes automatically. The surgeon console is at `/surgeon`.
 
 ## Reset and accounts
 

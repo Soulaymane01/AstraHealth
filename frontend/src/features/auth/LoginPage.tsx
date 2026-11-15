@@ -27,13 +27,13 @@ export function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const location = useLocation();
   const [formError, setFormError] = useState<string | null>(null);
+  const [demoLoading, setDemoLoading] = useState<"commander" | "surgeon" | null>(null);
 
   const from = (location.state as { from?: string } | null)?.from ?? "/";
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginValues>({
     resolver: zodResolver(schema),
@@ -54,16 +54,20 @@ export function LoginPage() {
     }
   });
 
-  const fillDemo = () => {
-    setValue("email", "commander@astra.space", { shouldValidate: true });
-    setValue("password", "astra-demo", { shouldValidate: true });
+  const enterDemo = async (role: "commander" | "surgeon") => {
     setFormError(null);
-  };
-
-  const fillSurgeon = () => {
-    setValue("email", "surgeon@astra.space", { shouldValidate: true });
-    setValue("password", "astra-demo", { shouldValidate: true });
-    setFormError(null);
+    setDemoLoading(role);
+    try {
+      await login(
+        role === "commander" ? "commander@astra.space" : "surgeon@astra.space",
+        "astra-demo",
+      );
+      toast.success(role === "commander" ? "Entered the astronaut demo." : "Entered the surgeon demo.");
+    } catch (error) {
+      setFormError(error instanceof Error ? error.message : "Unable to enter the demo.");
+    } finally {
+      setDemoLoading(null);
+    }
   };
 
   return (
@@ -133,21 +137,27 @@ export function LoginPage() {
       </div>
 
       <div className="mt-4 rounded-xl border border-line bg-surface-muted/60 p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium text-ink">Demo access</p>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
-              Seeded commander or the Earth-side flight surgeon.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
-            <Button variant="secondary" size="sm" onClick={fillDemo}>
-              Commander
-            </Button>
-            <Button variant="secondary" size="sm" onClick={fillSurgeon}>
-              Flight surgeon
-            </Button>
-          </div>
+        <p className="text-xs font-medium text-ink">Demo access</p>
+        <p className="mt-0.5 text-[11px] leading-relaxed text-muted">
+          One click, no credentials. Enter as the seeded astronaut or the Earth-side surgeon.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void enterDemo("commander")}
+            disabled={demoLoading !== null}
+          >
+            {demoLoading === "commander" ? <Spinner /> : "Astronaut demo"}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void enterDemo("surgeon")}
+            disabled={demoLoading !== null}
+          >
+            {demoLoading === "surgeon" ? <Spinner /> : "Surgeon demo"}
+          </Button>
         </div>
       </div>
 

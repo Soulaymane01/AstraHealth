@@ -70,8 +70,8 @@ export function TopBar({ onOpenNav }: { onOpenNav: () => void }) {
         <button
           type="button"
           onClick={openAssistant}
-          aria-label="Ask the Flight Surgeon"
-          title="Ask the Flight Surgeon"
+          aria-label="Ask Flight Surgeon SI"
+          title="Ask Flight Surgeon SI"
           className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-line bg-surface text-muted transition-colors hover:border-accent/30 hover:bg-accent-soft hover:text-accent"
         >
           <Stethoscope size={14} aria-hidden />

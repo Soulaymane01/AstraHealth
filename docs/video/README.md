@@ -4,9 +4,9 @@ The submission cut is **30 seconds**. Two versions share the same app footage:
 
 | File | Length | Description |
 |---|---:|---|
-| `AstraHealth-Power-Astronaut-30s.mp4` | 0:30 | Branded cut: **Presented by Power Astronaut** |
-| `AstraHealth-App-Demo-30s.mp4` | 0:30 | App-only cut, no team branding |
-| `AstraHealth-Voiceover-30s.mp3` | 0:30 | Voice track, ready to replace |
+| `AstraHealth-Power-Astronaut-30s.mp4` | 29.9 s | Branded cut: **Presented by Power Astronaut** |
+| `AstraHealth-App-Demo-30s.mp4` | 29.9 s | App-only cut, no team branding |
+| `AstraHealth-Voiceover-30s.mp3` | 29.9 s | Voice track, ready to replace |
 | `AstraHealth-Power-Astronaut-30s.srt` | — | Captions for the branded cut |
 | `AstraHealth-App-Demo-30s.srt` | — | Captions for the app-only cut |
 | `poster-30s.jpg` | — | Poster frame |
@@ -29,7 +29,9 @@ The submission cut is **30 seconds**. Two versions share the same app footage:
 ## Audio
 
 The voice is a neural TTS voice (`en-US-AndrewNeural`, rate `+2%`, pitch `-2Hz`).
-There is no music bed, so the narration is easy to replace.
+It is **SI-generated** (Super Intelligence); the MP4 `comment`/`description`
+metadata and [`SI_USAGE.md`](../../SI_USAGE.md) disclose this. There is no music
+bed, so the narration is easy to replace.
 
 To replace the voice track:
 

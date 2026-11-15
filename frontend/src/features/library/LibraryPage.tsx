@@ -79,7 +79,7 @@ export function LibraryPage() {
         </div>
         <Button variant="secondary" size="sm" onClick={openAssistant}>
           <Stethoscope size={13} aria-hidden />
-          Ask the Flight Surgeon
+          Ask Flight Surgeon SI
         </Button>
       </div>
 

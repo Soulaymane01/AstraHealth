@@ -180,7 +180,7 @@ check(
 );
 await page.screenshot({ path: path.join(out, "article.png"), fullPage: true });
 
-await page.getByRole("button", { name: "Ask the Flight Surgeon" }).click();
+await page.getByRole("button", { name: "Ask Flight Surgeon SI" }).click();
 await page.waitForTimeout(1200);
 body = await page.textContent("body");
 check(
@@ -193,9 +193,9 @@ check(
   "assistant closes on Escape",
   (await page.locator("[role=dialog]").count()) === 0 &&
     (await page.evaluate(() => document.activeElement?.getAttribute("aria-label"))) ===
-      "Ask the Flight Surgeon",
+      "Ask Flight Surgeon SI",
 );
-await page.getByRole("button", { name: "Ask the Flight Surgeon" }).click();
+await page.getByRole("button", { name: "Ask Flight Surgeon SI" }).click();
 await page.waitForTimeout(900);
 await page.getByRole("button", { name: "Why is my HRV low?" }).click();
 await page.waitForTimeout(1500);
@@ -206,7 +206,7 @@ check(
 );
 await page.screenshot({ path: path.join(out, "assistant.png"), fullPage: true });
 
-await page.getByPlaceholder("Ask the Flight Surgeon…").fill(
+await page.getByPlaceholder("Ask Flight Surgeon SI…").fill(
   "Diagnose my chest pain and prescribe a dose.",
 );
 await page.getByRole("button", { name: "Send question" }).click();

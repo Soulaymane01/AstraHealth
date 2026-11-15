@@ -70,7 +70,7 @@ export function SurgeonUpdatesPanel() {
               {topInstruction?.source === "ai" && (
                 <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-accent">
                   <Sparkles size={9} aria-hidden />
-                  AI follow-up
+                  SI follow-up
                 </span>
               )}
             </div>
@@ -130,15 +130,15 @@ export function SurgeonUpdatesPanel() {
           )}
 
           {openInstructions.map((instruction) => {
-            const isAi = instruction.source === "ai";
+            const isSi = instruction.source === "ai";
             const step = PROTOCOL_STEP[instruction.protocol ?? ""];
             return (
               <div key={instruction.id} className="rounded-lg border border-line px-3 py-2.5">
                 <div className="flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted">
-                  {isAi && (
+                  {isSi && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent">
                       <Sparkles size={9} aria-hidden />
-                      AI follow-up
+                      SI follow-up
                     </span>
                   )}
                   <span>

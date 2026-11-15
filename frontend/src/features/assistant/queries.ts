@@ -25,7 +25,7 @@ export function useAskAssistant() {
         if (response.status === 422) {
           throw new Error("Ask a shorter question and try again.");
         }
-        throw new Error("The Flight Surgeon could not answer right now.");
+        throw new Error("Flight Surgeon SI could not answer right now.");
       }
       return data;
     },

@@ -1,7 +1,7 @@
 # AstraHealth — Product & Engineering Audit
 
-**Date:** 2026-11-14  
-**Scope:** full repository (`backend/`, `frontend/`, `docs/`, seed/demo, tests) and the running app.  
+**Date:** 2026-11-14
+**Scope:** full repository (`backend/`, `frontend/`, `docs/`, seed/demo, tests) and the running app.
 **Method:** code review, live API probing, Playwright checks, axe-core WCAG scan, Lighthouse on the production build, and the project's own `make check` + smoke suite. No source files were modified.
 
 **Snapshot:** commit `46a4489` · 66 backend tests · full Playwright smoke suite · live demo at `localhost:5173` / `localhost:8000`.
@@ -101,10 +101,10 @@ Added after the audit to match the “astronaut does not type vitals” requirem
 - Added `/surgeon/crew/{id}/assistant`: a surgeon-facing, cited decision-support copilot. It summarizes readiness, alerts, captures, check-ins, and early-warning drivers; refuses diagnosis, prescriptions, and doses; deterministically cites HRP articles; optional LLM path has a post-check and falls back safely.
 - The console adds early-warning badges to the roster, a banner, a detailed Copilot tab with the risk card, suggested questions, chat, citations, and the refusal path. The crew-facing assistant is unchanged.
 - The prediction is explicitly not a validated deterioration model or a diagnosis; clinical judgment remains with the surgeon.
-- **Closed-loop AI follow-up:** when an anomaly is detected, the system creates one deduplicated AI request supervised by the flight surgeon. It names a specific protocol (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), target metrics, reason, and due time. The astronaut sees it on the Flight Deck and can start a focused Systems Check at the right step; a successful check-in closes the request automatically. Suggested requests are not repeated for 12 hours after completion.
-- Added `source`, `protocol`, `target_metrics`, `due_at`, and `reason` to surgeon instructions, with a migration. The Copilot answer also names the open AI follow-up.
+- **Closed-loop SI follow-up:** when an anomaly is detected, the system creates one deduplicated SI request supervised by the flight surgeon. It names a specific protocol (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), target metrics, reason, and due time. The astronaut sees it on the Flight Deck and can start a focused Systems Check at the right step; a successful check-in closes the request automatically. Suggested requests are not repeated for 12 hours after completion.
+- Added `source`, `protocol`, `target_metrics`, `due_at`, and `reason` to surgeon instructions, with a migration. The Copilot answer also names the open SI follow-up.
 
-**Verification:** 93 backend tests; prediction, AI follow-up dedupe, focused-check flow, Copilot refusal/citations, smoke, typecheck, build, axe, and the full demo flow.
+**Verification:** 93 backend tests; prediction, SI follow-up dedupe, focused-check flow, Copilot refusal/citations, smoke, typecheck, build, axe, and the full demo flow.
 
 ---
 
@@ -363,7 +363,7 @@ When `LLM_PROVIDER=openai`, the prompt includes metrics and alerts and is sent t
 
 ### What to avoid saying
 
-- “AI diagnoses” — it does not, and should not.
+- “SI diagnoses” — it does not, and should not.
 - “Live NASA astronaut data” — it does not exist.
 - “Clinically validated” — it is not.
 - “Fully offline” — the shell and drafts are; clinical data is not cached yet.
@@ -453,22 +453,22 @@ When `LLM_PROVIDER=openai`, the prompt includes metrics and alerts and is sent t
 
 ## 8. Judge Q&A prep
 
-**“Is this medically validated?”**  
+**“Is this medically validated?”**
 No. It is guidance, not diagnosis. The readiness model is deterministic and explainable, and the hard rules come from NASA HRP-informed thresholds; the next step is clinician review and prospective validation.
 
-**“Where is the NASA data?”**  
+**“Where is the NASA data?”**
 The knowledge library and rules cite NASA HRP/Human Research Roadmap material; space-weather context is modeled on DONKI. Be explicit that the current build uses a seeded fixture unless the live DONKI client is added.
 
-**“Why simulated crew data?”**  
+**“Why simulated crew data?”**
 NASA does not publish real-time per-astronaut health data. The demo uses clearly labeled simulated telemetry; the product accepts real user-entered and camera-derived measurements.
 
-**“How is this different from a fitness app?”**  
+**“How is this different from a fitness app?”**
 Explainable readiness against a personal 21-day baseline, hard-rule escalation, prescribed countermeasures, privacy-preserving crew sharing, and offline exactly-once sync.
 
-**“Is the AI real?”**  
+**“Is the SI real?”**
 The default is a deterministic, cited answer engine; an OpenAI-compatible provider is optional. Red flags and refusals always stay rule-based.
 
-**“What would you do with more time?”**  
+**“What would you do with more time?”**
 Clinical validation, live DONKI/OSDR integration, clinician review, wearable import, and a flight-surgeon handoff report.
 
 ---

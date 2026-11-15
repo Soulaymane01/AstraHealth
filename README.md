@@ -8,6 +8,8 @@
 >
 > Astronaut: `commander@astra.space` · Surgeon: `surgeon@astra.space` · Password: `astra-demo`
 >
+> Or use the one-click **Astronaut demo** / **Surgeon demo** buttons on the login page; no password required.
+>
 > Hosted on Vercel with Neon Postgres. The first request after idle may take a few seconds while the serverless API warms up.
 >
 > **Demo video:** [Power Astronaut cut](docs/video/AstraHealth-Power-Astronaut-30s.mp4) · [App-only cut](docs/video/AstraHealth-App-Demo-30s.mp4)
@@ -40,9 +42,9 @@
 |---|---|
 | ![Training plan](docs/screenshots/training.png) | ![Countermeasure link](docs/screenshots/training-countermeasure.png) |
 
-| Flight Surgeon | Refusal path |
+| Flight Surgeon SI | Refusal path |
 |---|---|
-| ![Flight Surgeon](docs/screenshots/assistant.png) | ![Refusal path](docs/screenshots/assistant-refusal.png) |
+| ![Flight Surgeon SI](docs/screenshots/assistant.png) | ![Refusal path](docs/screenshots/assistant-refusal.png) |
 
 | Offline queue |
 |---|
@@ -52,7 +54,7 @@
 
 ## What it does
 
-- **Flight Deck** — a 70+ region anatomical body map with front/back views, readiness ring, six domain rows, an exception list, and a mission tape.
+- **Flight Deck** — an interactive 3D body-systems view with front/back views, readiness ring, six domain rows, an exception list, and a mission tape.
 - **Automatic captures** — simulated ISS habitat, lunar surface, and Mars transit sensors stream heart rate, HRV, blood pressure, temperature, SpO₂, body mass, exercise/bone load, and sleep duration/efficiency/latency into Telemetry, and pre-fill the Systems Check. Mood, stress, symptoms, strength, hydration, and nutrition stay astronaut-entered.
 - **Systems Check** — a five-step wizard whose vitals and load arrive locked from the capture feed; a single **Override captures** toggle unlocks them if a sensor is unavailable. The astronaut adds sleep, mood, symptoms, strength, hydration, and nutrition. Drafts survive a reload, skipped steps are explicit, and every submission ends in an instant Systems Report.
 - **Telemetry** — 7, 30, or 90-day trends for every metric, with a personal baseline band, a spaceflight reference range, event overlays, domain summaries, and CSV export.
@@ -65,12 +67,21 @@
 - **Flight Surgeon console** — a separate Earth-side dashboard for the medical officer. The surgeon first chooses an astronaut from a visual crew picker, then works through a patient sidebar: overview, 3D body systems with per-domain readings, trends, captures, quizzes and screens, clinical record, and copilot. Includes alerts, assessments/diagnoses, and instructions or check-in requests sent back to the crew. Shared assessments and requests appear on the astronaut’s Flight Deck.
 - **Early warning and Clinical Copilot** — a transparent 48–72-hour risk view per crew member (HRV, sleep, temperature, oxygen, hydration, mood, and more) with evidence and monitoring suggestions, plus a decision-support copilot that summarizes the record, explains the risk, and suggests questions. When a signal crosses a threshold, the system also creates one deduplicated **focused follow-up request** for the astronaut (urgent recheck, cardiovascular, respiratory, recovery, mood, hydration, or training), with target readings and a due time. The copilot refuses diagnosis, prescriptions, and doses; the flight surgeon makes the clinical decision.
 - **Quizzes and screens** — two knowledge checks (Know Yourself, consent-gated Know Your Crew) plus PHQ-9 depression and GAD-7 anxiety screens with severity scoring, self-harm escalation, and surgeon-visible results. Knowledge checks award first-completion points; screening responses do not.
-- **Knowledge and AI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
+- **Knowledge and SI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon SI drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
 - **Offline-first PWA** — a Workbox service worker precaches the shell and route chunks, and the last readiness/alerts/mission snapshot is cached per user for offline viewing with a “last synced” label. Check-ins submitted without a link are written to IndexedDB, shown in an explicit offline banner with the next comms window, and synced exactly once on reconnect using the check-in idempotency key. Failed items can be reviewed and discarded.
 - **Hardened delivery** — route-level code splitting, cached auth profile for offline reloads, retryable error panels on every data view, and auth rate limits. Lighthouse on the Flight Deck: 100 performance / 100 accessibility on desktop and 99–100 performance / 100 accessibility on the mobile preset across verification runs.
 
 ---
+
+### SI-generated content
+
+Some code, documentation, assistant answers, follow-up requests, and the video
+voiceover are generated with **SI (Super Intelligence)**, the term used in the
+2026 NASA Space Apps [Project Submission Guide](https://www.spaceappschallenge.org/resources/project-submission-guide/).
+The default assistant is deterministic and cited; an optional LLM provider can
+be configured. SI output is guidance, not diagnosis. See
+[`SI_USAGE.md`](SI_USAGE.md) for the full disclosure, tools, and metadata.
 
 ## Stack
 
@@ -134,7 +145,7 @@ seed commands, and troubleshooting.
 Everything works with safe local defaults:
 
 - **NASA space weather** — set `NASA_API_KEY` (or `DEMO_KEY`) for live DONKI context. The endpoint is cached for 30 minutes, falls back to the seeded event on any failure, and the UI labels the source as live or fixture.
-- **AI Flight Surgeon** — defaults to `LLM_PROVIDER=none`, which uses the deterministic cited answer engine. Set `LLM_PROVIDER=openai`, `LLM_API_KEY`, and `LLM_MODEL` to use an OpenAI-compatible chat endpoint; `LLM_BASE_URL` defaults to `https://api.openai.com/v1`. Refusal and red-flag answers always stay rule-based.
+- **SI Flight Surgeon** — defaults to `LLM_PROVIDER=none`, which uses the deterministic cited answer engine. Set `LLM_PROVIDER=openai`, `LLM_API_KEY`, and `LLM_MODEL` to use an OpenAI-compatible chat endpoint; `LLM_BASE_URL` defaults to `https://api.openai.com/v1`. Refusal and red-flag answers always stay rule-based.
 - **Camera pulse** — MediaPipe WASM and the face model load from CDN at runtime; no camera assets are committed. Override `VITE_MEDIAPIPE_WASM_URL` and `VITE_MEDIAPIPE_MODEL_URL` to self-host them. Camera permission is optional and the manual heart-rate field remains the fallback.
 
 ### View on a phone / install as a PWA
@@ -249,6 +260,8 @@ AstraHealth does **not** access live astronaut health data. NASA does not publis
 
 AstraHealth provides guidance, not diagnosis. Red-flag findings always route to a flight surgeon.
 
+AstraHealth is an independent team project for the 2026 NASA Space Apps Challenge. It is not a NASA product and is not endorsed by NASA.
+
 ### Local security model
 
 The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. The flight-surgeon role is separate and role-guarded; it intentionally sees all crew clinical data, while `share_status` only controls what crewmates can see in the peer roster. For offline viewing, the last readiness/alerts/mission snapshot is cached per user in `localStorage` and cleared on logout; it is never shared between accounts, and the service worker still does not cache API responses. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens and clinical cache to secure, encrypted storage, terminate TLS, and put the API behind a real rate limiter.
@@ -262,4 +275,8 @@ The runtime is a single-user local deployment. JWTs are stored in `localStorage`
 - [`docs/DESIGN.md`](docs/DESIGN.md) — tokens, components, motion, accessibility
 - [`docs/API.md`](docs/API.md) — endpoint contract
 - [`docs/SOURCES.md`](docs/SOURCES.md) — scientific sources and data honesty
+- [`SI_USAGE.md`](SI_USAGE.md) — where and how SI was used
+- [`THIRD_PARTY.md`](THIRD_PARTY.md) — third-party resources and licenses
+- [`docs/COMPLIANCE.md`](docs/COMPLIANCE.md) — NASA Space Apps 2026 compliance report
+- [`LICENSE`](LICENSE) — Apache License 2.0
 - [`docs/DEMO.md`](docs/DEMO.md) — three-minute demo script

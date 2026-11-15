@@ -37,7 +37,7 @@ const WELCOME: CopilotMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Flight Surgeon online. I can explain your readiness factors, interpret a metric against your baseline, and point you to the relevant HRP guidance. I do not diagnose.",
+    "Flight Surgeon SI online. I can explain your readiness factors, interpret a metric against your baseline, and point you to the relevant HRP guidance. I do not diagnose.",
   citations: [{ slug: "hrp-overview", title: "NASA Human Research Program" }],
 };
 
@@ -70,7 +70,7 @@ export function CopilotDrawer({
         id: crypto.randomUUID(),
         role: "assistant",
         content:
-          "This preview is not connected to the assistant service. In the app, the Flight Surgeon answers from your live metrics and the HRP library, and always cites its source.",
+          "This preview is not connected to the assistant service. In the app, Flight Surgeon SI answers from your live metrics and the HRP library, and always cites its source.",
         citations: [{ slug: "hrp-overview", title: "NASA Human Research Program" }],
       },
     ]);
@@ -78,7 +78,7 @@ export function CopilotDrawer({
 
   return (
     <Panel
-      title="Flight Surgeon"
+      title="Flight Surgeon SI"
       subtitle="Cited guidance, not a diagnosis."
       className={cn("flex h-[520px] w-full flex-col", className)}
       bodyClassName="flex min-h-0 flex-1 flex-col p-0"
@@ -163,8 +163,8 @@ export function CopilotDrawer({
           <input
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Ask the Flight Surgeon…"
-            aria-label="Ask the Flight Surgeon"
+            placeholder="Ask Flight Surgeon SI…"
+            aria-label="Ask Flight Surgeon SI"
             className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 text-xs text-ink placeholder:text-muted focus:border-accent/40 focus:outline-none focus:ring-2 focus:ring-accent/10"
           />
           <Button type="submit" variant="primary" size="icon" aria-label="Send question">

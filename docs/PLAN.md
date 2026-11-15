@@ -1,7 +1,7 @@
 # AstraHealth — Build Plan
 
 **Concept:** *You are the spacecraft.* A flight-deck style health monitor for astronauts on long-duration missions.
-**Executor:** AI coding agent.
+**Executor:** SI coding agent.
 **Reviewer:** project owner (guidance, verification, acceptance).
 **Status:** approved scope for a local-only build. NASA API key and LLM provider are deferred integrations, not blockers.
 **Product update:** the redeemable rewards/allowance catalog described in this historical plan was removed. Mission points now advance rank only.
@@ -47,7 +47,7 @@ Calm clinical. A light, low-density interface — not a dark console.
 - Nine HRP-sourced knowledge articles surfaced inline.
 - Training/countermeasure checklist with logging and streaks.
 - In-app Duty Roster reminders.
-- AI Flight Surgeon with citations and a deterministic answer fallback.
+- SI Flight Surgeon with citations and a deterministic answer fallback.
 - Camera heart-rate measurement (rPPG) with manual fallback.
 - PWA shell and offline check-in queue.
 - Local Docker-based runtime, seeded demo state, README, and demo script.
@@ -707,7 +707,7 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 
 ---
 
-### Phase 9 — Knowledge, AI Flight Surgeon, and camera HR
+### Phase 9 — Knowledge, SI Flight Surgeon, and camera HR
 
 **Goal:** the three credibility and wonder features.
 
@@ -716,7 +716,7 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 - [x] Inline links from metrics, rules, check-in steps, and training items.
 - [x] Library index with domain filters.
 
-**AI Flight Surgeon**
+**SI Flight Surgeon**
 - [x] Provider interface with `none` as the default.
 - [x] Context builder: recent metrics, active alerts, readiness factors, top three knowledge articles.
 - [x] Guardrailed system prompt: no diagnosis, cite article slugs, escalate red flags, answer within 120 words.

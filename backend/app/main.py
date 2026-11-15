@@ -37,7 +37,7 @@ TAGS_METADATA = [
     {"name": "quizzes", "description": "Know Yourself and Know Your Crew quizzes."},
     {"name": "knowledge", "description": "HRP-sourced health education."},
     {"name": "mission", "description": "Mission profile and space-weather context."},
-    {"name": "assistant", "description": "AI Flight Surgeon with citations."},
+    {"name": "assistant", "description": "SI Flight Surgeon with citations."},
     {"name": "surgeon", "description": "Earth-side clinical console for the flight surgeon."},
 ]
 

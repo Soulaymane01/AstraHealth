@@ -8,7 +8,7 @@ const WELCOME: CopilotMessage = {
   id: "welcome",
   role: "assistant",
   content:
-    "Flight Surgeon online. I can explain your readiness factors, interpret a metric against your baseline, and point you to the relevant HRP guidance. I do not diagnose.",
+    "Flight Surgeon SI online. I can explain your readiness factors, interpret a metric against your baseline, and point you to the relevant HRP guidance. I do not diagnose.",
   citations: [{ slug: "hrv-basics", title: "Why HRV falls before you feel tired" }],
 };
 
@@ -99,7 +99,7 @@ export function FlightSurgeonDrawer() {
             content:
               error instanceof Error
                 ? error.message
-                : "The Flight Surgeon could not answer right now.",
+                : "Flight Surgeon SI could not answer right now.",
           },
         ]);
       },
@@ -118,7 +118,7 @@ export function FlightSurgeonDrawer() {
     : messages;
 
   return (
-    <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label="Flight Surgeon">
+    <div className="fixed inset-0 z-50 print:hidden" role="dialog" aria-modal="true" aria-label="Flight Surgeon SI">
       <div className="absolute inset-0 bg-ink/20" onClick={close} aria-hidden />
       <div ref={panelRef} className="absolute inset-y-0 right-0 w-full max-w-md p-3">
         <CopilotDrawer
