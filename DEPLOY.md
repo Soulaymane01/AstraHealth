@@ -93,6 +93,26 @@ Important serverless details:
 - If the function bundle misses a file, add it to `includeFiles` in
   `backend/vercel.json`.
 
+### Git auto-deploy
+
+Both Vercel projects are connected to `Soulaymane01/AstraHealth` and use these
+root directories:
+
+| Project | Root directory |
+|---|---|
+| `astrahealth` (frontend) | `frontend` |
+| `astrahealth-api` (backend) | `backend` |
+
+A push to `main` triggers both deployments. If you recreate a project, set the
+root directory before connecting Git:
+
+```bash
+vercel project update astrahealth --root-directory frontend --framework vite
+vercel project update astrahealth-api --root-directory backend
+```
+
+The backend function runs in `fra1` (Frankfurt) next to the Neon database.
+
 ## 3. Frontend on Vercel
 
 1. Import the repository at <https://vercel.com/new>.
