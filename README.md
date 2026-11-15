@@ -1,5 +1,7 @@
 # AstraHealth
 
+![AstraHealth demo](docs/screenshots/astrahealth-demo.gif)
+
 **A calm flight deck for the human body.** A light, low-density health monitor for astronauts on long-duration missions: collect health indicators, explain what they mean in spaceflight, score crew readiness, and recommend the next action.
 
 > **Live demo:** <https://astrahealth-gamma.vercel.app>
@@ -10,11 +12,9 @@
 >
 > **Demo video:** [Power Astronaut cut](docs/video/AstraHealth-Power-Astronaut-30s.mp4) · [App-only cut](docs/video/AstraHealth-App-Demo-30s.mp4)
 
-> Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the three-minute script runs end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
+> Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the 30-second demo and the extended three-minute script run end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 
 > **Windows and never used a terminal?** Start with [`START_HERE_WINDOWS.md`](START_HERE_WINDOWS.md). It walks you through installing Docker Desktop, Node.js, and uv, then launches everything with a double-click.
-
-![AstraHealth Flight Deck](docs/screenshots/shell.png)
 
 | Systems Check | Systems Report |
 |---|---|
