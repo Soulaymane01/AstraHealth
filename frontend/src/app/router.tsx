@@ -13,17 +13,14 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorPage />,
     children: [
   {
-    path: "/login",
-    HydrateFallback: FullPageLoader,
-    lazy: async () => ({ Component: (await import("@/features/auth/LoginPage")).LoginPage }),
-  },
-  {
-    path: "/register",
+    path: "/welcome",
     HydrateFallback: FullPageLoader,
     lazy: async () => ({
-      Component: (await import("@/features/auth/RegisterPage")).RegisterPage,
+      Component: (await import("@/features/auth/LandingPage")).LandingPage,
     }),
   },
+  { path: "/login", element: <Navigate to="/welcome" replace /> },
+  { path: "/register", element: <Navigate to="/welcome" replace /> },
   {
     path: "/styleguide",
     HydrateFallback: FullPageLoader,

@@ -24,7 +24,7 @@ export function App() {
       const state = useAuthStore.getState();
       if (state.status === "authenticated" && !isSessionRevalidating()) {
         state.logout();
-        toast.error("Your session expired. Sign in again.");
+        toast.error("Session ended. Choose a role to continue.");
       }
     };
 

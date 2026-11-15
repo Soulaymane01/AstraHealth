@@ -15,7 +15,7 @@ export function RequireAuth() {
   if (status !== "authenticated") {
     return (
       <Navigate
-        to="/login"
+        to="/welcome"
         replace
         state={{ from: `${location.pathname}${location.search}` }}
       />

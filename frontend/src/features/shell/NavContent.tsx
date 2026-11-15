@@ -118,10 +118,10 @@ export function NavContent({
             type="button"
             onClick={() => {
               logout();
-              toast.success("Signed out.");
+              toast.success("Choose a role to continue.");
             }}
-            aria-label="Sign out"
-            title="Sign out"
+            aria-label="Switch role"
+            title="Switch role"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <LogOut size={14} aria-hidden />

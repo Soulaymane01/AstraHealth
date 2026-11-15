@@ -816,7 +816,7 @@ function SurgeonTopBar({
           </span>
           <Button variant="ghost" size="sm" onClick={onSignOut}>
             <LogOut size={13} aria-hidden />
-            Sign out
+            Switch role
           </Button>
         </>
       )}
@@ -962,8 +962,8 @@ function SurgeonSidebar({
           <button
             type="button"
             onClick={onSignOut}
-            aria-label="Sign out"
-            title="Sign out"
+            aria-label="Switch role"
+            title="Switch role"
             className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted transition-colors hover:bg-surface-muted hover:text-ink"
           >
             <LogOut size={14} aria-hidden />
@@ -1083,7 +1083,7 @@ export function SurgeonPage() {
 
   const signOut = () => {
     logout();
-    navigate("/login");
+    navigate("/welcome");
   };
 
   if (crewQuery.isLoading) {
