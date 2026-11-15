@@ -110,7 +110,7 @@ make reset-demo
 make demo-verify
 ```
 
-`make demo-verify` checks the four crew accounts, privacy settings, commander readiness around 80 / Watch, the two expected alerts, mission day 42, space-weather context, and the content catalog (9 articles, 8 training items, 5 achievements, 4 quizzes).
+`make demo-verify` checks the four crew accounts, privacy settings, commander readiness around 80 / Watch, the two expected alerts, mission day 42, space-weather context, and the content catalog (9 articles, 8 training items, 17 achievements, 4 quizzes).
 
 ### Optional integrations
 

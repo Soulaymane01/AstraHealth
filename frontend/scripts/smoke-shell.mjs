@@ -83,7 +83,7 @@ await page.waitForTimeout(200);
 
 await page.getByRole("button", { name: /Mission tape/ }).click();
 await page.waitForTimeout(400);
-await page.getByRole("button", { name: "7 days" }).click();
+await page.getByRole("button", { name: "7 days", exact: true }).click();
 await page.waitForTimeout(600);
 body = await page.textContent("body");
 check("tape 7-day view", Boolean(body?.includes("Last 7 days")));
@@ -125,7 +125,7 @@ check("metric events", Boolean(body?.includes("Events in this range")));
 await page.screenshot({ path: path.join(out, "metric.png"), fullPage: true });
 
 // Range and band state are preserved in the URL.
-await page.getByRole("button", { name: "7 days" }).click();
+await page.getByRole("button", { name: "7 days", exact: true }).click();
 await page.waitForTimeout(900);
 const sevenDayUrl = page.url();
 await page.getByRole("button", { name: "Spaceflight range" }).click();

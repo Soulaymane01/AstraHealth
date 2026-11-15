@@ -37,6 +37,7 @@ class AchievementRead(BaseModel):
     icon: str
     unlocked: bool
     unlocked_at: datetime | None = None
+    progress: float = 0.0
 
 
 class StreakRead(BaseModel):

@@ -40,6 +40,7 @@ from app.models import (
     UserAchievement,
 )
 from app.services.captures import CAPTURE_METRICS, CAPTURE_SOURCES
+from app.services.gamification import evaluate_achievements
 from app.services.readiness import compute_and_persist_readiness
 
 DEMO_PASSWORD = "astra-demo"
@@ -794,6 +795,10 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     _seed_credits(session, users, now)
     _seed_weather(session, now)
     _seed_activity(session, users, now)
+    session.flush()
+
+    for user in users.values():
+        evaluate_achievements(session, user, now)
 
     session.commit()
 

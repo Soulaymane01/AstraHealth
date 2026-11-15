@@ -1,8 +1,12 @@
 import {
   Activity,
   ClipboardCheck,
+  Droplets,
+  Dumbbell,
   Flame,
   Moon,
+  Sparkles,
+  Star,
   Trophy,
   Users,
   type LucideIcon,
@@ -15,6 +19,10 @@ const ACHIEVEMENT_ICONS: Record<string, LucideIcon> = {
   users: Users,
   trophy: Trophy,
   activity: Activity,
+  dumbbell: Dumbbell,
+  droplets: Droplets,
+  sparkles: Sparkles,
+  star: Star,
 };
 
 

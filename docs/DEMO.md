@@ -31,7 +31,7 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
    *Expected screen: `training-log.png`.*
 
 6. **Mission Log — 2:05**
-   Open **Mission Log**. The check-in added 40 FC, the rank progress moved, and the feed records the check-in and training session. Redeem **Family Call**; the balance drops by 120 FC, a negative ledger entry appears, and the feed records it. 
+   Open **Mission Log**. The check-in added 40 MP, the rank progress moved, and the feed records the check-in and training session. Filter the activity by check-ins, alerts, training, or achievements; expand point history; and show the progress bars on locked achievements. 
    *Expected screen: `log.png`.*
 
 7. **Credibility — 2:30**

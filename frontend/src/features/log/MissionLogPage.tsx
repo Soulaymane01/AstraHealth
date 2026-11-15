@@ -11,7 +11,8 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { RankBadge } from "@/components/ui/RankBadge";
+import { CreditChip, RankBadge } from "@/components/ui/RankBadge";
+import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
@@ -19,12 +20,13 @@ import { AchievementTile } from "@/features/gamification/components/AchievementT
 import { StreakTile } from "@/features/gamification/components/StreakTile";
 import {
   useAchievements,
+  useCredits,
   useGamificationSummary,
 } from "@/features/gamification/queries";
 import { useMissionLog } from "@/features/mission/queries";
 import type { LogEvent } from "@/lib/api/types";
 import { asStatus, STATUS_META } from "@/lib/status";
-import { cn, formatRelativeTime } from "@/lib/utils";
+import { cn, formatNumber, formatRelativeTime } from "@/lib/utils";
 
 const EVENT_META: Record<LogEvent["type"], { icon: LucideIcon; className: string; label: string }> =
   {
@@ -105,8 +107,11 @@ function ActivityRow({ event }: { event: LogEvent }) {
 export function MissionLogPage() {
   const summaryQuery = useGamificationSummary();
   const achievementsQuery = useAchievements();
+  const creditsQuery = useCredits(8);
   const logQuery = useMissionLog(40);
   const [showAllEvents, setShowAllEvents] = useState(false);
+  const [activityOpen, setActivityOpen] = useState(true);
+  const [activityFilter, setActivityFilter] = useState<"all" | LogEvent["type"]>("all");
 
   if (summaryQuery.isLoading) {
     return <PageSkeleton />;
@@ -127,6 +132,17 @@ export function MissionLogPage() {
   const achievements = achievementsQuery.data ?? [];
   const events = logQuery.data ?? [];
   const unlocked = achievements.filter((item) => item.unlocked).length;
+  const orderedAchievements = [...achievements].sort((a, b) => {
+    if (a.unlocked !== b.unlocked) return Number(b.unlocked) - Number(a.unlocked);
+    return b.progress - a.progress;
+  });
+  const filteredEvents = events.filter(
+    (event) => activityFilter === "all" || event.type === activityFilter,
+  );
+  const activityCounts = events.reduce<Record<string, number>>((counts, event) => {
+    counts[event.type] = (counts[event.type] ?? 0) + 1;
+    return counts;
+  }, {});
 
   return (
     <div>
@@ -143,7 +159,7 @@ export function MissionLogPage() {
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-4">
           <RankBadge
             rank={summary.rank.rank}
             credits={summary.balance}
@@ -152,7 +168,11 @@ export function MissionLogPage() {
           />
         </div>
 
-        <Panel className="lg:col-span-6" title="Streaks" subtitle="One grace day per streak.">
+        <Panel
+          className="lg:col-span-4"
+          title="Streaks"
+          subtitle="One grace day per streak."
+        >
           <div className="grid gap-2">
             {summary.checkin_streak ? (
               <StreakTile label="Systems Check" streak={summary.checkin_streak} />
@@ -171,48 +191,169 @@ export function MissionLogPage() {
           </div>
         </Panel>
 
+        <Panel className="lg:col-span-4" title="Points" subtitle="Recent consistency rewards.">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-2xl font-semibold tabular text-ink">
+              {formatNumber(summary.balance)} <span className="text-[10px] font-normal text-muted">MP</span>
+            </p>
+            <CreditChip amount={summary.balance} />
+          </div>
+          {creditsQuery.data && (
+            <p className="mt-1 flex items-center justify-between text-[10px] text-muted">
+              <span>Lifetime</span>
+              <span className="tabular">{formatNumber(creditsQuery.data.lifetime_credited)} MP</span>
+            </p>
+          )}
+          {creditsQuery.data && creditsQuery.data.entries.length > 0 ? (
+            <>
+              <ul className="mt-3 space-y-1.5 border-t border-line pt-2">
+                {creditsQuery.data.entries.slice(0, 3).map((entry) => (
+                  <li key={entry.id} className="flex items-center justify-between gap-2 text-[10px]">
+                    <span className="truncate text-muted">{entry.reason}</span>
+                    <span
+                      className={cn(
+                        "shrink-0 font-semibold tabular",
+                        entry.amount >= 0 ? "text-nominal" : "text-caution",
+                      )}
+                    >
+                      {entry.amount > 0 ? "+" : ""}
+                      {formatNumber(entry.amount)} MP
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {creditsQuery.data.entries.length > 3 && (
+                <Disclosure
+                  className="mt-2 border-t border-line pt-2"
+                  summary="More points"
+                  meta={`${creditsQuery.data.entries.length - 3}`}
+                  summaryClassName="text-[10px] font-medium text-accent"
+                >
+                  <ul className="space-y-1.5">
+                    {creditsQuery.data.entries.slice(3).map((entry) => (
+                      <li
+                        key={entry.id}
+                        className="flex items-center justify-between gap-2 text-[10px]"
+                      >
+                        <span className="truncate text-muted">{entry.reason}</span>
+                        <span
+                          className={cn(
+                            "shrink-0 font-semibold tabular",
+                            entry.amount >= 0 ? "text-nominal" : "text-caution",
+                          )}
+                        >
+                          {entry.amount > 0 ? "+" : ""}
+                          {formatNumber(entry.amount)} MP
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Disclosure>
+              )}
+            </>
+          ) : (
+            <p className="mt-2 text-[10px] text-muted">No point history yet.</p>
+          )}
+        </Panel>
+
       </div>
 
       <Panel
         className="mt-4"
         title="Activity"
         subtitle="Tap a row for detail."
+        actions={
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted">{filteredEvents.length}</span>
+            <button
+              type="button"
+              onClick={() => setActivityOpen((current) => !current)}
+              className="text-[10px] font-medium text-accent hover:text-accent-strong"
+            >
+              {activityOpen ? "Hide" : "Show"}
+            </button>
+          </div>
+        }
       >
-        {logQuery.isLoading ? (
+        <div className="mb-3 flex flex-wrap gap-1">
+          {(
+            [
+              ["all", "All"],
+              ["checkin", "Check-ins"],
+              ["alert", "Alerts"],
+              ["training", "Training"],
+              ["achievement", "Achievements"],
+            ] as const
+          ).map(([key, label]) => {
+            const count =
+              key === "all" ? events.length : (activityCounts[key] ?? 0);
+            return (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={activityFilter === key}
+                onClick={() => {
+                  setActivityFilter(key);
+                  setShowAllEvents(false);
+                }}
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[9px] font-medium transition-colors",
+                  activityFilter === key
+                    ? "border-accent/30 bg-accent-soft text-accent"
+                    : "border-line bg-surface text-muted hover:text-ink",
+                )}
+              >
+                {label} {count}
+              </button>
+            );
+          })}
+        </div>
+
+        {!activityOpen ? (
+          <p className="rounded-xl bg-surface-muted px-3 py-3 text-[11px] text-muted">
+            Activity hidden. Use Show to expand the feed.
+          </p>
+        ) : logQuery.isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 5 }, (_, index) => (
               <Skeleton key={index} className="h-14 w-full" />
             ))}
           </div>
-        ) : events.length === 0 ? (
+        ) : filteredEvents.length === 0 ? (
           <div className="rounded-lg bg-surface-muted px-4 py-8 text-center">
             <ScrollText size={18} className="mx-auto text-muted" aria-hidden />
             <p className="mt-2 text-sm font-medium text-ink">Nothing logged yet.</p>
             <p className="mt-1 text-xs text-muted">
-              Complete a check-in or log a training session to start the record.
+              {activityFilter === "all"
+                ? "Complete a check-in or log a training session to start the record."
+                : "No events match this filter."}
             </p>
-            <Link
-              to="/check-in"
-              className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent"
-            >
-              Start a check-in
-              <ArrowRight size={12} aria-hidden />
-            </Link>
+            {activityFilter === "all" && (
+              <Link
+                to="/check-in"
+                className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-accent"
+              >
+                Start a check-in
+                <ArrowRight size={12} aria-hidden />
+              </Link>
+            )}
           </div>
         ) : (
           <>
             <ol className="divide-y divide-line">
-              {(showAllEvents ? events : events.slice(0, 12)).map((event) => (
+              {(showAllEvents ? filteredEvents : filteredEvents.slice(0, 12)).map((event) => (
                 <ActivityRow key={event.id} event={event} />
               ))}
             </ol>
-            {events.length > 12 && (
+            {filteredEvents.length > 12 && (
               <button
                 type="button"
                 onClick={() => setShowAllEvents((current) => !current)}
                 className="mt-3 inline-flex items-center gap-1 text-[11px] font-medium text-accent hover:text-accent-strong"
               >
-                {showAllEvents ? "Show fewer events" : `Show all ${events.length} events`}
+                {showAllEvents
+                  ? "Show fewer events"
+                  : `Show all ${filteredEvents.length} events`}
                 <ChevronDown
                   size={12}
                   className={cn("transition-transform", showAllEvents && "rotate-180")}
@@ -233,6 +374,14 @@ export function MissionLogPage() {
             : `${unlocked} of ${achievements.length} unlocked`
         }
       >
+        <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-line">
+          <div
+            className="h-full rounded-full bg-accent transition-[width] duration-500"
+            style={{
+              width: `${achievements.length > 0 ? (unlocked / achievements.length) * 100 : 0}%`,
+            }}
+          />
+        </div>
         {achievementsQuery.isLoading ? (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }, (_, index) => (
@@ -240,8 +389,8 @@ export function MissionLogPage() {
             ))}
           </div>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {achievements.map((achievement) => (
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+            {orderedAchievements.map((achievement) => (
               <AchievementTile key={achievement.code} achievement={achievement} />
             ))}
           </div>

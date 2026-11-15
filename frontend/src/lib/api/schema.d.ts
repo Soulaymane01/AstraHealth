@@ -1029,6 +1029,11 @@ export interface components {
             unlocked: boolean;
             /** Unlocked At */
             unlocked_at?: string | null;
+            /**
+             * Progress
+             * @default 0
+             */
+            progress: number;
         };
         /** AlertRead */
         AlertRead: {

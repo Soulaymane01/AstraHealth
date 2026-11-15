@@ -201,7 +201,7 @@ The design intentionally uses fewer panels than a traditional mission-control da
 
 ### 6.6 Mission Log and motivation
 
-- The Mission Log is the motivation hub: a `RankBadge`, streaks, mission-point history, the activity feed, and the achievement grid.
+- The Mission Log is the motivation hub: a `RankBadge`, streaks, a points card with recent history, a filterable/collapsible activity feed, and a 17-achievement grid. Each achievement shows progress toward its next unlock, and unlocked achievements are surfaced first.
 - Rank uses lifetime mission points, so consistency advances the astronaut. The rank card shows the next rank and the percentage progress.
 - The activity feed is a vertical timeline of check-ins, alerts, training sessions, achievements, and redemptions, newest first. Alerts keep their semantic status pill; the rest use quiet icon circles.
 - Mission points are awarded for consistency only: check-ins, training adherence, quizzes, and streak milestones. They advance rank but never reflect a health reading.

@@ -4,13 +4,16 @@ import {
   Check,
   CloudSun,
   Dumbbell,
+  Flame,
   HeartPulse,
   Orbit,
   Radio,
   RefreshCw,
   ScrollText,
+  Shield,
   Stethoscope,
   Sun,
+  Trophy,
   WifiOff,
   type LucideIcon,
 } from "lucide-react";
@@ -33,6 +36,7 @@ import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
 import { useAuthStore } from "@/features/auth/auth-store";
 import { CaptureStrip } from "@/features/captures/CaptureStrip";
 import { useCaptureFeed } from "@/features/captures/queries";
+import { useAchievements, useGamificationSummary } from "@/features/gamification/queries";
 import { SurgeonUpdatesPanel } from "@/features/surgeon/SurgeonUpdatesPanel";
 import { useSurgeonUpdates } from "@/features/surgeon/queries";
 import { useOfflineStore } from "@/features/offline/store";
@@ -47,7 +51,7 @@ import { useDomainDetail, useReadiness, useReadinessHistory } from "@/features/r
 import { DutyRoster } from "@/features/training/components/DutyRoster";
 import { useTrainingRoster } from "@/features/training/queries";
 import { PagePlaceholder } from "@/features/shared/PagePlaceholder";
-import type { Alert, DomainDetail, Readiness } from "@/lib/api/types";
+import type { Achievement, Alert, DomainDetail, GamificationSummary, Readiness } from "@/lib/api/types";
 import { asStatus, statusFromScore, STATUS_META, type Status } from "@/lib/status";
 import {
   cn,
@@ -346,6 +350,106 @@ function FlightDeckLoading({
   );
 }
 
+function MomentumCard({
+  summary,
+  achievements,
+  onOpen,
+}: {
+  summary?: GamificationSummary;
+  achievements: Achievement[];
+  onOpen: () => void;
+}) {
+  if (!summary) return null;
+  const unlocked = achievements.filter((achievement) => achievement.unlocked);
+  const next = achievements
+    .filter((achievement) => !achievement.unlocked)
+    .sort((a, b) => b.progress - a.progress)[0];
+  const streak = summary.checkin_streak;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group mt-4 w-full rounded-3xl border border-line bg-surface p-4 text-left transition-transform duration-150 hover:-translate-y-0.5"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted">
+            Momentum
+          </p>
+          <p className="mt-0.5 text-sm font-semibold text-ink">
+            Consistency, not health readings.
+          </p>
+        </div>
+        <span className="shrink-0 text-[10px] font-medium text-accent">
+          Mission Log →
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="rounded-2xl bg-accent-soft px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-ink-2">Rank</p>
+            <Shield size={13} className="text-ink-2/70" aria-hidden />
+          </div>
+          <p className="mt-1 truncate text-lg font-semibold text-ink">{summary.rank.rank}</p>
+          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface/70">
+            <div
+              className="h-full rounded-full bg-accent"
+              style={{ width: `${Math.round(summary.rank.progress * 100)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-surface-muted/70 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-ink-2">
+              Points
+            </p>
+            <Orbit size={13} className="text-ink-2/70" aria-hidden />
+          </div>
+          <p className="mt-1 text-lg font-semibold tabular text-ink">
+            {summary.balance.toLocaleString()} <span className="text-[10px] font-normal text-muted">MP</span>
+          </p>
+          <p className="mt-1 truncate text-[9px] text-muted">
+            {summary.rank.next_rank
+              ? `${summary.rank.credits_to_next ?? 0} to ${summary.rank.next_rank}`
+              : "Maximum rank"}
+          </p>
+        </div>
+
+        <div className="rounded-2xl bg-watch-soft px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-ink-2">
+              Streak
+            </p>
+            <Flame size={13} className="text-watch" aria-hidden />
+          </div>
+          <p className="mt-1 text-lg font-semibold tabular text-ink">
+            {streak?.current ?? 0} <span className="text-[10px] font-normal text-muted">days</span>
+          </p>
+          <p className="mt-1 text-[9px] text-muted">Longest {streak?.longest ?? 0}</p>
+        </div>
+
+        <div className="rounded-2xl bg-nominal-soft px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-ink-2">
+              Achievements
+            </p>
+            <Trophy size={13} className="text-nominal" aria-hidden />
+          </div>
+          <p className="mt-1 text-lg font-semibold tabular text-ink">
+            {unlocked.length}/{achievements.length}
+          </p>
+          <p className="mt-1 truncate text-[9px] text-muted">
+            {next ? `Next: ${next.name}` : "All unlocked"}
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function FlightDeckPage() {
   const user = useAuthStore((state) => state.user);
   const online = useOfflineStore((state) => state.online);
@@ -361,6 +465,8 @@ export function FlightDeckPage() {
   const alertsQuery = useAlerts();
   const historyQuery = useReadinessHistory(7);
   const rosterQuery = useTrainingRoster();
+  const gamificationQuery = useGamificationSummary();
+  const achievementsQuery = useAchievements();
   const contextQuery = useMissionContext();
   const tapeQuery = useMissionTape(tapeDays);
   const domainQuery = useDomainDetail(selectedDomain);
@@ -899,6 +1005,12 @@ export function FlightDeckPage() {
           )}
         </Panel>
       </div>
+
+      <MomentumCard
+        summary={gamificationQuery.data}
+        achievements={achievementsQuery.data ?? []}
+        onOpen={() => navigate("/log")}
+      />
 
       <DetailSheet
         open={detail === "readiness"}

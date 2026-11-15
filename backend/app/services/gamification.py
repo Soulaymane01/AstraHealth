@@ -12,8 +12,11 @@ from app.models import (
     Checkin,
     CheckinEntry,
     CreditEvent,
+    Measurement,
+    Quiz,
     QuizAttempt,
     Streak,
+    TrainingSession,
     User,
     UserAchievement,
 )
@@ -47,6 +50,11 @@ ACHIEVEMENT_CRITERIA = {
     "sleep_nights": "sleep_nights",
     "quiz_score": "quiz_score",
     "recovered_alerts": "recovered_alerts",
+    "training_sessions": "training_sessions",
+    "training_streak": "training_streak",
+    "hydration_days": "hydration_days",
+    "crew_quiz": "crew_quiz",
+    "measurements": "measurements",
 }
 
 
@@ -221,7 +229,7 @@ def update_streak(
 def _achievement_metrics(db: Session, user: User, now: datetime) -> dict[str, float]:
     checkins = db.scalar(select(func.count(Checkin.id)).where(Checkin.user_id == user.id)) or 0
     streak = get_streak(db, user.id, "checkin")
-    since = now - timedelta(days=7)
+    since = now - timedelta(days=14)
     sleep_rows = db.execute(
         select(Checkin.started_at, CheckinEntry.value)
         .join(CheckinEntry, CheckinEntry.checkin_id == Checkin.id)
@@ -246,12 +254,54 @@ def _achievement_metrics(db: Session, user: User, now: datetime) -> dict[str, fl
         )
         or 0
     )
+    training_streak = get_streak(db, user.id, "training")
+    training_sessions = (
+        db.scalar(
+            select(func.count(TrainingSession.id)).where(TrainingSession.user_id == user.id)
+        )
+        or 0
+    )
+    hydration_rows = db.execute(
+        select(Checkin.started_at, CheckinEntry.value)
+        .join(CheckinEntry, CheckinEntry.checkin_id == Checkin.id)
+        .where(
+            Checkin.user_id == user.id,
+            CheckinEntry.metric_code == "hydration_l",
+            Checkin.started_at >= now - timedelta(days=14),
+        )
+    ).all()
+    hydration_days = len(
+        {
+            _as_utc(started).date()
+            for started, value in hydration_rows
+            if value >= 2.4
+        }
+    )
+    crew_quiz = (
+        db.scalar(
+            select(func.count(QuizAttempt.id))
+            .join(Quiz, QuizAttempt.quiz_id == Quiz.id)
+            .where(QuizAttempt.user_id == user.id, Quiz.mode == "crew")
+        )
+        or 0
+    )
+    measurements = (
+        db.scalar(
+            select(func.count(Measurement.id)).where(Measurement.user_id == user.id)
+        )
+        or 0
+    )
     return {
         "checkins": float(checkins),
         "checkin_streak": float(streak.current if streak is not None else 0),
         "sleep_nights": float(sleep_nights),
         "quiz_score": float(quiz_score),
         "recovered_alerts": float(recovered_alerts),
+        "training_sessions": float(training_sessions),
+        "training_streak": float(training_streak.current if training_streak is not None else 0),
+        "hydration_days": float(hydration_days),
+        "crew_quiz": float(crew_quiz),
+        "measurements": float(measurements),
     }
 
 
@@ -303,6 +353,7 @@ def evaluate_achievements(
 def achievement_read(
     achievement: Achievement,
     unlocked_at: datetime | None,
+    progress: float = 0.0,
 ) -> AchievementRead:
     return AchievementRead(
         code=achievement.code,
@@ -311,6 +362,7 @@ def achievement_read(
         icon=achievement.icon,
         unlocked=unlocked_at is not None,
         unlocked_at=unlocked_at,
+        progress=1.0 if unlocked_at is not None else max(0.0, min(1.0, progress)),
     )
 
 
@@ -322,7 +374,23 @@ def list_achievements(db: Session, user: User) -> list[AchievementRead]:
             select(UserAchievement).where(UserAchievement.user_id == user.id)
         ).all()
     }
-    return [achievement_read(item, unlocked.get(item.code)) for item in achievements]
+    metrics = _achievement_metrics(db, user, datetime.now(UTC))
+    result: list[AchievementRead] = []
+    for achievement in achievements:
+        ratios: list[float] = []
+        for key, target in (achievement.criteria or {}).items():
+            metric = ACHIEVEMENT_CRITERIA.get(key)
+            if metric is None or not target:
+                continue
+            ratios.append(min(1.0, metrics.get(metric, 0.0) / float(target)))
+        result.append(
+            achievement_read(
+                achievement,
+                unlocked.get(achievement.code),
+                min(ratios) if ratios else 0.0,
+            )
+        )
+    return result
 
 
 def list_credits(

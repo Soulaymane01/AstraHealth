@@ -156,7 +156,7 @@ def main() -> int:
         expected = {
             "knowledge": 9,
             "training items": 8,
-            "achievements": 5,
+            "achievements": 17,
             "quizzes": 4,
         }
         checks.append(
