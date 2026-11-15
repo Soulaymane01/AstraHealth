@@ -5,7 +5,6 @@ from app.schemas.assistant import (
     AssistantQuestion,
     AssistantSuggestionRead,
 )
-from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
 from app.schemas.capture import CaptureFeedRead, CaptureMetricRead
 from app.schemas.checkin import (
     CheckinCreate,
@@ -120,7 +119,6 @@ __all__ = [
     "DomainSummaryRead",
     "GamificationSummaryRead",
     "LogEventRead",
-    "LoginRequest",
     "MeasurementBatchCreate",
     "MeasurementCreate",
     "MeasurementRead",
@@ -146,8 +144,6 @@ __all__ = [
     "ReadinessFactor",
     "ReadinessSnapshotRead",
     "ReferenceBandRead",
-    "RefreshRequest",
-    "RegisterRequest",
     "SpaceWeatherEventRead",
     "StreakRead",
     "SurgeonAssessmentCreate",
@@ -165,7 +161,6 @@ __all__ = [
     "SymptomCreate",
     "SymptomRead",
     "TapeEventRead",
-    "TokenResponse",
     "TrainingItemRead",
     "TrainingItemSummaryRead",
     "TrainingPlanItemRead",

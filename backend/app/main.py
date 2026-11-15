@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import (
     alerts,
     assistant,
-    auth,
     captures,
     checkins,
     crew,
@@ -26,7 +25,6 @@ from app.core.config import settings
 
 TAGS_METADATA = [
     {"name": "system", "description": "Health checks and service metadata."},
-    {"name": "auth", "description": "Registration, login, and token refresh."},
     {"name": "crew", "description": "Crew roster, privacy filtering, and the consistency board."},
     {"name": "metrics", "description": "Metric definitions, measurements, and trends."},
     {"name": "captures", "description": "Simulated habitat and suit sensor captures."},
@@ -62,7 +60,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(metrics.router)
 app.include_router(captures.router)

@@ -32,7 +32,7 @@ There is currently **no demo asset in the repository**: neither a video nor a 7-
 | Use NASA HRP resources and explain measurements | **PASS with depth risk** | Nine HRP-sourced articles, hard rules, cited assistant. Citations are still mostly HRP landing pages; add specific evidence pages. |
 | Use at least one NASA data/resource for Global Award eligibility | **PARTIAL** | NASA HRP material is used; live DONKI is optional and currently falls back to a labeled fixture. Set `NASA_API_KEY` and verify **Live NASA DONKI**. |
 | Demo: 30-second video or ≤7 slides | **ACTION REQUIRED** | No video or slide deck is currently in the repository. Create a 7-slide deck (title, challenge, solution, demo, NASA data, impact, team) or a new ≤30 s video. |
-| Demo link publicly accessible, no password/permission/registration | **ACTION REQUIRED** | Will be satisfied by a public YouTube/Drive slide deck link. The app itself has one-click **Astronaut demo** / **Surgeon demo** access, but still opens a login page. |
+| Demo link publicly accessible, no password/permission/registration | **ACTION REQUIRED** | Will be satisfied by a public YouTube/Drive slide deck link. The app opens on a welcome screen with **Astronaut** and **Flight Surgeon** choices; there is no login page. |
 | English on submission page and linked materials | **PASS** | English app and README. The future slide deck must be in English. |
 | All team members registered at the same Local Event, 1–6 members | **EXTERNAL ACTION** | Cannot be verified from the repository. Confirm team membership and event selection before submitting. |
 | Complete all required project-page fields | **EXTERNAL ACTION** | Project name, summary, demo link, final project link, detailed description, NASA data, references. |
@@ -45,7 +45,7 @@ There is currently **no demo asset in the repository**: neither a video nor a 7-
 | No NASA branding/design elements | **REVIEW** | No NASA logo, flag, or mission identifier is used. The app and README use the event name “NASA Space Apps 2026” as text. Confirm this is acceptable under the event brand guidelines. |
 | No commercial promotion | **PASS** | No ads, paid services, or commercial calls to action. |
 | SI question on the submission form | **ACTION REQUIRED** | Complete the form’s SI question truthfully for the tools used. Do not leave it blank. |
-| Verify the app URL works for judges | **PASS with note** | <https://astrahealth-gamma.vercel.app> is live; one-click demo access is available. The login page still appears first. |
+| Verify the app URL works for judges | **PASS with note** | <https://astrahealth-gamma.vercel.app> is live; the welcome screen offers **Astronaut** and **Flight Surgeon** with no login. |
 | Verify the final project link is public | **PASS** | Live app and public GitHub repository. |
 
 ## Judging-criteria readiness
@@ -72,7 +72,7 @@ Official scale: 1–5 for Impact, Creativity, Validity, Relevance, Presentation.
 6. **Set `NASA_API_KEY`** in Vercel and verify the space-weather card switches to **Live NASA DONKI**. If the key is unavailable, keep the fixture label and say so.
 7. **Add a “not a NASA product / not endorsed by NASA” disclaimer** to the submission description and README.
 8. **Complete the SI question** on the project page for the tools used.
-9. **Decide how the login page is described.** The app is live and has one-click demo buttons; make that clear in the final-project description.
+9. **Describe the role picker.** The app is live and opens directly on the **Astronaut / Flight Surgeon** welcome screen; make that clear in the final-project description.
 
 ### P1 — strengthens the submission
 
@@ -100,7 +100,7 @@ AstraHealth is mission-control software for the human body. It turns astronaut-e
 
 **References:** `THIRD_PARTY.md`, `docs/SOURCES.md`, `LICENSE`, `docs/licenses/`.
 
-**Access note:** the live app opens on a login page; use the one-click **Astronaut demo** or **Surgeon demo** buttons. No password is required.
+**Access note:** the live app opens on a welcome screen; choose **Astronaut** or **Flight Surgeon**. No account or password is required.
 
 ## Bottom line
 

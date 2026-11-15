@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 
 from sqlalchemy import func, select
 
-from app.db.seed import DEMO_PASSWORD, MISSION_NAME
+from app.db.seed import MISSION_NAME
 from app.db.session import SessionLocal
 from app.models import (
     Achievement,
@@ -35,13 +35,11 @@ def main() -> int:
 
         users = session.scalars(select(User).order_by(User.id)).all()
         crew = {
-            user.email: user
+            user.role: user
             for user in users
-            if user.email.endswith("@astra.space") and user.role != "flight_surgeon"
+            if user.role in {"commander", "pilot", "specialist", "engineer"}
         }
-        surgeon = next(
-            (user for user in users if user.email == "surgeon@astra.space"), None
-        )
+        surgeon = next((user for user in users if user.role == "flight_surgeon"), None)
         checks.append(("crew accounts", len(crew) == 4, f"{len(crew)} seeded"))
         checks.append(
             (
@@ -60,10 +58,10 @@ def main() -> int:
             )
         )
 
-        commander = crew.get("commander@astra.space")
-        pilot = crew.get("pilot@astra.space")
-        specialist = crew.get("specialist@astra.space")
-        engineer = crew.get("engineer@astra.space")
+        commander = crew.get("commander")
+        pilot = crew.get("pilot")
+        specialist = crew.get("specialist")
+        engineer = crew.get("engineer")
         checks.append(
             (
                 "commander",
@@ -176,7 +174,7 @@ def main() -> int:
         print(f"\nDemo state verification failed: {', '.join(failures)}")
         return 1
 
-    print(f"\nDemo state verified. Password: {DEMO_PASSWORD}")
+    print("\nDemo state verified. Roles: astronaut / surgeon.")
     return 0
 
 

@@ -7,7 +7,7 @@ from app.models import Alert, ReadinessSnapshot, User
 
 
 def _user(db_session: Session) -> User:
-    return db_session.query(User).filter(User.email == "test@example.com").one()
+    return db_session.query(User).filter(User.role == "commander").one()
 
 
 def test_readiness_requires_a_snapshot(client: TestClient, auth_headers: dict[str, str]) -> None:

@@ -4,15 +4,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import create_access_token
 from app.models import Alert, Quiz, QuizAttempt, User
 from tests.helpers import add_series, create_crew_with_member
 
 
 def _surgeon(db_session: Session) -> User:
     surgeon = User(
-        email="surgeon@test.example",
-        password_hash="not-used",
         full_name="Dr. Test",
         role="flight_surgeon",
         crew_id=None,
@@ -22,10 +19,6 @@ def _surgeon(db_session: Session) -> User:
     db_session.commit()
     db_session.refresh(surgeon)
     return surgeon
-
-
-def _headers(user: User) -> dict[str, str]:
-    return {"Authorization": f"Bearer {create_access_token(user.id)}"}
 
 
 def test_surgeon_console_is_role_protected_and_lists_the_crew(
@@ -41,12 +34,12 @@ def test_surgeon_console_is_role_protected_and_lists_the_crew(
     forbidden = client.get("/surgeon/crew", headers=auth_headers)
     assert forbidden.status_code == 403
 
-    response = client.get("/surgeon/crew", headers=_headers(surgeon))
+    response = client.get("/surgeon/crew", headers={"X-Astra-Role": "surgeon"})
     assert response.status_code == 200
     crew = response.json()
     assert {member["id"] for member in crew} == {test_user.id, other.id}
 
-    detail = client.get(f"/surgeon/crew/{test_user.id}", headers=_headers(surgeon))
+    detail = client.get(f"/surgeon/crew/{test_user.id}", headers={"X-Astra-Role": "surgeon"})
     assert detail.status_code == 200
     body = detail.json()
     assert body["member"]["id"] == test_user.id
@@ -59,6 +52,7 @@ def test_surgeon_can_read_crew_quiz_results(
     client: TestClient,
     db_session: Session,
     test_user: User,
+    auth_headers: dict[str, str],
     content_seed: None,
 ) -> None:
     surgeon = _surgeon(db_session)
@@ -87,7 +81,7 @@ def test_surgeon_can_read_crew_quiz_results(
     )
     db_session.commit()
 
-    headers = _headers(surgeon)
+    headers = {"X-Astra-Role": "surgeon"}
     response = client.get(f"/surgeon/crew/{test_user.id}/quizzes", headers=headers)
     assert response.status_code == 200
     body = response.json()
@@ -120,7 +114,7 @@ def test_surgeon_can_read_crew_quiz_results(
 
     forbidden = client.get(
         f"/surgeon/crew/{test_user.id}/quizzes",
-        headers={"Authorization": f"Bearer {create_access_token(test_user.id)}"},
+        headers=auth_headers,
     )
     assert forbidden.status_code == 403
 
@@ -133,7 +127,7 @@ def test_surgeon_assessment_and_instruction_reach_the_crew(
 ) -> None:
     surgeon = _surgeon(db_session)
     create_crew_with_member(db_session, test_user)
-    surgeon_headers = _headers(surgeon)
+    surgeon_headers = {"X-Astra-Role": "surgeon"}
 
     assessment = client.post(
         f"/surgeon/crew/{test_user.id}/assessments",
@@ -184,7 +178,7 @@ def test_surgeon_assistant_supports_without_diagnosing(
 ) -> None:
     surgeon = _surgeon(db_session)
     create_crew_with_member(db_session, test_user)
-    headers = _headers(surgeon)
+    headers = {"X-Astra-Role": "surgeon"}
 
     prediction = client.get(
         f"/surgeon/crew/{test_user.id}/prediction", headers=headers
@@ -247,7 +241,7 @@ def test_surgeon_can_read_trends_acknowledge_alerts_and_capture(
     db_session.add(alert)
     db_session.commit()
     db_session.refresh(alert)
-    headers = _headers(surgeon)
+    headers = {"X-Astra-Role": "surgeon"}
 
     series = client.get(
         f"/surgeon/crew/{test_user.id}/metrics/heart_rate/series",

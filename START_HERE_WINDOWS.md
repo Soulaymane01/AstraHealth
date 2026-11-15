@@ -150,14 +150,9 @@ If the browser does not open, open it yourself and type that address.
 
 ---
 
-## 7. Sign in
+## 7. Choose a role
 
-Use this demo account:
-
-```text
-Email:    commander@astra.space
-Password: astra-demo
-```
+On the welcome screen, choose **Astronaut**. There is no account, email, or password.
 
 You should see:
 
@@ -400,4 +395,4 @@ Send your teammate this information:
 3. Your Windows version (Start -> Settings -> System -> About).
 4. Whether Docker Desktop says **Engine running**.
 
-Do not send passwords or personal health information. The demo account is a local sample account.
+Do not send personal health information. The demo identity is a local sample identity.

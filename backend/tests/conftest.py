@@ -26,15 +26,6 @@ TestingSessionLocal = sessionmaker(
 )
 
 
-@pytest.fixture(autouse=True)
-def reset_rate_limits() -> Generator[None, None, None]:
-    from app.core.rate_limit import clear_rate_limits
-
-    clear_rate_limits()
-    yield
-    clear_rate_limits()
-
-
 @pytest.fixture()
 def db_session() -> Generator[Session, None, None]:
     Base.metadata.create_all(bind=engine)
@@ -82,22 +73,20 @@ def content_seed(db_session: Session) -> None:
 
 
 @pytest.fixture()
-def auth_headers(client: TestClient) -> dict[str, str]:
-    response = client.post(
-        "/auth/register",
-        json={
-            "email": "test@example.com",
-            "password": "test-password",
-            "full_name": "Test User",
-        },
-    )
-    assert response.status_code == 201
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+def test_user(db_session: Session) -> User:
+    user = db_session.scalar(select(User).where(User.role == "commander"))
+    if user is None:
+        user = User(
+            full_name="Test User",
+            role="commander",
+            share_status="private",
+        )
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+    return user
 
 
 @pytest.fixture()
-def test_user(db_session: Session, auth_headers: dict[str, str]) -> User:
-    user = db_session.scalar(select(User).where(User.email == "test@example.com"))
-    assert user is not None
-    return user
+def auth_headers(test_user: User) -> dict[str, str]:
+    return {"X-Astra-Role": "astronaut"}

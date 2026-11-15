@@ -88,7 +88,6 @@ def create_crew_with_member(
     user: User,
     share_status: str = "status_only",
     full_name: str = "Other Crewmate",
-    email: str = "other@example.com",
     profile: str = "mars_transit",
 ) -> User:
     mission = Mission(
@@ -105,8 +104,6 @@ def create_crew_with_member(
     db.flush()
     user.crew_id = crew.id
     other = User(
-        email=email,
-        password_hash="not-used",
         full_name=full_name,
         role="pilot",
         crew_id=crew.id,

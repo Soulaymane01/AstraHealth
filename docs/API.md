@@ -6,7 +6,7 @@ The source of truth is the FastAPI OpenAPI schema. While the API is running:
 - ReDoc — http://localhost:8000/redoc
 - Raw schema — http://localhost:8000/openapi.json
 
-**Final status (Phase 11):** implemented endpoints are `/health`, `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/captures`, `/captures/simulate`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/profile`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
+**Final status (Phase 11):** implemented endpoints are `/health`, `/me`, `/me/privacy`, `/metrics/definitions`, `/metrics/{code}/series`, `/measurements`, `/measurements/batch`, `/captures`, `/captures/simulate`, `/checkins`, `/checkins/{id}/report`, `/domains/{domain}`, `/mission`, `/mission/profile`, `/mission/context`, `/mission/tape`, `/mission/log`, `/readiness`, `/readiness/history`, `/readiness/compute`, `/readiness/domains/{domain}`, `/alerts`, `/alerts/{alert_id}/ack`, `/crew`, `/crew/leaderboard`, `/training/catalog`, `/training/plan`, `/training/roster`, `/training/reminders`, `/training/sessions`, `/gamification/summary`, `/credits`, `/achievements`, `/streaks`, `/quizzes`, `/quizzes/{slug}`, `/quizzes/{slug}/submit`, `/knowledge`, `/knowledge/{slug}`, `/assistant/suggestions`, and `/assistant/ask`.
 
 The frontend client is generated from the schema:
 
@@ -22,13 +22,12 @@ Regenerate after every contract change. Hand-written request/response types are 
 
 ## Conventions
 
-- All endpoints except `POST /auth/*`, `GET /health`, and the read-only `GET /knowledge*` library require `Authorization: Bearer <access_token>`.
+- `GET /health` and the read-only `GET /knowledge*` library are public. All other endpoints read the active demo role from `X-Astra-Role: astronaut` or `X-Astra-Role: surgeon`.
 - Timestamps are ISO 8601 UTC.
 - Errors return `{ "detail": "message" }`.
 - List endpoints are paginated with `limit` and `offset` once data volume requires it.
 - Health values are private by default. `GET /crew` exposes only what each user opted into via `share_status`.
-- CORS allows only the local web origins (`localhost`/`127.0.0.1` on 5173 and the 4173 preview port). Credentials are token headers, not cookies.
-- `POST /auth/register` is limited to 5 attempts per client per hour. `POST /auth/login` allows 5 failed attempts per client and email per 5 minutes; a successful login resets the counter. `POST /auth/refresh` allows 60 attempts per client per minute. Blocked requests return `429` with a `Retry-After` header.
+- CORS allows only the local web origins (`localhost`/`127.0.0.1` on 5173 and the 4173 preview port). The demo role header is not a credential.
 
 ---
 
@@ -40,14 +39,13 @@ Regenerate after every contract change. Hand-written request/response types are 
 |---|---|---|
 | GET | `/health` | Service health and version |
 
-### Authentication
+### Session and profile
+
+The public demo has no accounts or passwords. The frontend sends the selected view as `X-Astra-Role`; the backend maps `astronaut` to the seeded commander and `surgeon` to the seeded flight surgeon.
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/auth/register` | Create an account |
-| POST | `/auth/login` | Issue access and refresh tokens |
-| POST | `/auth/refresh` | Rotate the access token |
-| GET | `/me` | Current user profile |
+| GET | `/me` | Current seeded profile |
 | PATCH | `/me` | Update profile |
 | GET | `/me/privacy` | Read sharing preference |
 | PATCH | `/me/privacy` | Set `private`, `status_only`, or `full` |

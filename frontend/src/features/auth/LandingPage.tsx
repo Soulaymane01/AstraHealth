@@ -10,7 +10,7 @@ type Role = "astronaut" | "surgeon";
 export function LandingPage() {
   const status = useAuthStore((state) => state.status);
   const user = useAuthStore((state) => state.user);
-  const login = useAuthStore((state) => state.login);
+  const selectRole = useAuthStore((state) => state.setRole);
   const navigate = useNavigate();
   const [loading, setLoading] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,10 +23,7 @@ export function LandingPage() {
     setError(null);
     setLoading(role);
     try {
-      await login(
-        role === "astronaut" ? "commander@astra.space" : "surgeon@astra.space",
-        "astra-demo",
-      );
+      await selectRole(role);
       navigate(role === "surgeon" ? "/surgeon" : "/", { replace: true });
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to open the demo.");
@@ -55,8 +52,7 @@ export function LandingPage() {
             Choose your view.
           </h1>
           <p className="mt-4 max-w-xl text-base leading-relaxed text-ink-2">
-            Enter the astronaut flight deck or the Earth-side flight surgeon console. No account,
-            email, or password required.
+            Enter the astronaut flight deck or the Earth-side flight surgeon console. Pick a view to begin.
           </p>
         </div>
 

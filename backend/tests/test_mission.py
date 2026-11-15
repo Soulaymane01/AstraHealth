@@ -7,7 +7,7 @@ from app.models import Alert, Checkin, Crew, Mission, SpaceWeatherEvent, User
 
 
 def _crew_for_user(db_session: Session) -> tuple[User, Crew]:
-    user = db_session.query(User).filter(User.email == "test@example.com").one()
+    user = db_session.query(User).filter(User.role == "commander").one()
 
     mission = Mission(
         name="Test Mission",

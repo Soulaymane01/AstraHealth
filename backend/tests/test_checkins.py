@@ -66,8 +66,15 @@ def test_checkin_rejects_unknown_metric(
 
 
 def test_checkin_detail_is_scoped_to_the_user(
-    client: TestClient, auth_headers: dict[str, str], metric_definitions: None
+    client: TestClient,
+    db_session: Session,
+    auth_headers: dict[str, str],
+    metric_definitions: None,
 ) -> None:
+    db_session.add(
+        User(full_name="Dr. Scope", role="flight_surgeon", share_status="private")
+    )
+    db_session.commit()
     created = client.post(
         "/checkins",
         json={"entries": [{"metric_code": "heart_rate", "value": 70}]},
@@ -75,19 +82,13 @@ def test_checkin_detail_is_scoped_to_the_user(
     )
     assert created.status_code == 201
 
-    other = client.post(
-        "/auth/register",
-        json={
-            "email": "other@example.com",
-            "password": "strong-password",
-            "full_name": "Other",
-        },
+    response = client.get(
+        f"/checkins/{created.json()['id']}", headers={"X-Astra-Role": "surgeon"}
     )
-    other_headers = {"Authorization": f"Bearer {other.json()['access_token']}"}
-
-    response = client.get(f"/checkins/{created.json()['id']}", headers=other_headers)
     assert response.status_code == 404
-    report = client.get(f"/checkins/{created.json()['id']}/report", headers=other_headers)
+    report = client.get(
+        f"/checkins/{created.json()['id']}/report", headers={"X-Astra-Role": "surgeon"}
+    )
     assert report.status_code == 404
 
 

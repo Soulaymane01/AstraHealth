@@ -7,7 +7,6 @@ from datetime import UTC, datetime, time, timedelta
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from app.core.security import hash_password
 from app.db.base import Base
 from app.db.content import (
     ACHIEVEMENTS,
@@ -43,34 +42,29 @@ from app.services.captures import CAPTURE_METRICS, CAPTURE_SOURCES
 from app.services.gamification import evaluate_achievements
 from app.services.readiness import compute_and_persist_readiness
 
-DEMO_PASSWORD = "astra-demo"
 MISSION_NAME = "Artemis Transit"
 
 USER_SPECS = [
     {
         "key": "commander",
-        "email": "commander@astra.space",
         "full_name": "Amara Diallo",
         "role": "commander",
         "avatar_seed": "adal",
     },
     {
         "key": "pilot",
-        "email": "pilot@astra.space",
         "full_name": "Noah Kim",
         "role": "pilot",
         "avatar_seed": "nkim",
     },
     {
         "key": "specialist",
-        "email": "specialist@astra.space",
         "full_name": "Lina Haddad",
         "role": "specialist",
         "avatar_seed": "lhad",
     },
     {
         "key": "engineer",
-        "email": "engineer@astra.space",
         "full_name": "Tomas Novak",
         "role": "engineer",
         "avatar_seed": "tnov",
@@ -78,7 +72,6 @@ USER_SPECS = [
 ]
 
 SURGEON_SPEC = {
-    "email": "surgeon@astra.space",
     "full_name": "Dr. Elena Vasquez",
     "role": "flight_surgeon",
     "avatar_seed": "evas",
@@ -690,12 +683,9 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     session.add(crew)
     session.flush()
 
-    password_hash = hash_password(DEMO_PASSWORD)
     users: dict[str, User] = {}
     for spec in USER_SPECS:
         user = User(
-            email=spec["email"],
-            password_hash=password_hash,
             full_name=spec["full_name"],
             role=spec["role"],
             crew_id=crew.id,
@@ -711,8 +701,6 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     session.flush()
 
     surgeon = User(
-        email=SURGEON_SPEC["email"],
-        password_hash=password_hash,
         full_name=SURGEON_SPEC["full_name"],
         role=SURGEON_SPEC["role"],
         crew_id=None,
@@ -813,10 +801,9 @@ def seed_demo(session: Session, reset: bool = False, now: datetime | None = None
     print(f"  training items: {len(TRAINING_ITEMS)}")
     print(f"  achievements: {len(ACHIEVEMENTS)}")
     print(
-        "  demo accounts: "
-        + ", ".join([*(spec["email"] for spec in USER_SPECS), SURGEON_SPEC["email"]])
+        "  demo roles: astronaut (commander), surgeon (flight surgeon), "
+        f"{len(users)} crew members"
     )
-    print(f"  password: {DEMO_PASSWORD}")
 
 
 def main() -> None:

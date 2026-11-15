@@ -4,13 +4,13 @@ import { queryClient } from "@/app/query-client";
 import { clearClinicalCache } from "@/features/offline/clinical-cache";
 import {
   api,
-  clearTokens,
-  getAccessToken,
-  getRefreshToken,
+  clearRole,
+  getRole,
   isNetworkError,
-  setTokens,
+  setRole as persistRole,
+  type DemoRole,
 } from "@/lib/api/client";
-import type { TokenResponse, UserRead } from "@/lib/api/types";
+import type { UserRead } from "@/lib/api/types";
 
 const USER_KEY = "astra.user";
 
@@ -40,21 +40,19 @@ function clearCachedUser(): void {
   window.localStorage.removeItem(USER_KEY);
 }
 
-type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
+type SessionStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
 
-interface AuthState {
+interface SessionState {
   user: UserRead | null;
-  status: AuthStatus;
-  setSession: (session: TokenResponse) => void;
+  status: SessionStatus;
+  setRole: (role: DemoRole) => Promise<void>;
   updateUser: (patch: Partial<UserRead>) => void;
-  login: (email: string, password: string) => Promise<void>;
-  register: (fullName: string, email: string, password: string) => Promise<void>;
   logout: () => void;
   bootstrap: () => Promise<void>;
 }
 
-const initialCachedUser =
-  typeof window !== "undefined" && getAccessToken() ? readCachedUser() : null;
+const initialRole = getRole();
+const initialCachedUser = initialRole ? readCachedUser() : null;
 
 let sessionRevalidating = initialCachedUser !== null;
 
@@ -62,15 +60,31 @@ export function isSessionRevalidating(): boolean {
   return sessionRevalidating;
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<SessionState>((set) => ({
   user: initialCachedUser,
   status: initialCachedUser ? "authenticated" : "idle",
 
-  setSession: (session) => {
-    setTokens(session.access_token, session.refresh_token);
-    writeCachedUser(session.user);
-    queryClient.clear();
-    set({ user: session.user, status: "authenticated" });
+  setRole: async (role) => {
+    persistRole(role);
+    set({ status: "loading" });
+    try {
+      const { data, response } = await api.GET("/me");
+      if (!data) {
+        throw new Error(
+          response.status === 503
+            ? "Demo data is not ready. Run make reset-demo and try again."
+            : "Unable to open this view.",
+        );
+      }
+      writeCachedUser(data);
+      queryClient.clear();
+      set({ user: data, status: "authenticated" });
+    } catch (error) {
+      clearRole();
+      clearCachedUser();
+      set({ user: null, status: "unauthenticated" });
+      throw error;
+    }
   },
 
   updateUser: (patch) => {
@@ -82,31 +96,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     });
   },
 
-  login: async (email, password) => {
-    const { data, response } = await api.POST("/auth/login", {
-      body: { email, password },
-    });
-    if (!data) {
-      if (response.status === 401) throw new Error("Invalid email or password.");
-      throw new Error("Unable to sign in right now. Try again.");
-    }
-    get().setSession(data);
-  },
-
-  register: async (fullName, email, password) => {
-    const { data, response } = await api.POST("/auth/register", {
-      body: { email, password, full_name: fullName },
-    });
-    if (!data) {
-      if (response.status === 409) throw new Error("That email is already registered.");
-      if (response.status === 422) throw new Error("Check the form and try again.");
-      throw new Error("Unable to create the account right now.");
-    }
-    get().setSession(data);
-  },
-
   logout: () => {
-    clearTokens();
+    clearRole();
     clearCachedUser();
     clearClinicalCache();
     queryClient.clear();
@@ -114,8 +105,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   bootstrap: async () => {
-    const access = getAccessToken();
-    if (!access) {
+    const role = getRole();
+    if (!role) {
       set({ status: "unauthenticated" });
       return;
     }
@@ -142,32 +133,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         if (isNetworkError(error) && restoreCached()) return;
       }
 
-      const refresh = getRefreshToken();
-      if (!refresh) {
-        clearTokens();
-        clearCachedUser();
-        clearClinicalCache();
-        set({ user: null, status: "unauthenticated" });
-        return;
-      }
-
-      let refreshRejected = false;
-      try {
-        const refreshed = await api.POST("/auth/refresh", {
-          body: { refresh_token: refresh },
-        });
-        if (refreshed.data) {
-          get().setSession(refreshed.data);
-          return;
-        }
-        refreshRejected = refreshed.response.status === 401;
-      } catch (error) {
-        if (isNetworkError(error) && restoreCached()) return;
-      }
-
-      if (!refreshRejected && restoreCached()) return;
-
-      clearTokens();
+      clearRole();
       clearCachedUser();
       clearClinicalCache();
       set({ user: null, status: "unauthenticated" });

@@ -10,8 +10,6 @@ from tests.helpers import create_crew_with_member
 
 def _surgeon(db_session: Session) -> User:
     surgeon = User(
-        email="ai-followup-surgeon@test.example",
-        password_hash="not-used",
         full_name="Dr. Follow-up",
         role="flight_surgeon",
         crew_id=None,

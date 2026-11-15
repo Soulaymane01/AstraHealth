@@ -1,60 +1,33 @@
-import jwt
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import Depends, Header, HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import decode_token
 from app.db.session import get_db
 from app.models import User
 
-bearer_scheme = HTTPBearer(auto_error=False)
-
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    x_astra_role: str | None = Header(default=None, alias="X-Astra-Role"),
     db: Session = Depends(get_db),
 ) -> User:
-    unauthorized = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Not authenticated",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    """Resolve the public demo identity from the selected role.
 
-    if credentials is None:
-        raise unauthorized
-
-    try:
-        payload = decode_token(credentials.credentials)
-    except jwt.PyJWTError as exc:
+    The app has no accounts, passwords, or tokens. The role picker stores the
+    selected view and every request carries it in a small header.
+    """
+    role = (x_astra_role or "astronaut").strip().lower()
+    if role not in {"astronaut", "surgeon"}:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
-
-    if payload.get("type") != "access":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token type",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Select the astronaut or surgeon role.",
         )
 
-    subject = payload.get("sub")
-    try:
-        user_id = int(subject)
-    except (TypeError, ValueError) as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token subject",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
-
-    user = db.get(User, user_id)
+    db_role = "commander" if role == "astronaut" else "flight_surgeon"
+    user = db.scalar(select(User).where(User.role == db_role).order_by(User.id))
     if user is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Demo data is not seeded. Run make reset-demo.",
         )
     return user
 

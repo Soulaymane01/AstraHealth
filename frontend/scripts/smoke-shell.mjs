@@ -36,16 +36,14 @@ page.on("console", (message) => {
   }
 });
 
-// Login screen
-await page.goto(`${base}/login`, { waitUntil: "networkidle" });
-await page.screenshot({ path: path.join(out, "login.png"), fullPage: true });
+// Role picker
+await page.goto(`${base}/welcome`, { waitUntil: "networkidle" });
+await page.screenshot({ path: path.join(out, "welcome.png"), fullPage: true });
 
-// Sign in
-await page.fill("#email", "commander@astra.space");
-await page.fill("#password", "astra-demo");
+// Enter the astronaut view
 await Promise.all([
   page.waitForURL(`${base}/`, { timeout: 15000 }),
-  page.click("button[type=submit]"),
+  page.getByRole("button", { name: "Enter flight deck" }).click(),
 ]);
 await page.waitForTimeout(5500);
 await page.screenshot({ path: path.join(out, "shell.png"), fullPage: true });
@@ -325,31 +323,13 @@ await page.keyboard.press("Escape");
 await page.waitForTimeout(200);
 check("mobile drawer closes on Escape", (await page.locator("[role=dialog]").count()) === 0);
 
-// Refresh-token recovery: valid refresh token, corrupt access token.
-await page.setViewportSize({ width: 1440, height: 1000 });
-await page.evaluate(() => localStorage.setItem("astra.access_token", "invalid-token"));
+// The selected role persists across reloads without credentials.
 await page.goto(`${base}/`, { waitUntil: "networkidle" });
-await page.waitForTimeout(2500);
+await page.waitForTimeout(1800);
 body = await page.textContent("body");
-check("refresh-token recovery", page.url() === `${base}/` && Boolean(body?.includes("Readiness")));
+check("role persistence", page.url() === `${base}/` && Boolean(body?.includes("Readiness")));
 
-// Expired session: both tokens invalid, expect a single redirect to /login.
-await page.evaluate(() => {
-  localStorage.setItem("astra.access_token", "invalid");
-  localStorage.setItem("astra.refresh_token", "invalid");
-});
-await page.goto(`${base}/`, { waitUntil: "networkidle" });
-await page.waitForURL("**/login", { timeout: 10000 });
-check("expired session redirect", page.url().endsWith("/login"));
 
-// Sign in again, then exercise the Systems Check and report.
-await page.fill("#email", "commander@astra.space");
-await page.fill("#password", "astra-demo");
-await Promise.all([
-  page.waitForURL(`${base}/`, { timeout: 15000 }),
-  page.click("button[type=submit]"),
-]);
-await page.waitForTimeout(800);
 
 await page.goto(`${base}/check-in`, { waitUntil: "networkidle" });
 await page.waitForTimeout(700);
@@ -545,9 +525,11 @@ if (process.env.ASTRA_TEST_PWA === "1") {
   await page.waitForTimeout(800);
 }
 
-await page.click("button[aria-label='Sign out']");
-await page.waitForURL("**/login", { timeout: 10000 });
-check("logout", page.url().endsWith("/login"));
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.waitForTimeout(400);
+await page.click("button[aria-label='Switch role']");
+await page.waitForURL("**/welcome", { timeout: 10000 });
+check("switch role", page.url().endsWith("/welcome"));
 
 check("no unexpected console errors", errors.length === 0);
 if (errors.length) console.error(errors);

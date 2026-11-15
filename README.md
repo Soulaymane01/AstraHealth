@@ -6,9 +6,7 @@
 
 > **Live demo:** <https://astrahealth-gamma.vercel.app>
 >
-> Astronaut: `commander@astra.space` · Surgeon: `surgeon@astra.space` · Password: `astra-demo`
->
-> Or use the one-click **Astronaut demo** / **Surgeon demo** buttons on the login page; no password required.
+> On arrival, choose **Astronaut** or **Flight Surgeon**. There is no account, email, or password.
 >
 > Hosted on Vercel with Neon Postgres. The first request after idle may take a few seconds while the serverless API warms up.
 
@@ -81,7 +79,7 @@
 | Data | TanStack Query, typed client generated from OpenAPI |
 | Backend | FastAPI, Pydantic v2, SQLAlchemy 2, Alembic |
 | Database | PostgreSQL 16 (Docker or Podman) |
-| Auth | JWT access + refresh, Argon2 |
+| Session | Role picker + `X-Astra-Role` header; no accounts or passwords |
 | Client | `openapi-typescript` types + `openapi-fetch` |
 | Camera | MediaPipe Tasks Vision |
 | PWA | `vite-plugin-pwa` (Workbox), IndexedDB via `idb` |
@@ -105,7 +103,7 @@ make start
 
 Prefer separate terminals? Use `make db`, then `make api` and `make web` in two shells.
 
-Open **http://localhost:5173** — sign in with a demo account. The shell shows a **Demo** badge for the seeded mission. Signing in as `surgeon@astra.space` opens the Earth-side clinical console at `/surgeon`; the crew accounts open the Flight Deck. The styleguide is hidden in demo mode; set `VITE_DEMO_MODE=false` and restart Vite to expose `/styleguide`.
+Open **http://localhost:5173** — choose **Astronaut** or **Flight Surgeon** on the welcome screen. The shell shows a **Demo** badge for the seeded mission. The astronaut view opens at `/`, and the Earth-side clinical console opens at `/surgeon`. The styleguide is hidden in demo mode; set `VITE_DEMO_MODE=false` and restart Vite to expose `/styleguide`.
 
 ### Demo mode
 
@@ -154,21 +152,18 @@ npm run preview:phone
 cloudflared tunnel --url http://127.0.0.1:4173 --protocol http2
 ```
 
-Open the printed `https://...trycloudflare.com` address on the phone, sign in with `commander@astra.space` / `astra-demo`, then use **Install app** (Android Chrome) or **Share -> Add to Home Screen** (iOS Safari). The tunnel is public while it runs, so stop it with Ctrl+C when finished. `cloudflared` is a separate free tool from Cloudflare; the app itself does not need it.
+Open the printed `https://...trycloudflare.com` address on the phone, choose **Astronaut**, then use **Install app** (Android Chrome) or **Share -> Add to Home Screen** (iOS Safari). The tunnel is public while it runs, so stop it with Ctrl+C when finished. `cloudflared` is a separate free tool from Cloudflare; the app itself does not need it.
 
-### Demo accounts
+### Demo roles
 
-After `make seed` (or `make reset-demo`), use any of these at `POST /auth/login`:
+There are no accounts or passwords. The welcome screen selects one of two seeded identities:
 
-| Account | Role | Use |
+| Role | Seeded identity | Use |
 |---|---|---|
-| `commander@astra.space` | Commander | Primary demo; HRV and sleep anomaly |
-| `pilot@astra.space` | Pilot | Febrile episode; critical alert |
-| `specialist@astra.space` | Specialist | Mood and social withdrawal |
-| `engineer@astra.space` | Engineer | Stable control |
-| `surgeon@astra.space` | Flight Surgeon | Earth-side console; opens at `/surgeon` |
+| Astronaut | Commander Amara Diallo | Flight Deck, Systems Check, readiness, training, Mission Log |
+| Flight Surgeon | Dr. Elena Vasquez | Earth-side clinical console at `/surgeon` |
 
-Password for all demo accounts: `astra-demo`. The surgeon is not a crew member and does not consume a seat in the roster.
+The other crew members are present in the roster and data, but the public demo enters as the commander or the flight surgeon. Use **Switch role** in the sidebar to return to the welcome screen.
 
 ### Ports
 
@@ -196,7 +191,7 @@ Password for all demo accounts: `astra-demo`. The surgeon is not a crew member a
 | `make demo-verify` | Check the scripted crew, readiness, alerts, and content |
 | `make client` | Regenerate the typed API client from OpenAPI |
 | `make test` | Backend tests |
-| `cd frontend && npm run smoke` | Playwright smoke: the full shell, Library, assistant, camera fallback, offline queue, training, and session recovery |
+| `cd frontend && npm run smoke` | Playwright smoke: the full shell, Library, assistant, camera fallback, offline queue, training, and role switching |
 | `npm run build && npx vite preview --port 4173` | Serve the production PWA build locally |
 | `ASTRA_WEB_URL=http://localhost:4173 ASTRA_TEST_PWA=1 npm run smoke` | Run the same smoke suite against the PWA, including an offline shell reload |
 | `make lint` | Ruff + oxlint |
@@ -215,7 +210,7 @@ React 19 PWA (browser)
   └─ MediaPipe FaceLandmarker ── on-device pulse estimate
 
 FastAPI
-  ├─ JWT auth, privacy, rate limits, flight-surgeon role
+  ├─ role header, privacy, flight-surgeon role
   ├─ simulated habitat/suit captures → measurements + provenance
   ├─ Earth-side console → crew record, assessments, instructions
   ├─ readiness engine + hard rules + alert lifecycle
@@ -251,9 +246,9 @@ AstraHealth provides guidance, not diagnosis. Red-flag findings always route to 
 
 AstraHealth is an independent team project for the 2026 NASA Space Apps Challenge. It is not a NASA product and is not endorsed by NASA.
 
-### Local security model
+### Demo session model
 
-The runtime is a single-user local deployment. JWTs are stored in `localStorage`, and the cached profile is used only to render the shell when the API is unreachable. The flight-surgeon role is separate and role-guarded; it intentionally sees all crew clinical data, while `share_status` only controls what crewmates can see in the peer roster. For offline viewing, the last readiness/alerts/mission snapshot is cached per user in `localStorage` and cleared on logout; it is never shared between accounts, and the service worker still does not cache API responses. Auth endpoints are rate-limited per client and email; CORS allows only the documented local origins. A public deployment should move tokens and clinical cache to secure, encrypted storage, terminate TLS, and put the API behind a real rate limiter.
+The runtime is a public demo with no accounts, passwords, or tokens. The welcome screen stores `astra.role` in `localStorage`, and every API request sends it as `X-Astra-Role`. The backend maps `astronaut` to the seeded commander and `surgeon` to the seeded flight surgeon. The flight-surgeon role is separate and role-guarded; it intentionally sees all crew clinical data, while `share_status` controls what crewmates can see in the peer roster. The cached profile and last readiness/alerts/mission snapshot are cleared when switching roles. A real deployment should replace the role header with an identity provider, terminate TLS, and add a shared rate limiter.
 
 ---
 

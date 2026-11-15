@@ -1,5 +1,7 @@
 # AstraHealth — Product & Engineering Audit
 
+> **Historical audit.** The login/account flow has since been removed in favor of the public **Astronaut / Flight Surgeon** role picker. See `docs/COMPLIANCE.md` for current submission status.
+
 **Date:** 2026-11-14
 **Scope:** full repository (`backend/`, `frontend/`, `docs/`, seed/demo, tests) and the running app.
 **Method:** code review, live API probing, Playwright checks, axe-core WCAG scan, Lighthouse on the production build, and the project's own `make check` + smoke suite. No source files were modified.

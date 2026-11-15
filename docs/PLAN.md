@@ -1,5 +1,7 @@
 # AstraHealth — Build Plan
 
+> **Historical build plan.** The authentication phase described below was replaced by the public **Astronaut / Flight Surgeon** role picker. See the README, `docs/API.md`, and `docs/COMPLIANCE.md` for current behavior.
+
 **Concept:** *You are the spacecraft.* A flight-deck style health monitor for astronauts on long-duration missions.
 **Executor:** coding agent.
 **Reviewer:** project owner (guidance, verification, acceptance).

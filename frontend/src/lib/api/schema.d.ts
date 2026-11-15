@@ -4,57 +4,6 @@
  */
 
 export interface paths {
-    "/auth/register": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Register */
-        post: operations["register_auth_register_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/login": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Login */
-        post: operations["login_auth_login_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/auth/refresh": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Refresh */
-        post: operations["refresh_auth_refresh_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/me": {
         parameters: {
             query?: never;
@@ -1517,16 +1466,6 @@ export interface components {
             /** Status */
             status?: string | null;
         };
-        /** LoginRequest */
-        LoginRequest: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Password */
-            password: string;
-        };
         /** MeasurementBatchCreate */
         MeasurementBatchCreate: {
             /** Measurements */
@@ -1988,23 +1927,6 @@ export interface components {
             /** Upper */
             upper: number | null;
         };
-        /** RefreshRequest */
-        RefreshRequest: {
-            /** Refresh Token */
-            refresh_token: string;
-        };
-        /** RegisterRequest */
-        RegisterRequest: {
-            /**
-             * Email
-             * Format: email
-             */
-            email: string;
-            /** Password */
-            password: string;
-            /** Full Name */
-            full_name: string;
-        };
         /** SpaceWeatherEventRead */
         SpaceWeatherEventRead: {
             /** Event Id */
@@ -2372,19 +2294,6 @@ export interface components {
             /** Status */
             status?: string | null;
         };
-        /** TokenResponse */
-        TokenResponse: {
-            /** Access Token */
-            access_token: string;
-            /** Refresh Token */
-            refresh_token: string;
-            /**
-             * Token Type
-             * @default bearer
-             */
-            token_type: string;
-            user: components["schemas"]["UserRead"];
-        };
         /** TrainingItemRead */
         TrainingItemRead: {
             /** Code */
@@ -2580,8 +2489,6 @@ export interface components {
         UserRead: {
             /** Id */
             id: number;
-            /** Email */
-            email: string;
             /** Full Name */
             full_name: string;
             /** Role */
@@ -2627,109 +2534,12 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    register_auth_register_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RegisterRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    login_auth_login_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["LoginRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    refresh_auth_refresh_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RefreshRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TokenResponse"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     read_me_me_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2744,12 +2554,23 @@ export interface operations {
                     "application/json": components["schemas"]["UserRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     update_me_me_patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2782,7 +2603,9 @@ export interface operations {
     read_privacy_me_privacy_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2797,12 +2620,23 @@ export interface operations {
                     "application/json": components["schemas"]["PrivacyRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     update_privacy_me_privacy_patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2835,7 +2669,9 @@ export interface operations {
     read_surgeon_updates_me_surgeon_updates_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2850,12 +2686,23 @@ export interface operations {
                     "application/json": components["schemas"]["SurgeonUpdatesRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     acknowledge_surgeon_instruction_me_surgeon_updates__instruction_id__ack_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 instruction_id: number;
             };
@@ -2919,7 +2766,9 @@ export interface operations {
             query?: {
                 days?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 code: string;
             };
@@ -2950,7 +2799,9 @@ export interface operations {
     read_capture_feed_captures_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2965,12 +2816,23 @@ export interface operations {
                     "application/json": components["schemas"]["CaptureFeedRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     simulate_sensor_capture_captures_simulate_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -2983,6 +2845,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["CaptureFeedRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -2992,7 +2863,9 @@ export interface operations {
             query?: {
                 days?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 domain: string;
             };
@@ -3029,7 +2902,9 @@ export interface operations {
                 limit?: number;
                 offset?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3058,7 +2933,9 @@ export interface operations {
     create_measurement_measurements_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3091,7 +2968,9 @@ export interface operations {
     create_measurements_measurements_batch_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3127,7 +3006,9 @@ export interface operations {
                 limit?: number;
                 offset?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3156,7 +3037,9 @@ export interface operations {
     create_checkin_checkins_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3189,7 +3072,9 @@ export interface operations {
     get_checkin_checkins__checkin_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 checkin_id: number;
             };
@@ -3220,7 +3105,9 @@ export interface operations {
     get_checkin_report_checkins__checkin_id__report_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 checkin_id: number;
             };
@@ -3251,7 +3138,9 @@ export interface operations {
     read_mission_mission_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3266,12 +3155,23 @@ export interface operations {
                     "application/json": components["schemas"]["MissionRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     update_mission_profile_mission_profile_patch: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3304,7 +3204,9 @@ export interface operations {
     read_mission_context_mission_context_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3319,6 +3221,15 @@ export interface operations {
                     "application/json": components["schemas"]["MissionContextRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_mission_tape_mission_tape_get: {
@@ -3326,7 +3237,9 @@ export interface operations {
             query?: {
                 days?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3358,7 +3271,9 @@ export interface operations {
                 limit?: number;
                 offset?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3387,7 +3302,9 @@ export interface operations {
     read_readiness_readiness_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3402,6 +3319,15 @@ export interface operations {
                     "application/json": components["schemas"]["ReadinessSnapshotRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     readiness_history_readiness_history_get: {
@@ -3410,7 +3336,9 @@ export interface operations {
                 limit?: number;
                 offset?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3439,7 +3367,9 @@ export interface operations {
     compute_readiness_endpoint_readiness_compute_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3454,12 +3384,23 @@ export interface operations {
                     "application/json": components["schemas"]["ReadinessSnapshotRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_domain_detail_readiness_domains__domain__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 domain: string;
             };
@@ -3492,7 +3433,9 @@ export interface operations {
             query?: {
                 status?: string | null;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3521,7 +3464,9 @@ export interface operations {
     acknowledge_alert_alerts__alert_id__ack_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 alert_id: number;
             };
@@ -3552,7 +3497,9 @@ export interface operations {
     read_gamification_summary_gamification_summary_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3567,6 +3514,15 @@ export interface operations {
                     "application/json": components["schemas"]["GamificationSummaryRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_credits_credits_get: {
@@ -3575,7 +3531,9 @@ export interface operations {
                 limit?: number;
                 offset?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3604,7 +3562,9 @@ export interface operations {
     read_achievements_achievements_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3619,12 +3579,23 @@ export interface operations {
                     "application/json": components["schemas"]["AchievementRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_streaks_streaks_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3639,12 +3610,23 @@ export interface operations {
                     "application/json": components["schemas"]["StreakRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_crew_crew_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3659,12 +3641,23 @@ export interface operations {
                     "application/json": components["schemas"]["CrewMemberRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_leaderboard_crew_leaderboard_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3679,12 +3672,23 @@ export interface operations {
                     "application/json": components["schemas"]["CrewLeaderboardEntryRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     list_quizzes_quizzes_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3699,12 +3703,23 @@ export interface operations {
                     "application/json": components["schemas"]["QuizListItemRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_quiz_quizzes__slug__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 slug: string;
             };
@@ -3735,7 +3750,9 @@ export interface operations {
     submit_quiz_quizzes__slug__submit_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 slug: string;
             };
@@ -3772,7 +3789,9 @@ export interface operations {
             query?: {
                 profile?: string | null;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3801,7 +3820,9 @@ export interface operations {
     read_training_plan_training_plan_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3816,6 +3837,15 @@ export interface operations {
                     "application/json": components["schemas"]["TrainingPlanRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_duty_roster_training_roster_get: {
@@ -3823,7 +3853,9 @@ export interface operations {
             query?: {
                 date?: string | null;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3852,7 +3884,9 @@ export interface operations {
     read_training_reminders_training_reminders_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3867,12 +3901,23 @@ export interface operations {
                     "application/json": components["schemas"]["TrainingReminderRead"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     log_training_session_training_sessions_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3967,7 +4012,9 @@ export interface operations {
     read_suggestions_assistant_suggestions_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -3982,12 +4029,23 @@ export interface operations {
                     "application/json": components["schemas"]["AssistantSuggestionRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     ask_assistant_ask_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -4020,7 +4078,9 @@ export interface operations {
     list_crew_surgeon_crew_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -4035,12 +4095,23 @@ export interface operations {
                     "application/json": components["schemas"]["SurgeonCrewSummaryRead"][];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     read_crew_quizzes_surgeon_crew__crew_user_id__quizzes_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4071,7 +4142,9 @@ export interface operations {
     read_crew_quiz_detail_surgeon_crew__crew_user_id__quizzes__slug__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
                 slug: string;
@@ -4103,7 +4176,9 @@ export interface operations {
     read_crew_detail_surgeon_crew__crew_user_id__get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4136,7 +4211,9 @@ export interface operations {
             query?: {
                 days?: number;
             };
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
                 code: string;
@@ -4168,7 +4245,9 @@ export interface operations {
     simulate_crew_capture_surgeon_crew__crew_user_id__captures_simulate_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4199,7 +4278,9 @@ export interface operations {
     create_assessment_surgeon_crew__crew_user_id__assessments_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4234,7 +4315,9 @@ export interface operations {
     create_instruction_surgeon_crew__crew_user_id__instructions_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4269,7 +4352,9 @@ export interface operations {
     acknowledge_crew_alert_surgeon_crew__crew_user_id__alerts__alert_id__ack_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
                 alert_id: number;
@@ -4301,7 +4386,9 @@ export interface operations {
     read_crew_prediction_surgeon_crew__crew_user_id__prediction_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4332,7 +4419,9 @@ export interface operations {
     ask_surgeon_assistant_surgeon_crew__crew_user_id__assistant_post: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };
@@ -4367,7 +4456,9 @@ export interface operations {
     read_crew_updates_surgeon_crew__crew_user_id__updates_get: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                "X-Astra-Role"?: string | null;
+            };
             path: {
                 crew_user_id: number;
             };

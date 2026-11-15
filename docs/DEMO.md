@@ -1,7 +1,7 @@
 # Demo Script
 
 **Length:** about three minutes.
-**Setup:** `make reset-demo` rebuilds the scripted state and `make demo-verify` checks it. The login page also has one-click **Astronaut demo** and **Surgeon demo** buttons, so no password is required for judging. The demo account is the mission commander, 42 days into a Mars transit. The sidebar carries a **Demo** badge; this build hides the developer styleguide.
+**Setup:** `make reset-demo` rebuilds the scripted state and `make demo-verify` checks it. Open the welcome screen and choose **Astronaut** or **Flight Surgeon**; there are no accounts or passwords. The demo identity is the mission commander, 42 days into a Mars transit. The sidebar carries a **Demo** badge; this build hides the developer styleguide.
 
 ---
 
@@ -71,12 +71,12 @@ Commander Amara is 42 days into a Mars transit. She feels fine. Her readiness sc
 
 ## Optional extra beats
 
-- **Pilot triage** — sign in as `pilot@astra.space` to show the critical R1 alert, the red **critical alert active** banner, and `/triage`: immediate actions, the active alert, the next comms window, and the copyable handoff summary.
+- **Triage** — open `/triage` to show the ordered immediate actions, active alerts, the next comms window, and the copyable handoff summary.
 - **Environment switch** — as the commander, change **Environment** from Mars transit to Lunar surface. The readiness weights, score, comms delay, and training plan update. Switch back to Mars transit before the main demo.
 - **Calendar and print** — on Training, use **Calendar** to download today’s roster as `.ics`; on a Systems Report, use **Print / Save PDF** or **Export JSON** for the flight-surgeon handoff.
-- **Flight Surgeon console** — sign in as `surgeon@astra.space`. The crew list shows four readiness states and early-warning badges; select the pilot, review the capture and trend, acknowledge the critical alert, and open **Clinical Copilot SI**. Ask **“What is the early-warning risk?”**; the answer names the drivers and cites sources without diagnosing. Ask **“Diagnose the fever and prescribe a dose”** to show the refusal. Save a clinical assessment and send a check-in request. Sign out and sign in as the pilot to see the shared assessment plus the **follow-up** request; use **Start focused check**, complete the step, and the request closes automatically. The surgeon console is at `/surgeon`.
+- **Flight Surgeon console** — use **Switch role → Flight Surgeon**. The crew list shows four readiness states and early-warning badges; select the commander, review the capture and trend, acknowledge an alert, and open **Clinical Copilot SI**. Ask **“What is the early-warning risk?”**; the answer names the drivers and cites sources without diagnosing. Ask **“Diagnose the fever and prescribe a dose”** to show the refusal. Save a clinical assessment and send a check-in request. Use **Switch role → Astronaut** to see the shared assessment plus the **follow-up** request; use **Start focused check**, complete the step, and the request closes automatically. The surgeon console is at `/surgeon`.
 
-## Reset and accounts
+## Reset and roles
 
 ```bash
 make install
@@ -85,14 +85,11 @@ make start-demo
 
 `make start-demo` starts PostgreSQL if needed, applies migrations, rebuilds and verifies the demo state, then runs the API and web app together. Press **Ctrl+C** to stop both servers.
 
-| Account | Role | Use |
+| Role | Seeded identity | Use |
 |---|---|---|
-| `commander@astra.space` | Commander | Primary demo; HRV and sleep anomaly |
-| `pilot@astra.space` | Pilot | Febrile episode; crew comparison |
-| `specialist@astra.space` | Specialist | Neurobehavioral arc |
-| `engineer@astra.space` | Engineer | Stable control |
-| `surgeon@astra.space` | Flight Surgeon | Earth-side console at `/surgeon` |
+| Astronaut | Commander Amara Diallo | Primary demo; HRV and sleep anomaly |
+| Flight Surgeon | Dr. Elena Vasquez | Earth-side console at `/surgeon` |
 
-Password for all demo accounts: `astra-demo`.
+The pilot, specialist, and engineer remain in the seeded roster for crew comparisons. Use **Switch role** to return to the welcome screen.
 
-> These accounts and the seeded telemetry are local development fixtures only.
+> These identities and the seeded telemetry are local development fixtures only.
