@@ -36,13 +36,13 @@
 |---|---|
 | ![Training plan](docs/screenshots/training.png) | ![Countermeasure link](docs/screenshots/training-countermeasure.png) |
 
-| Library | Flight Surgeon |
+| Flight Surgeon | Refusal path |
 |---|---|
-| ![Library](docs/screenshots/library.png) | ![Flight Surgeon](docs/screenshots/assistant.png) |
+| ![Flight Surgeon](docs/screenshots/assistant.png) | ![Refusal path](docs/screenshots/assistant-refusal.png) |
 
-| Offline queue | Offline shell |
-|---|---|
-| ![Offline queue](docs/screenshots/offline-queue.png) | ![Offline shell](docs/screenshots/offline-shell.png) |
+| Offline queue |
+|---|
+| ![Offline queue](docs/screenshots/offline-queue.png) |
 
 ---
 
