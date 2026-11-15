@@ -15,6 +15,7 @@ import type {
   SurgeonCrewDetail,
   SurgeonCrewSummary,
   SurgeonInstruction,
+  SurgeonQuizDetail,
   SurgeonQuizSummary,
   SurgeonUpdates,
 } from "@/lib/api/types";
@@ -93,6 +94,24 @@ export function useSurgeonQuizzes(crewId: number | undefined) {
       return data;
     },
     enabled: Boolean(crewId),
+  });
+}
+
+export function useSurgeonQuizDetail(
+  crewId: number | undefined,
+  slug: string | undefined,
+) {
+  return useQuery({
+    queryKey: queryKeys.surgeonQuizDetail(crewId ?? 0, slug ?? "none"),
+    queryFn: async (): Promise<SurgeonQuizDetail> => {
+      if (!crewId || !slug) throw new Error("No quiz selected.");
+      const { data } = await api.GET("/surgeon/crew/{crew_user_id}/quizzes/{slug}", {
+        params: { path: { crew_user_id: crewId, slug } },
+      });
+      if (!data) throw new Error("Unable to load quiz results.");
+      return data;
+    },
+    enabled: Boolean(crewId && slug),
   });
 }
 

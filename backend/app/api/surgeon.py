@@ -38,10 +38,13 @@ from app.schemas import (
     SurgeonInstructionCreate,
     SurgeonInstructionRead,
     SurgeonMissionRead,
+    SurgeonQuizAttemptDetailRead,
     SurgeonQuizAttemptRead,
+    SurgeonQuizDetailRead,
     SurgeonQuizSummaryRead,
     SurgeonUpdatesRead,
 )
+from app.schemas.quiz import QuizQuestionResultRead
 from app.services.captures import (
     CAPTURE_SOURCES,
     build_capture_feed,
@@ -308,6 +311,111 @@ def read_crew_quizzes(
             )
         )
     return result
+
+
+@router.get(
+    "/crew/{crew_user_id}/quizzes/{slug}",
+    response_model=SurgeonQuizDetailRead,
+)
+def read_crew_quiz_detail(
+    crew_user_id: int,
+    slug: str,
+    _: User = Depends(get_current_surgeon),
+    db: Session = Depends(get_db),
+) -> SurgeonQuizDetailRead:
+    member = _crew_member(db, crew_user_id)
+    quiz = db.scalar(select(Quiz).where(Quiz.slug == slug))
+    if quiz is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Quiz not found"
+        )
+
+    screening = screening_for(quiz.slug)
+    rows = db.execute(
+        select(QuizAttempt, User)
+        .outerjoin(User, QuizAttempt.subject_user_id == User.id)
+        .where(
+            QuizAttempt.user_id == member.id,
+            QuizAttempt.quiz_id == quiz.id,
+        )
+        .order_by(QuizAttempt.completed_at.desc())
+    ).all()
+
+    attempt_items: list[SurgeonQuizAttemptDetailRead] = []
+    for attempt, subject in rows:
+        total_score = severity = severity_label = severity_advice = None
+        self_harm = False
+        questions: list[QuizQuestionResultRead] = []
+        if screening is not None:
+            total_score, band, self_harm = screening_reading(
+                screening, quiz.questions, attempt.answers
+            )
+            severity = band.key
+            severity_label = band.label
+            severity_advice = band.advice
+            if self_harm:
+                severity_advice = (
+                    "The patient reported thoughts of self-harm. Contact the flight "
+                    "surgeon now and follow the mission emergency procedure if there is "
+                    "immediate danger."
+                )
+            for question, selected in zip(
+                quiz.questions, attempt.answers, strict=False
+            ):
+                questions.append(
+                    QuizQuestionResultRead(
+                        id=question["id"],
+                        prompt=question["prompt"],
+                        options=question["options"],
+                        answer_index=-1,
+                        explanation="",
+                        selected_index=selected,
+                        correct=False,
+                        score_value=selected,
+                    )
+                )
+        else:
+            for question, selected in zip(
+                quiz.questions, attempt.answers, strict=False
+            ):
+                answer_index = int(question["answer_index"])
+                questions.append(
+                    QuizQuestionResultRead(
+                        id=question["id"],
+                        prompt=question["prompt"],
+                        options=question["options"],
+                        answer_index=answer_index,
+                        explanation=question.get("explanation", ""),
+                        selected_index=selected,
+                        correct=selected == answer_index,
+                    )
+                )
+
+        attempt_items.append(
+            SurgeonQuizAttemptDetailRead(
+                id=attempt.id,
+                score=attempt.score,
+                total_score=total_score,
+                severity=severity,
+                severity_label=severity_label,
+                severity_advice=severity_advice,
+                self_harm_flag=self_harm,
+                completed_at=attempt.completed_at,
+                subject_name=subject.full_name if subject else None,
+                questions=questions,
+            )
+        )
+
+    return SurgeonQuizDetailRead(
+        slug=quiz.slug,
+        title=quiz.title,
+        mode=quiz.mode,
+        kind="screening" if screening else "knowledge",
+        instrument=screening.instrument if screening else None,
+        max_score=screening.max_score if screening else None,
+        question_count=len(quiz.questions),
+        attempts=attempt_items,
+    )
 
 
 @router.get("/crew/{crew_user_id}", response_model=SurgeonCrewDetailRead)

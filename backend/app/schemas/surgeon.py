@@ -8,6 +8,7 @@ from app.schemas.capture import CaptureFeedRead
 from app.schemas.checkin import CheckinRead
 from app.schemas.metric import MeasurementRead
 from app.schemas.prediction import PredictionRead
+from app.schemas.quiz import QuizQuestionResultRead
 from app.schemas.readiness import ReadinessSnapshotRead
 
 
@@ -131,3 +132,19 @@ class SurgeonQuizSummaryRead(BaseModel):
     latest_self_harm_flag: bool = False
     last_attempted_at: datetime | None
     attempts: list[SurgeonQuizAttemptRead]
+
+
+class SurgeonQuizAttemptDetailRead(SurgeonQuizAttemptRead):
+    severity_advice: str | None = None
+    questions: list[QuizQuestionResultRead]
+
+
+class SurgeonQuizDetailRead(BaseModel):
+    slug: str
+    title: str
+    mode: str
+    kind: str = "knowledge"
+    instrument: str | None = None
+    max_score: int | None = None
+    question_count: int
+    attempts: list[SurgeonQuizAttemptDetailRead]

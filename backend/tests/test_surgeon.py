@@ -100,6 +100,24 @@ def test_surgeon_can_read_crew_quiz_results(
     assert screening["latest_total_score"] == 8
     assert screening["latest_severity"] == "mild"
 
+    knowledge_detail = client.get(
+        f"/surgeon/crew/{test_user.id}/quizzes/know-yourself", headers=headers
+    )
+    assert knowledge_detail.status_code == 200
+    detail_body = knowledge_detail.json()
+    assert detail_body["attempts"][0]["score"] == 80.0
+    assert len(detail_body["attempts"][0]["questions"]) == 5
+    assert detail_body["attempts"][0]["questions"][0]["correct"] is True
+
+    screening_detail = client.get(
+        f"/surgeon/crew/{test_user.id}/quizzes/phq9-depression", headers=headers
+    )
+    assert screening_detail.status_code == 200
+    screening_body = screening_detail.json()
+    assert screening_body["attempts"][0]["total_score"] == 8
+    assert screening_body["attempts"][0]["severity"] == "mild"
+    assert screening_body["attempts"][0]["questions"][0]["score_value"] == 1
+
     forbidden = client.get(
         f"/surgeon/crew/{test_user.id}/quizzes",
         headers={"Authorization": f"Bearer {create_access_token(test_user.id)}"},

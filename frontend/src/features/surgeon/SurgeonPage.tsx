@@ -1,5 +1,6 @@
 import {
   Activity,
+  ArrowRight,
   CalendarClock,
   ChevronLeft,
   ClipboardCheck,
@@ -28,6 +29,7 @@ import { toast } from "sonner";
 import { AnatomyMap } from "@/components/ui/AnatomyMap";
 import { Button } from "@/components/ui/Button";
 import { DomainRail } from "@/components/ui/DomainRail";
+import { DetailSheet } from "@/components/ui/DetailSheet";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
@@ -47,6 +49,7 @@ import {
   useSurgeonCrew,
   useSurgeonDetail,
   useSurgeonPrediction,
+  useSurgeonQuizDetail,
   useSurgeonQuizzes,
   useSurgeonSeries,
 } from "@/features/surgeon/queries";
@@ -58,6 +61,7 @@ import type {
   SurgeonCrewDetail,
   SurgeonCrewSummary,
   SurgeonInstruction,
+  SurgeonQuizDetail,
   TapeEvent,
 } from "@/lib/api/types";
 import { asStatus, STATUS_META, statusFromScore } from "@/lib/status";
@@ -465,6 +469,142 @@ function BodySystemsTab({
   );
 }
 
+function SurgeonQuizDetailSheet({
+  open,
+  onClose,
+  detail,
+  loading,
+  error,
+  onRetry,
+  retrying,
+  fallbackTitle,
+}: {
+  open: boolean;
+  onClose: () => void;
+  detail?: SurgeonQuizDetail;
+  loading: boolean;
+  error: boolean;
+  onRetry: () => void;
+  retrying: boolean;
+  fallbackTitle?: string;
+}) {
+  return (
+    <DetailSheet
+      open={open}
+      onClose={onClose}
+      title={detail?.title ?? fallbackTitle ?? "Quiz results"}
+      subtitle="Read-only results"
+      icon={ClipboardCheck}
+      size="lg"
+    >
+      {loading ? (
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : error || !detail ? (
+        <QueryError
+          title="Quiz results unavailable"
+          message="The detailed quiz results could not be loaded."
+          onRetry={onRetry}
+          retrying={retrying}
+        />
+      ) : (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted">
+            <span className="rounded-full bg-accent-soft px-2 py-0.5 font-semibold uppercase tracking-wide text-accent">
+              {detail.kind === "screening" ? "Screening" : "Knowledge check"}
+            </span>
+            <span>{detail.question_count} questions</span>
+            <span>·</span>
+            <span>
+              {detail.attempts.length} attempt
+              {detail.attempts.length === 1 ? "" : "s"}
+            </span>
+          </div>
+
+          {detail.attempts.length === 0 ? (
+            <p className="rounded-xl bg-surface-muted px-3 py-3 text-[12px] text-muted">
+              This astronaut has not taken this check yet.
+            </p>
+          ) : (
+            detail.attempts.map((attempt, index) => {
+              const screening = detail.kind === "screening";
+              const correct = attempt.questions.filter((question) => question.correct).length;
+              return (
+                <Disclosure
+                  key={attempt.id}
+                  defaultOpen={index === 0}
+                  className="rounded-2xl border border-line bg-surface px-3 py-2.5"
+                  summary={
+                    <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="text-[11px] font-semibold text-ink">
+                        {formatDateTime(attempt.completed_at)}
+                      </span>
+                      {attempt.subject_name && (
+                        <span className="rounded-full bg-surface-muted px-1.5 py-0.5 text-[9px] text-ink-2">
+                          About {attempt.subject_name}
+                        </span>
+                      )}
+                      {attempt.self_harm_flag && (
+                        <span className="rounded-full bg-critical px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                          Self-harm
+                        </span>
+                      )}
+                      <span className="ml-auto shrink-0 text-[10px] font-semibold tabular text-ink">
+                        {screening
+                          ? `${attempt.total_score}/${detail.max_score} · ${attempt.severity_label}`
+                          : `${Math.round(attempt.score)}% · ${correct}/${detail.question_count}`}
+                      </span>
+                    </span>
+                  }
+                  summaryClassName="items-start"
+                  bodyClassName="space-y-2"
+                >
+                  {screening && attempt.severity_advice && (
+                    <p className="rounded-lg bg-surface-muted px-2.5 py-2 text-[10px] leading-relaxed text-ink-2">
+                      {attempt.severity_advice}
+                    </p>
+                  )}
+                  <ol className="space-y-2">
+                    {attempt.questions.map((question, questionIndex) => (
+                      <li
+                        key={question.id}
+                        className="rounded-lg border border-line/70 bg-surface px-2.5 py-2"
+                      >
+                        <p className="text-[10px] font-medium leading-relaxed text-ink">
+                          {questionIndex + 1}. {question.prompt}
+                        </p>
+                        <p className="mt-1 text-[10px] text-ink-2">
+                          Selected:{" "}
+                          <span className="font-medium text-ink">
+                            {question.options[question.selected_index ?? 0] ?? "No answer"}
+                          </span>
+                        </p>
+                        {!screening && !question.correct && (
+                          <p className="text-[10px] text-nominal">
+                            Correct: {question.options[question.answer_index]}
+                          </p>
+                        )}
+                        {!screening && question.explanation && (
+                          <p className="mt-1 text-[9px] leading-relaxed text-muted">
+                            {question.explanation}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                </Disclosure>
+              );
+            })
+          )}
+        </div>
+      )}
+    </DetailSheet>
+  );
+}
+
 function CrewPicker({
   crew,
   onSelect,
@@ -830,6 +970,7 @@ export function SurgeonPage() {
   const [days, setDays] = useState<Days>(30);
   const [captureFilter, setCaptureFilter] = useState<"all" | "capture" | "manual">("all");
   const [showAllCaptures, setShowAllCaptures] = useState(false);
+  const [openQuizSlug, setOpenQuizSlug] = useState<string | null>(null);
   const sidebarCollapsed = useShellStore((state) => state.sidebarCollapsed);
   const toggleSidebar = useShellStore((state) => state.toggleSidebar);
   const [diagnosis, setDiagnosis] = useState("");
@@ -845,6 +986,7 @@ export function SurgeonPage() {
   const seriesQuery = useSurgeonSeries(activeId, metricCode, days);
   const predictionQuery = useSurgeonPrediction(activeId);
   const quizzesQuery = useSurgeonQuizzes(activeId);
+  const quizDetailQuery = useSurgeonQuizDetail(activeId, openQuizSlug ?? undefined);
   const askAssistant = useAskSurgeonAssistant(activeId ?? 0);
   const createAssessment = useCreateAssessment(activeId ?? 0);
   const createInstruction = useCreateInstruction(activeId ?? 0);
@@ -861,6 +1003,7 @@ export function SurgeonPage() {
     setCopilotMessages([{ id: "welcome", role: "assistant", content: COPILOT_WELCOME }]);
     setCopilotDraft("");
     setCopilotSuggestions(DEFAULT_COPILOT_QUESTIONS);
+    setOpenQuizSlug(null);
   }, [activeId]);
 
   const metrics = metricsQuery.data ?? [];
@@ -1020,6 +1163,9 @@ export function SurgeonPage() {
 
   const selfHarmScreen = (quizzesQuery.data ?? []).find(
     (quiz) => quiz.latest_self_harm_flag,
+  );
+  const openQuiz = (quizzesQuery.data ?? []).find(
+    (quiz) => quiz.slug === openQuizSlug,
   );
   const missionLabel = detail?.mission
     ? `${detail.mission.name} · Day ${detail.mission.mission_day}`
@@ -1595,9 +1741,11 @@ export function SurgeonPage() {
                           ? ((latest?.total_score ?? 0) / (quiz.max_score ?? 1)) * 100
                           : (best ?? 0);
                         return (
-                          <article
+                          <button
                             key={quiz.slug}
-                            className="rounded-2xl border border-line bg-surface p-3.5"
+                            type="button"
+                            onClick={() => setOpenQuizSlug(quiz.slug)}
+                            className="rounded-2xl border border-line bg-surface p-3.5 text-left transition-transform duration-150 hover:-translate-y-0.5 hover:border-accent/30 hover:shadow-[0_14px_30px_rgba(10,42,92,0.10)]"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <div className="min-w-0">
@@ -1658,38 +1806,11 @@ export function SurgeonPage() {
                               </p>
                             )}
 
-                            {quiz.attempts.length > 1 && (
-                              <Disclosure
-                                className="mt-2 border-t border-line pt-2"
-                                summary="All attempts"
-                                meta={`${quiz.attempts.length}`}
-                                summaryClassName="text-[10px] font-medium text-accent"
-                              >
-                                <ul className="space-y-1.5">
-                                  {quiz.attempts.map((attempt) => (
-                                    <li
-                                      key={attempt.id}
-                                      className="flex items-center justify-between gap-2 text-[10px]"
-                                    >
-                                      <span className="text-muted">
-                                        {formatDateTime(attempt.completed_at)}
-                                        {!screening && attempt.subject_name
-                                          ? ` · ${attempt.subject_name}`
-                                          : ""}
-                                      </span>
-                                      <span className="font-semibold tabular text-ink">
-                                        {screening
-                                          ? `${attempt.total_score}/${quiz.max_score} · ${
-                                              attempt.severity_label ?? "—"
-                                            }`
-                                          : `${Math.round(attempt.score)}%`}
-                                      </span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </Disclosure>
-                            )}
-                          </article>
+                            <p className="mt-3 flex items-center justify-between border-t border-line pt-2 text-[10px] font-medium text-accent">
+                              Open results
+                              <ArrowRight size={11} aria-hidden />
+                            </p>
+                          </button>
                         );
                       })}
                     </div>
@@ -2055,6 +2176,17 @@ export function SurgeonPage() {
                   </Panel>
                 </div>
               )}
+
+              <SurgeonQuizDetailSheet
+                open={Boolean(openQuizSlug)}
+                onClose={() => setOpenQuizSlug(null)}
+                detail={quizDetailQuery.data}
+                loading={quizDetailQuery.isLoading}
+                error={quizDetailQuery.isError}
+                onRetry={() => void quizDetailQuery.refetch()}
+                retrying={quizDetailQuery.isFetching}
+                fallbackTitle={openQuiz?.title}
+              />
             </>
           )}
           </main>

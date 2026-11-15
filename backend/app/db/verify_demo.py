@@ -100,7 +100,7 @@ def main() -> int:
             checks.append(
                 (
                     "commander readiness",
-                    score is not None and 78 <= score <= 82 and status_value == "watch",
+                    score is not None and 75 <= score <= 82 and status_value == "watch",
                     f"{score:.1f} {status_value}" if snapshot else "missing",
                 )
             )

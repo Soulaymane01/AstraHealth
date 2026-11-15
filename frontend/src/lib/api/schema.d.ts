@@ -824,6 +824,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/surgeon/crew/{crew_user_id}/quizzes/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read Crew Quiz Detail */
+        get: operations["read_crew_quiz_detail_surgeon_crew__crew_user_id__quizzes__slug__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/surgeon/crew/{crew_user_id}": {
         parameters: {
             query?: never;
@@ -2184,6 +2201,35 @@ export interface components {
             /** Comms Delay Min */
             comms_delay_min: number;
         };
+        /** SurgeonQuizAttemptDetailRead */
+        SurgeonQuizAttemptDetailRead: {
+            /** Id */
+            id: number;
+            /** Score */
+            score: number;
+            /** Total Score */
+            total_score?: number | null;
+            /** Severity */
+            severity?: string | null;
+            /** Severity Label */
+            severity_label?: string | null;
+            /**
+             * Self Harm Flag
+             * @default false
+             */
+            self_harm_flag: boolean;
+            /**
+             * Completed At
+             * Format: date-time
+             */
+            completed_at: string;
+            /** Subject Name */
+            subject_name?: string | null;
+            /** Severity Advice */
+            severity_advice?: string | null;
+            /** Questions */
+            questions: components["schemas"]["QuizQuestionResultRead"][];
+        };
         /** SurgeonQuizAttemptRead */
         SurgeonQuizAttemptRead: {
             /** Id */
@@ -2208,6 +2254,28 @@ export interface components {
             completed_at: string;
             /** Subject Name */
             subject_name?: string | null;
+        };
+        /** SurgeonQuizDetailRead */
+        SurgeonQuizDetailRead: {
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+            /** Mode */
+            mode: string;
+            /**
+             * Kind
+             * @default knowledge
+             */
+            kind: string;
+            /** Instrument */
+            instrument?: string | null;
+            /** Max Score */
+            max_score?: number | null;
+            /** Question Count */
+            question_count: number;
+            /** Attempts */
+            attempts: components["schemas"]["SurgeonQuizAttemptDetailRead"][];
         };
         /** SurgeonQuizSummaryRead */
         SurgeonQuizSummaryRead: {
@@ -3982,6 +4050,38 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SurgeonQuizSummaryRead"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    read_crew_quiz_detail_surgeon_crew__crew_user_id__quizzes__slug__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                crew_user_id: number;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SurgeonQuizDetailRead"];
                 };
             };
             /** @description Validation Error */
