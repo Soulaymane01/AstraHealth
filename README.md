@@ -7,6 +7,8 @@
 > Astronaut: `commander@astra.space` · Surgeon: `surgeon@astra.space` · Password: `astra-demo`
 >
 > Hosted on Vercel with Neon Postgres. The first request after idle may take a few seconds while the serverless API warms up.
+>
+> **Demo video:** [Power Astronaut cut](docs/video/AstraHealth-Power-Astronaut.mp4) · [App-only cut](docs/video/AstraHealth-App-Demo.mp4)
 
 > Status: **Phase 11 complete — demo ready.** The app builds from a clean database, `make demo-verify` checks the scripted state, and the three-minute script runs end to end. See [`docs/PLAN.md`](docs/PLAN.md) for the full build plan.
 

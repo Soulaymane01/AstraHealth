@@ -1,0 +1,167 @@
+1
+00:00:00,000 --> 00:00:05,404
+On a mission to Mars, the nearest flight surgeon is
+fourteen minutes away.
+
+2
+00:00:05,484 --> 00:00:09,851
+AstraHealth turns the astronaut into the first line of
+care.
+
+3
+00:00:09,931 --> 00:00:12,080
+Presented by Power Astronaut.
+
+4
+00:00:12,080 --> 00:00:20,337
+Long-duration spaceflight exposes the body to
+radiation, isolation, altered gravity, and a closed
+environment.
+
+5
+00:00:20,417 --> 00:00:26,860
+Astronauts need to notice the subtle changes early,
+and know exactly what to do next.
+
+6
+00:00:26,860 --> 00:00:28,606
+This is the Flight Deck.
+
+7
+00:00:28,686 --> 00:00:34,388
+A readiness score built from six physiological
+domains, not a single number.
+
+8
+00:00:34,468 --> 00:00:37,203
+Amara is forty-two days into transit.
+
+9
+00:00:37,283 --> 00:00:39,637
+Her score is seventy-six: Watch.
+
+10
+00:00:39,717 --> 00:00:46,260
+The factors are visible: sleep efficiency, sleep
+duration, and heart-rate variability.
+
+11
+00:00:46,260 --> 00:00:50,893
+Open the body, and the same story appears in three
+dimensions.
+
+12
+00:00:50,973 --> 00:00:57,130
+Skin, muscle, and skeleton, front and back, with the
+affected system highlighted.
+
+13
+00:00:57,130 --> 00:00:58,975
+Every score is explainable.
+
+14
+00:00:59,055 --> 00:01:06,605
+A twenty-one-day personal baseline, standard-deviation
+factors, and hard rules that never wait for a trend.
+
+15
+00:01:06,685 --> 00:01:12,390
+When the data is insufficient, the app says so instead
+of inventing reassurance.
+
+16
+00:01:12,390 --> 00:01:16,058
+The daily Systems Check is a two-minute ritual.
+
+17
+00:01:16,138 --> 00:01:23,553
+Vitals, load, and sleep arrive automatically from
+simulated habitat sensors, clearly labelled.
+
+18
+00:01:23,633 --> 00:01:27,380
+The astronaut adds mood, symptoms, and context.
+
+19
+00:01:27,380 --> 00:01:37,803
+Submit, and the Systems Report shows what changed,
+why, and the next action: protect the sleep window,
+review hydration, repeat the measurement.
+
+20
+00:01:37,883 --> 00:01:42,040
+The loop closes with a countermeasure, not just a
+number.
+
+21
+00:01:42,040 --> 00:01:49,474
+Consistency is rewarded with mission points, rank,
+streaks, and achievements, never with health readings.
+
+22
+00:01:49,554 --> 00:01:54,420
+The Mission Log records the whole loop and shows the
+next milestone.
+
+23
+00:01:54,420 --> 00:01:57,567
+Mental health is not an afterthought.
+
+24
+00:01:57,647 --> 00:02:07,330
+PHQ-9 and GAD-7 screens live beside the physical
+record, with severity scoring and a self-harm
+escalation path.
+
+25
+00:02:07,330 --> 00:02:11,790
+On Earth, the flight surgeon opens a separate console.
+
+26
+00:02:11,790 --> 00:02:20,875
+She picks an astronaut, sees the same readiness and a
+seventy-two-hour early-warning view, and reads the
+evidence behind the risk.
+
+27
+00:02:20,955 --> 00:02:24,480
+Space weather is mission context, not a diagnosis.
+
+28
+00:02:24,480 --> 00:02:29,868
+The Copilot summarises the record and cites NASA
+human-research guidance.
+
+29
+00:02:29,948 --> 00:02:32,789
+It refuses diagnosis and prescriptions.
+
+30
+00:02:32,869 --> 00:02:39,910
+When a signal crosses a threshold, it creates one
+focused follow-up request for the astronaut.
+
+31
+00:02:39,910 --> 00:02:42,068
+Crew sharing is consent-based.
+
+32
+00:02:42,148 --> 00:02:45,351
+Health values never appear on a leaderboard.
+
+33
+00:02:45,431 --> 00:02:49,310
+And every recommendation is guidance, not diagnosis.
+
+34
+00:02:49,310 --> 00:02:50,397
+AstraHealth.
+
+35
+00:02:50,477 --> 00:02:52,828
+A calmer way to check in.
+
+36
+00:02:52,908 --> 00:02:57,770
+Built by Power Astronaut for NASA Space Apps 2026.
+
