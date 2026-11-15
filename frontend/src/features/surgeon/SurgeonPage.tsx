@@ -36,7 +36,7 @@ import { Panel } from "@/components/ui/Panel";
 import { QueryError } from "@/components/ui/QueryError";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge, StatusPill } from "@/components/ui/Status";
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { useShellStore } from "@/features/shell/shell-store";
 import { MetricChart } from "@/features/telemetry/components/MetricChart";
 import { sourceLabel } from "@/features/telemetry/telemetry-config";
@@ -1009,8 +1009,8 @@ function SurgeonSectionNav({
 }
 
 export function SurgeonPage() {
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const user = useSessionStore((state) => state.user);
+  const logout = useSessionStore((state) => state.logout);
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const crewQuery = useSurgeonCrew();

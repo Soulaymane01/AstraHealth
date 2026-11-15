@@ -33,7 +33,7 @@ import { Sparkline } from "@/components/ui/Sparkline";
 import { PageSkeleton, Skeleton } from "@/components/ui/Skeleton";
 import { StatusBadge, StatusLegend, StatusPill } from "@/components/ui/Status";
 import { useAcknowledgeAlert, useAlerts } from "@/features/alerts/queries";
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { CaptureStrip } from "@/features/captures/CaptureStrip";
 import { useCaptureFeed } from "@/features/captures/queries";
 import { useAchievements, useGamificationSummary } from "@/features/gamification/queries";
@@ -451,7 +451,7 @@ function MomentumCard({
 }
 
 export function FlightDeckPage() {
-  const user = useAuthStore((state) => state.user);
+  const user = useSessionStore((state) => state.user);
   const online = useOfflineStore((state) => state.online);
   const navigate = useNavigate();
   const [selectedDomain, setSelectedDomain] = useState("cardiovascular");
@@ -570,7 +570,7 @@ export function FlightDeckPage() {
       <PagePlaceholder
         icon={Orbit}
         title="No mission assigned"
-        description="Your account is active, but no crew or mission is linked yet. Sign in with a demo account to explore the seeded Mars transit."
+        description="No crew or mission is linked to this view yet. Run make reset-demo to restore the seeded Mars transit."
         phase="Crew assignment"
       />
     );

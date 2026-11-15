@@ -46,10 +46,6 @@ the project. Full transitive dependency manifests are in
 | SQLAlchemy | MIT |
 | psycopg | LGPL-3.0 |
 | Alembic | MIT |
-| PyJWT | MIT |
-| pwdlib | MIT |
-| email-validator | Unlicense |
-| python-multipart | Apache-2.0 |
 | HTTPX | BSD-3-Clause |
 | Faker | MIT |
 

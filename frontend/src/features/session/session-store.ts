@@ -54,13 +54,7 @@ interface SessionState {
 const initialRole = getRole();
 const initialCachedUser = initialRole ? readCachedUser() : null;
 
-let sessionRevalidating = initialCachedUser !== null;
-
-export function isSessionRevalidating(): boolean {
-  return sessionRevalidating;
-}
-
-export const useAuthStore = create<SessionState>((set) => ({
+export const useSessionStore = create<SessionState>((set) => ({
   user: initialCachedUser,
   status: initialCachedUser ? "authenticated" : "idle",
 
@@ -118,27 +112,22 @@ export const useAuthStore = create<SessionState>((set) => ({
       return true;
     };
 
-    sessionRevalidating = true;
+    if (!cached) set({ status: "loading" });
     try {
-      if (!cached) set({ status: "loading" });
-      try {
-        const me = await api.GET("/me");
+      const me = await api.GET("/me");
         if (me.data) {
           writeCachedUser(me.data);
           set({ user: me.data, status: "authenticated" });
           return;
         }
-        if (me.response.status !== 401 && restoreCached()) return;
-      } catch (error) {
-        if (isNetworkError(error) && restoreCached()) return;
-      }
-
-      clearRole();
-      clearCachedUser();
-      clearClinicalCache();
-      set({ user: null, status: "unauthenticated" });
-    } finally {
-      sessionRevalidating = false;
+      if (me.response.status !== 401 && restoreCached()) return;
+    } catch (error) {
+      if (isNetworkError(error) && restoreCached()) return;
     }
+
+    clearRole();
+    clearCachedUser();
+    clearClinicalCache();
+    set({ user: null, status: "unauthenticated" });
   },
 }));

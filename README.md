@@ -66,7 +66,7 @@
 - **Knowledge and SI** — nine HRP-sourced articles with domain filters, inline guidance from metrics, alerts, check-in steps, and training items, and a Flight Surgeon SI drawer that cites its sources, refuses diagnosis, and escalates red flags. Works without an LLM.
 - **Camera pulse** — optional 25-second rPPG measurement with MediaPipe FaceLandmarker, signal-quality gating, and a manual heart-rate field that is always available.
 - **Offline-first PWA** — a Workbox service worker precaches the shell and route chunks, and the last readiness/alerts/mission snapshot is cached per user for offline viewing with a “last synced” label. Check-ins submitted without a link are written to IndexedDB, shown in an explicit offline banner with the next comms window, and synced exactly once on reconnect using the check-in idempotency key. Failed items can be reviewed and discarded.
-- **Hardened delivery** — route-level code splitting, cached auth profile for offline reloads, retryable error panels on every data view, and auth rate limits. Lighthouse on the Flight Deck: 100 performance / 100 accessibility on desktop and 99–100 performance / 100 accessibility on the mobile preset across verification runs.
+- **Hardened delivery** — route-level code splitting, a cached role profile for offline reloads, and retryable error panels on every data view. Lighthouse on the Flight Deck: 100 performance / 100 accessibility on desktop and 99–100 performance / 100 accessibility on the mobile preset across verification runs.
 
 ---
 

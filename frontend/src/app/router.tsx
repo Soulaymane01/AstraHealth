@@ -1,7 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import { RequireAuth } from "@/features/auth/RequireAuth";
-import { RequireSurgeon } from "@/features/auth/RequireSurgeon";
+import { RequireRole } from "@/features/session/RequireRole";
+import { RequireSurgeon } from "@/features/session/RequireSurgeon";
 import { NotFoundPage } from "@/features/shared/NotFoundPage";
 import { FullPageLoader } from "@/features/shared/FullPageLoader";
 import { RouteErrorPage } from "@/features/shared/RouteErrorPage";
@@ -16,7 +16,7 @@ export const router = createBrowserRouter([
     path: "/welcome",
     HydrateFallback: FullPageLoader,
     lazy: async () => ({
-      Component: (await import("@/features/auth/LandingPage")).LandingPage,
+      Component: (await import("@/features/session/LandingPage")).LandingPage,
     }),
   },
   { path: "/login", element: <Navigate to="/welcome" replace /> },
@@ -32,7 +32,7 @@ export const router = createBrowserRouter([
           },
   },
   {
-    element: <RequireAuth />,
+    element: <RequireRole />,
     HydrateFallback: FullPageLoader,
     children: [
       {
@@ -121,7 +121,7 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    element: <RequireAuth />,
+    element: <RequireRole />,
     children: [
       {
         element: <RequireSurgeon />,

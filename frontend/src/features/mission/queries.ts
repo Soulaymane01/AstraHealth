@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { readClinical, writeClinical } from "@/features/offline/clinical-cache";
 import { api } from "@/lib/api/client";
 import type { LogEvent, Mission, MissionContext, TapeEvent } from "@/lib/api/types";
@@ -16,7 +16,7 @@ export async function fetchMission(): Promise<Mission | null> {
 }
 
 export function useMission() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<Mission | null>(userId, "mission");
   return useQuery({
     queryKey: queryKeys.mission,
@@ -56,7 +56,7 @@ export async function fetchMissionContext(): Promise<MissionContext> {
 }
 
 export function useMissionContext() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<MissionContext>(userId, "mission-context");
   return useQuery({
     queryKey: queryKeys.missionContext,
@@ -79,7 +79,7 @@ export async function fetchMissionTape(days: number): Promise<TapeEvent[]> {
 }
 
 export function useMissionTape(days: number) {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<TapeEvent[]>(userId, `mission-tape-${days}`);
   return useQuery({
     queryKey: queryKeys.missionTape(days),
@@ -94,7 +94,7 @@ export function useMissionTape(days: number) {
 }
 
 export function useMissionLog(limit = 50) {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<LogEvent[]>(userId, `mission-log-${limit}`);
   return useQuery({
     queryKey: queryKeys.missionLog,

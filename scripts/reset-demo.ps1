@@ -33,5 +33,5 @@ finally {
 Write-Host ""
 Write-Host "Demo data reset and verified." -ForegroundColor Green
 Write-Host "Now double-click 'Start AstraHealth.bat' to launch the app." -ForegroundColor Yellow
-Write-Host "Login: commander@astra.space / astra-demo" -ForegroundColor White
+Write-Host "Open http://localhost:5173 and choose Astronaut or Flight Surgeon." -ForegroundColor White
 Write-Host ""

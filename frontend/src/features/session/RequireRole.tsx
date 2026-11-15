@@ -2,10 +2,10 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { FullPageLoader } from "@/features/shared/FullPageLoader";
 
-import { useAuthStore } from "./auth-store";
+import { useSessionStore } from "./session-store";
 
-export function RequireAuth() {
-  const status = useAuthStore((state) => state.status);
+export function RequireRole() {
+  const status = useSessionStore((state) => state.status);
   const location = useLocation();
 
   if (status === "idle" || status === "loading") {

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { readClinical, writeClinical } from "@/features/offline/clinical-cache";
 import { api } from "@/lib/api/client";
 import type { DomainDetail, Readiness } from "@/lib/api/types";
@@ -14,7 +14,7 @@ export async function fetchReadiness(): Promise<Readiness | null> {
 }
 
 export function useReadiness() {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<Readiness | null>(userId, "readiness");
   return useQuery({
     queryKey: queryKeys.readiness,
@@ -29,7 +29,7 @@ export function useReadiness() {
 }
 
 export function useReadinessHistory(limit = 2) {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<Readiness[]>(userId, `readiness-history-${limit}`);
   return useQuery({
     queryKey: queryKeys.readinessHistory(limit),
@@ -47,7 +47,7 @@ export function useReadinessHistory(limit = 2) {
 }
 
 export function useDomainDetail(domain: string | null) {
-  const userId = useAuthStore((state) => state.user?.id);
+  const userId = useSessionStore((state) => state.user?.id);
   const cached = readClinical<DomainDetail>(userId, `domain-${domain ?? "none"}`);
   return useQuery({
     queryKey: queryKeys.readinessDomain(domain ?? "none"),

@@ -6,11 +6,11 @@ import { Toaster } from "sonner";
 import { AppErrorBoundary } from "@/app/AppErrorBoundary";
 import { queryClient } from "@/app/query-client";
 import { router } from "@/app/router";
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { OfflineProvider } from "@/features/offline/OfflineProvider";
 
 export function App() {
-  const bootstrap = useAuthStore((state) => state.bootstrap);
+  const bootstrap = useSessionStore((state) => state.bootstrap);
   const bootstrapped = useRef(false);
 
   useEffect(() => {

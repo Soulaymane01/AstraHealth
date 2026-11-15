@@ -1,9 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 
 export function RequireSurgeon() {
-  const user = useAuthStore((state) => state.user);
+  const user = useSessionStore((state) => state.user);
 
   if (user?.role !== "flight_surgeon") {
     return <Navigate to="/" replace />;

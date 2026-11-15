@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { useOfflineStore } from "@/features/offline/store";
 
 export function OfflineProvider() {
@@ -35,7 +35,7 @@ export function OfflineProvider() {
     window.addEventListener("offline", onOffline);
     document.addEventListener("visibilitychange", onVisible);
 
-    const unsubscribeAuth = useAuthStore.subscribe((state, previous) => {
+    const unsubscribeAuth = useSessionStore.subscribe((state, previous) => {
       if (state.user?.id !== previous.user?.id) void settle();
     });
 

@@ -411,8 +411,7 @@ await page.screenshot({ path: path.join(out, "report.png"), fullPage: true });
 
 // Camera-source metadata survives the check-in pipeline.
 const cameraMeta = await page.evaluate(async () => {
-  const token = localStorage.getItem("astra.access_token");
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
+  const headers = { "Content-Type": "application/json", "X-Astra-Role": "astronaut" };
   const created = await fetch("http://localhost:8000/checkins", {
     method: "POST",
     headers,
@@ -490,9 +489,8 @@ await page.waitForTimeout(1500);
 body = await page.textContent("body");
 check("offline banner clears after sync", !body?.includes("waiting to sync"));
 const offlineSynced = await page.evaluate(async (marker) => {
-  const token = localStorage.getItem("astra.access_token");
   const response = await fetch("http://localhost:8000/checkins?limit=100", {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { "X-Astra-Role": "astronaut" },
   });
   const checkins = await response.json();
   return checkins.filter((checkin) => (checkin.notes ?? "").includes(marker)).length;

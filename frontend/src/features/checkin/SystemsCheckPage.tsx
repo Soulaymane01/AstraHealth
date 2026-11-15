@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/Button";
 import { Disclosure } from "@/components/ui/Disclosure";
 import { Panel } from "@/components/ui/Panel";
 import { Spinner } from "@/components/ui/Spinner";
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { PulseCamera } from "@/features/camera/PulseCamera";
 import { captureSourceLabel, isCaptureSource } from "@/features/captures/labels";
 import { useCaptureFeed } from "@/features/captures/queries";
@@ -82,7 +82,7 @@ function groupFields(fields: MetricField[]): { section: string; fields: MetricFi
 
 export function SystemsCheckPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user } = useSessionStore();
   const createCheckin = useCreateCheckin();
   const reduce = useReducedMotion();
   const online = useOfflineStore((state) => state.online);

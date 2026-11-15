@@ -67,7 +67,6 @@ Deploy:
 cd backend
 vercel link --yes --project astrahealth-api
 vercel env add DATABASE_URL --environment production --value 'postgresql+psycopg://...' --yes
-vercel env add JWT_SECRET --environment production --value "$(openssl rand -hex 32)" --yes
 vercel env add ENVIRONMENT --environment production --value production --yes
 vercel env add CORS_ORIGINS --environment production --value '["https://your-frontend.vercel.app"]' --yes
 vercel env add NASA_API_KEY --environment production --value 'YOUR_NASA_KEY' --yes
@@ -191,7 +190,6 @@ Enable free SSL in Hostinger, then add `https://your-domain` to
 | Variable | Where | Value |
 |---|---|---|
 | `DATABASE_URL` | Vercel backend | Neon pooled URL with `postgresql+psycopg://` |
-| `JWT_SECRET` | Vercel backend | `openssl rand -hex 32` |
 | `ENVIRONMENT` | Vercel backend | `production` |
 | `CORS_ORIGINS` | Vercel backend | JSON array of allowed frontend origins |
 | `NASA_API_KEY` | Vercel backend | Optional; free key from <https://api.nasa.gov> |
@@ -217,10 +215,10 @@ Re-run the seed against Neon before judging if the demo has aged.
 ## Post-deploy checklist
 
 - [ ] `https://<api>/health` returns 200.
-- [ ] Login works for `commander@astra.space` / `astra-demo`.
+- [ ] The welcome screen offers **Astronaut** and **Flight Surgeon**; both open.
 - [ ] Flight Deck shows readiness around 80 / Watch and two alerts.
 - [ ] Direct links `/log`, `/check-in`, and `/surgeon` do not 404.
-- [ ] Surgeon login works and the astronaut picker loads.
+- [ ] The surgeon view opens and the astronaut picker loads.
 - [ ] 3D body models load; the 2D fallback appears if WebGL fails.
 - [ ] Browser console has no CORS or mixed-content errors.
 - [ ] The demo has been re-seeded against Neon before judging.
@@ -234,9 +232,9 @@ Re-run the seed against Neon before judging if the demo has aged.
 `https://` and no trailing slash. It is a JSON array, not a comma-separated
 string.
 
-**Login works but every request 401s.** Check that the frontend was built with
-the correct `VITE_API_URL`, and that the backend's `JWT_SECRET` has not changed
-between deploys. Changing the secret invalidates existing tokens.
+**A view does not open but the API is healthy.** Confirm the frontend was built
+with the correct `VITE_API_URL`, that the browser is sending `X-Astra-Role`, and
+that `make reset-demo` has been run against the deployed database.
 
 **Database connection errors.** Use the Neon pooled host for Vercel and keep
 `?sslmode=require`. Make sure the URL starts with `postgresql+psycopg://`.

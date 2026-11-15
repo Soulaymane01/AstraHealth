@@ -2,7 +2,7 @@ import { Download, LogOut, Orbit, Palette } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { toast } from "sonner";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { usePwaInstall } from "@/features/pwa/usePwaInstall";
 import { DEMO_MODE } from "@/lib/demo";
 import { NAV_ITEMS } from "@/features/shell/nav";
@@ -16,8 +16,8 @@ export function NavContent({
   onNavigate?: () => void;
   collapsed?: boolean;
 }) {
-  const user = useAuthStore((state) => state.user);
-  const logout = useAuthStore((state) => state.logout);
+  const user = useSessionStore((state) => state.user);
+  const logout = useSessionStore((state) => state.logout);
   const reminders = useTrainingReminders();
   const { canInstall, install } = usePwaInstall();
   const dueCount = reminders.data?.due_count ?? 0;

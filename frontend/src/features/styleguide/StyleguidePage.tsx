@@ -711,7 +711,7 @@ export function StyleguidePage() {
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-3">
               <p className="text-sm text-ink-2">
-                Next: Phase 1 — persistence, authentication, and the seeded crew.
+                Next: Phase 1 — persistence, role selection, and the seeded crew.
               </p>
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-accent">
                 Awaiting sign-off

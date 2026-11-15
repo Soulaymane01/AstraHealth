@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import type { CheckinPayload } from "@/features/checkin/checkin-form";
 import { enqueueCheckin } from "@/features/offline/queue";
 import { useOfflineStore } from "@/features/offline/store";
@@ -27,8 +27,8 @@ export function useCreateCheckin() {
   return useMutation({
     networkMode: "always",
     mutationFn: async (payload: CheckinPayload): Promise<CreateCheckinResult> => {
-      const userId = useAuthStore.getState().user?.id;
-      if (!userId) throw new Error("Sign in again to save the check-in.");
+      const userId = useSessionStore.getState().user?.id;
+      if (!userId) throw new Error("Switch to the astronaut view to save the check-in.");
 
       const offline =
         !useOfflineStore.getState().online ||
@@ -50,7 +50,7 @@ export function useCreateCheckin() {
         return queueCheckin(userId, payload);
       }
       if (status === 401) {
-        throw new Error("Your session expired. Sign in again to submit the check-in.");
+        throw new Error("Switch back to the astronaut view to submit the check-in.");
       }
       if (status === 422) {
         throw new Error("Check the readings and try again.");

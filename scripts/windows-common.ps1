@@ -158,7 +158,7 @@ function Write-SuccessBanner {
     Write-Host "  Web    http://localhost:5173" -ForegroundColor White
     Write-Host "  API    http://localhost:8000" -ForegroundColor White
     Write-Host "  Docs   http://localhost:8000/docs" -ForegroundColor White
-    Write-Host "  Login  commander@astra.space / astra-demo" -ForegroundColor White
+    Write-Host "  Open   http://localhost:5173 and choose Astronaut or Flight Surgeon" -ForegroundColor White
     Write-Host ""
     Write-Host "Two server windows are open: 'AstraHealth API' and 'AstraHealth Web'." -ForegroundColor Yellow
     Write-Host "Keep them open while you use the app." -ForegroundColor Yellow

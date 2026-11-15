@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { create } from "zustand";
 
 import { queryClient } from "@/app/query-client";
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { discardFailedCheckins, listQueuedCheckins } from "@/features/offline/queue";
 import { syncQueuedCheckins } from "@/features/offline/sync";
 
@@ -43,7 +43,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
   setOnline: (online) => set({ online }),
 
   refresh: async () => {
-    const userId = useAuthStore.getState().user?.id;
+    const userId = useSessionStore.getState().user?.id;
     if (!userId) {
       set({ pending: 0, failed: 0 });
       return;
@@ -61,7 +61,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
 
   sync: async () => {
     if (get().syncing) return;
-    const userId = useAuthStore.getState().user?.id;
+    const userId = useSessionStore.getState().user?.id;
     if (!userId) return;
 
     if (typeof navigator !== "undefined" && !navigator.onLine) {
@@ -89,7 +89,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
         );
       }
       if (result.stoppedByAuth) {
-        set({ lastError: "Sign in again to sync queued check-ins." });
+        set({ lastError: "Switch back to the astronaut view to sync queued check-ins." });
       } else if (result.stoppedByNetwork) {
         set({ lastError: "Waiting for a connection." });
       } else if (result.remaining > 0) {
@@ -106,7 +106,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
   },
 
   discardFailed: async () => {
-    const userId = useAuthStore.getState().user?.id;
+    const userId = useSessionStore.getState().user?.id;
     if (!userId) return;
     const count = await discardFailedCheckins(userId);
     if (count > 0) {

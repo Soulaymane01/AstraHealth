@@ -2,15 +2,15 @@ import { ArrowRight, Orbit, ShieldCheck, Stethoscope } from "lucide-react";
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 
-import { useAuthStore } from "@/features/auth/auth-store";
+import { useSessionStore } from "@/features/session/session-store";
 import { isFlightSurgeon } from "@/lib/roles";
 
 type Role = "astronaut" | "surgeon";
 
 export function LandingPage() {
-  const status = useAuthStore((state) => state.status);
-  const user = useAuthStore((state) => state.user);
-  const selectRole = useAuthStore((state) => state.setRole);
+  const status = useSessionStore((state) => state.status);
+  const user = useSessionStore((state) => state.user);
+  const selectRole = useSessionStore((state) => state.setRole);
   const navigate = useNavigate();
   const [loading, setLoading] = useState<Role | null>(null);
   const [error, setError] = useState<string | null>(null);

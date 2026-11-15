@@ -429,7 +429,7 @@ When `LLM_PROVIDER=openai`, the prompt includes metrics and alerts and is sent t
 
 1. **Reset:** `make reset-demo && make demo-verify` — confirm day 42, commander 78.5 Watch, two alerts.
 2. **Start:** `make start` (or open the hosted URL). Confirm `/health` and the web app.
-3. **Login:** `commander@astra.space` / `astra-demo`.
+3. **Role:** open `/welcome` and choose **Astronaut**.
 4. **Do not run the smoke suite after reset** — it creates check-ins and redeems rewards.
 5. **Browser:** Chrome, 100% zoom, 1440×900. If demoing mobile, use 390 px only after the overflow fix.
 6. **Fallback:** keep the screenshots and a recorded video ready; the app works without NASA/LLM keys.

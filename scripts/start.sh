@@ -161,7 +161,7 @@ AstraHealth is running.
   Web   $WEB_URL
   API   $API_URL
   Docs  $API_URL/docs
-  Login commander@astra.space / astra-demo
+  Choose Astronaut or Flight Surgeon at http://localhost:5173
 
 Press Ctrl+C to stop both servers. PostgreSQL keeps running in the background.
 EOF

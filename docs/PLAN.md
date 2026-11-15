@@ -1,7 +1,5 @@
 # AstraHealth — Build Plan
 
-> **Historical build plan.** The authentication phase described below was replaced by the public **Astronaut / Flight Surgeon** role picker. See the README, `docs/API.md`, and `docs/COMPLIANCE.md` for current behavior.
-
 **Concept:** *You are the spacecraft.* A flight-deck style health monitor for astronauts on long-duration missions.
 **Executor:** coding agent.
 **Reviewer:** project owner (guidance, verification, acceptance).
@@ -95,7 +93,7 @@ Calm clinical. A light, low-density interface — not a dark console.
 | API client | Generated from FastAPI OpenAPI via `openapi-typescript` + `openapi-fetch` |
 | Backend | FastAPI, Pydantic v2, SQLAlchemy 2.0 (sync sessions), Alembic |
 | Database | PostgreSQL 16 in Docker |
-| Auth | JWT access + refresh, PyJWT, pwdlib with Argon2 |
+| Session | Role picker + `X-Astra-Role` header; no accounts |
 | Camera | MediaPipe Tasks Vision (FaceLandmarker, WASM) |
 | PWA | vite-plugin-pwa, IndexedDB via `idb` |
 | Testing | Pytest (engine and rules), Vitest (pure utils) |
@@ -115,9 +113,6 @@ Optional compose profile runs all three services. Default local workflow uses ho
 
 ```
 DATABASE_URL=postgresql+psycopg://astra:astra@localhost:5432/astrahealth
-JWT_SECRET=change-me
-JWT_ACCESS_MINUTES=30
-JWT_REFRESH_DAYS=14
 NASA_API_KEY=            # optional; fixtures used when empty
 LLM_PROVIDER=none        # none | openai | anthropic | gemini | opencode
 LLM_API_KEY=
@@ -137,7 +132,7 @@ Both deferred integrations must degrade gracefully: absence of a key is a suppor
 AstraHealth/
 ├── backend/
 │   ├── app/
-│   │   ├── api/            # routers: auth, me, crew, metrics, measurements,
+│   │   ├── api/            # routers: me, crew, metrics, measurements,
 │   │   │                   # checkins, readiness, alerts, training, gamification,
 │   │   │                   # quizzes, knowledge, mission, assistant
 │   │   ├── core/           # config, security, clock
@@ -209,7 +204,7 @@ make check     # lint + test + build
 
 | Entity | Key fields |
 |---|---|
-| `users` | id, email, password_hash, full_name, role, crew_id, share_status, created_at |
+| `users` | id, full_name, role, crew_id, share_status, created_at |
 | `crews` | id, name, mission_id |
 | `missions` | id, name, profile, environment, start_at, duration_days |
 | `metric_definitions` | id, code, name, unit, domain, description, normal_min, normal_max, floor_sd, frequency, source_types |
@@ -315,9 +310,6 @@ Each rule carries a plain-language rationale, a recommended action, and a citati
 ## 6. API contract
 
 ```
-POST   /auth/register
-POST   /auth/login
-POST   /auth/refresh
 GET    /me
 PATCH  /me
 GET    /me/privacy
@@ -374,7 +366,7 @@ GET    /health
 
 Conventions:
 
-- All endpoints except auth and `/health` require a bearer token.
+- All endpoints except `/health` and the public Library use `X-Astra-Role`.
 - Errors use `{ "detail": "message" }`.
 - Timestamps are ISO 8601 UTC.
 - The OpenAPI schema is the source of truth; regenerate the frontend client after every contract change.
@@ -468,12 +460,12 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 
 ### Phase 1 — Backend core
 
-**Goal:** all persistence, authentication, and seed data.
+**Goal:** all persistence, the public role session, and seed data.
 **Status:** complete.
 
 - [x] Implement every entity in §5.1 with relationships and indexes.
 - [x] Generate the initial Alembic migration and verify upgrade/downgrade.
-- [x] Implement register, login, refresh, and current-user dependency.
+- [x] Implement the role picker and current-user dependency.
 - [x] Implement metric definitions, measurements, check-ins, and check-in entries.
 - [x] Implement privacy settings on `users.share_status`.
 - [x] Build the idempotent seed command:
@@ -482,13 +474,13 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
   - [x] Three planted anomaly arcs and one stable control.
   - [x] Knowledge articles, quizzes, achievements, rewards, training items.
 - [x] Generate the typed frontend client and commit the generated schema.
-- [x] Add Pytest coverage for auth and CRUD happy paths.
+- [x] Add Pytest coverage for role selection and CRUD happy paths.
 
-**Deliverable:** the full dataset is queryable through the API with a demo login.
+**Deliverable:** the full dataset is queryable through the API with the astronaut or surgeon role.
 
 **Acceptance:** `make reset-demo` produces identical data on repeat runs (3,335 measurements, 22 check-ins, 4 crew); `GET /measurements` returns 60 days for the demo user; 16 backend tests pass.
 
-**Implemented endpoints:** `/auth/register`, `/auth/login`, `/auth/refresh`, `/me`, `/me/privacy`, `/metrics/definitions`, `/measurements`, `/measurements/batch`, `/checkins`, `/mission`.
+**Implemented endpoints:** `/me`, `/me/privacy`, `/metrics/definitions`, `/measurements`, `/measurements/batch`, `/checkins`, `/mission`.
 **Deferred:** the check-in report, readiness computation, and alert endpoints land in Phase 3. The seed already contains `readiness_snapshots` and `alerts` for that phase.
 
 ---
@@ -499,25 +491,25 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 **Status:** complete.
 
 - [x] App layout: nav rail, top bar with MET clock, mission name, crew count, comms status.
-- [x] Login and registration screens in the design language.
-- [x] Route guard and token refresh flow.
+- [x] Role picker in the design language.
+- [x] Route guard and role persistence flow.
 - [x] TanStack Query setup, error boundary, toast system.
 - [x] Section routes: Flight Deck, Systems Check, Telemetry, Training, Crew, Log, Library.
 - [x] Loading skeletons and empty states for every route.
 - [x] Responsive behavior: desktop-first, usable at 768 px and 390 px.
 
-**Deliverable:** every route is reachable, authenticated, and visually consistent.
+**Deliverable:** every route is reachable, role-guarded, and visually consistent.
 
-**Acceptance:** navigation works with keyboard only; expired token redirects to login once and recovers; no unstyled route.
+**Acceptance:** navigation works with keyboard only; a missing role redirects to the welcome screen; no unstyled route.
 
 **Implemented in this phase:**
 - App shell with fixed sidebar, mobile drawer with focus trap, top bar with readiness, MET, crew count, and comms delay.
-- Login and registration with React Hook Form + Zod, inline errors, loading states, and a demo-account shortcut.
-- Session bootstrap: `/me` first, then refresh-token recovery; invalid sessions clear and redirect to `/login` once.
+- Role picker with loading states and no credential forms.
+- Session bootstrap: read `astra.role`, then `/me`; a missing role redirects to `/welcome`.
 - Read-only `/readiness` and `/alerts` endpoints to feed the shell; the scoring engine remains Phase 3.
 - Flight Deck overview with the readiness ring, top factors, domain snapshot, active alerts, and next action.
 - Placeholder routes for the sections built in later phases, each with a clear state.
-- Verified with a Playwright smoke pass: login, shell, placeholder route, mobile drawer, refresh recovery, expired-session redirect, and logout.
+- Verified with a Playwright smoke pass: role picker, shell, placeholder route, mobile drawer, role persistence, and role switching.
 
 ---
 
@@ -751,7 +743,7 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 - [x] "Next comms window" indicator and offline banner.
 - [x] Accessibility pass: focus order, labels, contrast, target sizes, reduced motion.
 - [x] Performance pass: route-level code splitting, image and font optimization, canvas cleanup.
-- [x] Security pass: token storage, CORS, rate limits on auth, input validation.
+- [x] Security pass: CORS, input validation, role guard.
 - [x] Error states and retry affordances across all data views.
 
 **Deliverable:** the app remains usable through a network drop.
@@ -785,7 +777,7 @@ Each phase ends with a review gate. A phase is complete only when every acceptan
 |---|---|---|
 | Engine | z-scores, weighting, thresholds, determinism | Pytest |
 | Rules | each rule, overrides, alert dedupe | Pytest |
-| API | auth, CRUD, permissions, privacy | Pytest |
+| API | CRUD, permissions, privacy | Pytest |
 | Credits | exactly-once awards, redemption | Pytest |
 | UI utils | formatting, status mapping, baseline math | Vitest |
 | Offline | service worker shell, queued check-in, exactly-once sync | Playwright |
@@ -799,7 +791,7 @@ The agent runs `make check` before presenting any phase for review. The owner re
 | Gate | After | Owner checks |
 |---|---|---|
 | A | Phase 0 | Visual direction and styleguide |
-| B | Phase 2 | Navigation, login, shell feel |
+| B | Phase 2 | Navigation, role picker, shell feel |
 | C | Phase 4 | Flight Deck: the core "wow" |
 | D | Phase 5 | A real check-in end to end |
 | E | Phase 7 | Motivation loop and privacy behavior |
